@@ -1,1 +1,5 @@
-"""Memory store adapters. The ``MemoryStore`` Protocol lands in Phase 2."""
+"""Memory store adapters and the :class:`MemoryStore` Protocol."""
+
+from amp.store.base import Capability, MemoryStore
+
+__all__ = ["Capability", "MemoryStore"]
