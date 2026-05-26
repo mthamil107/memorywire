@@ -629,7 +629,26 @@ class MemoryRouter:
         stores with :attr:`Capability.RECALL_TRACKING` are eligible; the
         rest are skipped silently. (Their own adapter would raise; the
         router pre-empts that to keep the aggregate clean.)
+
+        Empty-policy guard: mirrors the no-scope mass-delete guard on
+        :meth:`forget`. A request with no policy fields would otherwise
+        match every live row for the agent and (with the default
+        ``action=FORGET``) soft-delete them all — see ARCHITECTURE §3.5.
         """
+        # Reject empty/missing policies so a stray ``expire(policy={})``
+        # cannot mass-delete every memory for the agent.
+        if req.policy is None or (
+            req.policy.older_than_days is None
+            and req.policy.type is None
+            and req.policy.confidence_below is None
+            and req.policy.no_recall_in_days is None
+        ):
+            raise ValueError(
+                "expire requires a non-empty policy: at least one of "
+                "older_than_days, type, confidence_below, or no_recall_in_days "
+                "must be set"
+            )
+
         requires_recall_tracking = (
             req.policy is not None and req.policy.no_recall_in_days is not None
         )

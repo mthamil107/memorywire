@@ -48,14 +48,14 @@ def test_pattern_below_threshold_is_hidden(seeded_db: Any) -> None:
 async def test_accept_pattern_inserts_row(
     seeded_db: Any,
     app_for_path: Any,
+    csrf_client: Any,
 ) -> None:
     _seed_consistent_approvals(seeded_db, n=6)
     recos = services.pattern_recommendations(seeded_db.db_path, "default", threshold=5)
     key = recos[0].key
 
     app = app_for_path(seeded_db.db_path)
-    transport = httpx.ASGITransport(app=app)
-    async with httpx.AsyncClient(transport=transport, base_url="http://test") as client:
+    async with csrf_client(app) as client:
         response = await client.post(f"/patterns/{key}/auto-allow", data={"reviewer": "alice"})
         assert response.status_code in {200, 303}
 

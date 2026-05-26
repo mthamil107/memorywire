@@ -51,7 +51,7 @@ import uuid
 from collections.abc import Callable, Iterable, Mapping
 from pathlib import Path
 from types import TracebackType
-from typing import Any
+from typing import Any, Final
 from urllib.parse import urlparse
 
 import anyio.to_thread
@@ -88,7 +88,18 @@ RRF_K = 60
 # Sentinel marker stored in ``deleted_at`` for memories that are awaiting
 # governance approval and so MUST NOT appear in recall. Distinct from a
 # normal soft-delete timestamp; chosen well outside any plausible Unix-ms.
-_PENDING_APPROVAL_DELETED_AT = -1
+PENDING_APPROVAL_DELETED_AT: Final[int] = -1
+"""Public sentinel value stored in ``memories.deleted_at`` to mark a row that
+is awaiting governance approval (i.e. written via ``remember(approval_required=True)``).
+
+Governance UIs and other downstream consumers should import this rather than
+hard-coding ``-1``. The OSS adapter treats the value as an invariant of the
+storage contract — any change here must bump :data:`SCHEMA_VERSION`.
+"""
+# Backwards-compat alias for the previously private name; existing call sites
+# inside this module still use the underscore form. Keep the alias so any
+# external import (tests, downstream forks) does not break.
+_PENDING_APPROVAL_DELETED_AT = PENDING_APPROVAL_DELETED_AT
 # Default embedding dimension (sentence-transformers/all-MiniLM-L6-v2).
 DEFAULT_EMBEDDING_DIM = 384
 
@@ -922,6 +933,22 @@ class SqliteVecStore:
         action = req.action if req.action is not None else ExpireAction.FORGET
         policy = req.policy
 
+        # Defensive: never trust router-layer validation. An empty/None
+        # policy with action=FORGET (the default) would otherwise
+        # soft-delete every live row for the agent. Mirror the router's
+        # guard so direct adapter use is equally safe.
+        if policy is None or (
+            policy.older_than_days is None
+            and policy.type is None
+            and policy.confidence_below is None
+            and policy.no_recall_in_days is None
+        ):
+            raise ValueError(
+                "expire requires a non-empty policy: at least one of "
+                "older_than_days, type, confidence_below, or no_recall_in_days "
+                "must be set"
+            )
+
         clauses: list[str] = ["agent_id = ?", "deleted_at IS NULL"]
         params: list[Any] = [req.agent_id]
         now = _now_ms()
@@ -1060,4 +1087,9 @@ class SqliteVecStore:
         }
 
 
-__all__ = ["BACKEND_NAME", "DEFAULT_EMBEDDING_DIM", "SqliteVecStore"]
+__all__ = [
+    "BACKEND_NAME",
+    "DEFAULT_EMBEDDING_DIM",
+    "PENDING_APPROVAL_DELETED_AT",
+    "SqliteVecStore",
+]

@@ -10,6 +10,7 @@ list partial only, so the auto-refresh doesn't blow away the page chrome.
 
 from __future__ import annotations
 
+from starlette.exceptions import HTTPException
 from starlette.requests import Request
 from starlette.responses import RedirectResponse, Response
 from starlette.templating import Jinja2Templates
@@ -40,24 +41,40 @@ async def list_pending(request: Request) -> Response:
 
 
 async def approve(request: Request) -> Response:
-    """POST ``/approvals/{memory_id}/approve`` — flip the row to approved."""
+    """POST ``/approvals/{memory_id}/approve`` — flip the row to approved.
+
+    Scoped to ``app.state.agent_id``; cross-agent or non-pending targets
+    raise :class:`services.NotPendingError`, which we map to a 404 so the
+    UI never confirms the existence of someone else's pending row.
+    """
     db_path: str = request.app.state.db_path
+    agent_id: str = request.app.state.agent_id
     memory_id = request.path_params["memory_id"]
     form = await request.form()
     reviewer = str(form.get("reviewer") or "ui-operator")
     reason = form.get("reason")
-    services.approve(db_path, memory_id, reviewer, str(reason) if reason else None)
+    try:
+        services.approve(db_path, memory_id, agent_id, reviewer, str(reason) if reason else None)
+    except LookupError as exc:
+        raise HTTPException(status_code=404, detail="memory not pending") from exc
     return _post_action_response(request)
 
 
 async def reject(request: Request) -> Response:
-    """POST ``/approvals/{memory_id}/reject`` — soft-delete the row."""
+    """POST ``/approvals/{memory_id}/reject`` — soft-delete the row.
+
+    Same agent-scope / 404-on-mismatch behaviour as :func:`approve`.
+    """
     db_path: str = request.app.state.db_path
+    agent_id: str = request.app.state.agent_id
     memory_id = request.path_params["memory_id"]
     form = await request.form()
     reviewer = str(form.get("reviewer") or "ui-operator")
     reason = form.get("reason")
-    services.reject(db_path, memory_id, reviewer, str(reason) if reason else None)
+    try:
+        services.reject(db_path, memory_id, agent_id, reviewer, str(reason) if reason else None)
+    except LookupError as exc:
+        raise HTTPException(status_code=404, detail="memory not pending") from exc
     return _post_action_response(request)
 
 

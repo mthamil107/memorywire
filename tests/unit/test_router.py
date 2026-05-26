@@ -673,6 +673,30 @@ async def test_expire_fans_out_and_sums_counts() -> None:
     assert set(resp.stores) == {"s1", "s2"}
 
 
+async def test_expire_rejects_missing_policy() -> None:
+    """``expire`` with ``policy=None`` is a no-scope mass-delete and must raise.
+
+    Regression: before this guard, ``policy=None`` with the default
+    ``action=FORGET`` soft-deleted every live row for the agent because the
+    where-clause collapsed to ``agent_id = ? AND deleted_at IS NULL``.
+    """
+    s1 = FakeStore(backend_name="s1")
+    router = MemoryRouter([s1])
+    with pytest.raises(ValueError, match="expire requires a non-empty policy"):
+        await router.expire(ExpireRequest(agent_id="a"))
+    # The store must not have been called.
+    assert s1.expire_calls == []
+
+
+async def test_expire_rejects_empty_policy() -> None:
+    """``expire`` with an :class:`ExpirePolicy` of all-None fields must raise."""
+    s1 = FakeStore(backend_name="s1")
+    router = MemoryRouter([s1])
+    with pytest.raises(ValueError, match="expire requires a non-empty policy"):
+        await router.expire(ExpireRequest(agent_id="a", policy=ExpirePolicy()))
+    assert s1.expire_calls == []
+
+
 async def test_expire_no_recall_in_days_skips_stores_without_capability() -> None:
     """``no_recall_in_days`` policy skips stores that don't track recall."""
     s_tracked = FakeStore(

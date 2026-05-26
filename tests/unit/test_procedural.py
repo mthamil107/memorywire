@@ -269,3 +269,156 @@ def test_from_dict_accepts_procedure_without_current_and_defaults_to_initial() -
     }
     proc = Procedure.from_dict(blob)
     assert proc.current == "a"
+
+
+# ---------------------------------------------------------------------------
+# Security: pytransitions callback keys are an RCE vector — reject them.
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.parametrize("bad_key", ["before", "after", "prepare", "on_enter", "on_exit"])
+def test_validate_rejects_disallowed_transition_keys(bad_key: str) -> None:
+    """Reject pytransitions callback keys — they accept dotted strings that
+    the engine resolves via ``__import__`` (arbitrary code execution).
+    """
+    blob: dict[str, Any] = {
+        "name": "pwn",
+        "initial": "a",
+        "states": ["a", "b"],
+        "transitions": [
+            {"trigger": "go", "source": "a", "dest": "b", bad_key: "os.system"},
+        ],
+    }
+    with pytest.raises(ValueError, match=r"disallowed key"):
+        validate_procedure_dict(blob)
+
+
+def test_validate_rejects_conditions_string_with_dot() -> None:
+    """``conditions: "os.system"`` would let pytransitions resolve an import.
+
+    pytransitions only resolves dotted strings to imports for callback keys,
+    but defence-in-depth: ban dotted strings in ``conditions``/``unless``
+    too. Bare identifiers (resolved against the model) remain allowed.
+    """
+    blob: dict[str, Any] = {
+        "name": "pwn",
+        "initial": "a",
+        "states": ["a", "b"],
+        "transitions": [
+            {
+                "trigger": "go",
+                "source": "a",
+                "dest": "b",
+                "conditions": "os.system",
+            }
+        ],
+    }
+    with pytest.raises(ValueError, match=r"must not contain '\.'"):
+        validate_procedure_dict(blob)
+
+
+def test_validate_rejects_unless_list_with_dotted_string() -> None:
+    """``unless`` accepts a list — every string element is still constrained."""
+    blob: dict[str, Any] = {
+        "name": "pwn",
+        "initial": "a",
+        "states": ["a", "b"],
+        "transitions": [
+            {
+                "trigger": "go",
+                "source": "a",
+                "dest": "b",
+                "unless": ["ok", "shutil.rmtree"],
+            }
+        ],
+    }
+    with pytest.raises(ValueError, match=r"must not contain '\.'"):
+        validate_procedure_dict(blob)
+
+
+def test_validate_accepts_conditions_bare_identifier() -> None:
+    """Bare identifiers in ``conditions`` are allowed — they resolve to
+    model attributes, not arbitrary imports.
+    """
+    blob: dict[str, Any] = {
+        "name": "guarded",
+        "initial": "a",
+        "states": ["a", "b"],
+        "transitions": [
+            {
+                "trigger": "go",
+                "source": "a",
+                "dest": "b",
+                "conditions": "is_authorized",
+            }
+        ],
+    }
+    # No exception → allow-listed.
+    validate_procedure_dict(blob)
+
+
+def test_runner_strips_disallowed_keys_from_directly_built_procedure() -> None:
+    """``ProcedureRunner._expand_transitions`` defensively strips disallowed
+    keys so a :class:`Procedure` built directly (bypassing
+    :func:`validate_procedure_dict`) cannot smuggle ``before``/``after``
+    callback strings into the underlying pytransitions Machine.
+
+    We can't construct the runner with the bad keys directly because
+    ``Procedure.__post_init__`` doesn't run validation — that's the path
+    the defensive strip is guarding. After construction the runner must
+    behave normally and not have wired any extra callbacks.
+    """
+    proc = Procedure(
+        name="bypass",
+        states=["a", "b"],
+        transitions=[
+            # ``before`` / ``after`` would normally be flagged by
+            # validate_procedure_dict — but Procedure() itself does not
+            # validate. The runner's expand step must strip them.
+            {
+                "trigger": "go",
+                "source": "a",
+                "dest": "b",
+                "before": "os.system",
+                "after": "shutil.rmtree",
+            }
+        ],
+        initial="a",
+    )
+    # The runner constructor calls procedure.validate() which now rejects
+    # the disallowed keys — so construction itself raises. That is the
+    # primary defence; the strip is belt-and-braces. Document the behaviour
+    # we observe by asserting the validate-time error.
+    with pytest.raises(ValueError, match=r"disallowed key"):
+        ProcedureRunner(proc)
+
+
+def test_expand_transitions_drops_disallowed_keys_when_invoked_directly() -> None:
+    """Direct test of the defensive strip in :meth:`ProcedureRunner._expand_transitions`.
+
+    Even if a caller side-steps both validate() and the runner constructor
+    and calls the static helper directly, the disallowed keys must not
+    survive into the output that would be handed to pytransitions.
+    """
+    proc = Procedure(
+        name="bypass",
+        states=["a", "b"],
+        transitions=[
+            {
+                "trigger": "go",
+                "source": "a",
+                "dest": "b",
+                "before": "os.system",
+                "after": "shutil.rmtree",
+                "prepare": "subprocess.run",
+            }
+        ],
+        initial="a",
+    )
+    expanded = ProcedureRunner._expand_transitions(proc)
+    assert len(expanded) == 1
+    out = expanded[0]
+    assert "before" not in out
+    assert "after" not in out
+    assert "prepare" not in out
+    assert out == {"trigger": "go", "source": "a", "dest": "b"}

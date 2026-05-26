@@ -29,20 +29,21 @@ import re
 import sqlite3
 import time
 from collections.abc import Iterable
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Literal
+
+from amp.store.sqlite_vec import PENDING_APPROVAL_DELETED_AT
 
 # ---------------------------------------------------------------------------
 # Constants
 # ---------------------------------------------------------------------------
 
-# Sentinel for memories awaiting governance approval (mirrors the OSS adapter's
-# private ``_PENDING_APPROVAL_DELETED_AT`` constant — copied here rather than
-# imported because the UI is licensed separately and the OSS package treats
-# the value as an implementation detail). If the OSS side ever changes the
-# sentinel the UI must follow.
-PENDING_SENTINEL = -1
+# Sentinel for memories awaiting governance approval. Re-exported from the OSS
+# adapter so the UI and the storage contract stay in lockstep — when the OSS
+# side bumps SCHEMA_VERSION and changes the sentinel, the UI follows
+# automatically rather than silently desyncing on a hand-copied literal.
+PENDING_SENTINEL = PENDING_APPROVAL_DELETED_AT
 
 # Co-memorize forget-candidate thresholds. Documented in the heuristic.
 _FORGET_AGE_DAYS = 90
@@ -148,12 +149,29 @@ class CoMemOp:
 
 
 @dataclass(slots=True)
+class ApplyOpResult:
+    """Per-op outcome inside an :class:`ApplyResult`.
+
+    ``skipped`` is true when the row did not exist, did not belong to the
+    requesting agent, or was already soft-deleted — none of those are bugs
+    in the operator's workflow, so we report them rather than raising.
+    """
+
+    op_type: Literal["forget", "merge"]
+    primary_id: str
+    secondary_id: str | None = None
+    skipped: bool = False
+    reason: str | None = None
+
+
+@dataclass(slots=True)
 class ApplyResult:
     """Aggregate result of a Co-memorize Apply submission."""
 
     applied: int
     skipped: int
     errors: list[str]
+    results: list[ApplyOpResult] = field(default_factory=list)
 
 
 @dataclass(slots=True)
@@ -275,17 +293,56 @@ def _extract_keyword(content: str) -> str:
 
 
 # ---------------------------------------------------------------------------
-# Schema management — UI-owned tables only
+# Exceptions
+# ---------------------------------------------------------------------------
+
+
+class NotPendingError(LookupError):
+    """Raised when an approve/reject targets a row that is missing, not
+    pending, or belongs to a different agent. Subclasses :class:`LookupError`
+    so existing handlers that catch ``LookupError`` continue to work — and
+    the route layer can map either to a 404.
+    """
+
+
+# ---------------------------------------------------------------------------
+# Schema management — UI-owned tables + bootstrap of the OSS schema
 # ---------------------------------------------------------------------------
 
 
 def ensure_schema(db_path: str | Path) -> None:
-    """Idempotently create the UI's ``approval_patterns`` table.
+    """Idempotently create both the UI-owned table and the OSS storage schema.
 
-    The OSS adapter owns every other table; we strictly add. Safe to call
-    on every app boot — the ``IF NOT EXISTS`` guard is the only contract
-    callers rely on.
+    The UI is a read-mostly renderer over the same database the OSS adapter
+    writes to. In production the OSS process always boots first and creates
+    its schema as a side effect of constructing a :class:`SqliteVecStore`;
+    in tests we lean on the seeded_db fixture for the same effect. But when
+    an operator points the UI at a brand-new file (the common dev-loop —
+    ``python -m amp_ui`` against an empty ``./amp-cli.db``), nothing has
+    ever created the OSS tables and every page returns 500 from a
+    ``no such table: memories`` error.
+
+    Fix: instantiate a ``SqliteVecStore`` here, let its ``_init_schema``
+    run, then drop it. We pass a no-op embedder so the import is cheap and
+    sentence-transformers is never touched — the embedder is only invoked
+    on actual writes, which we never perform.
+
+    The OSS schema bootstrap is idempotent (every CREATE uses ``IF NOT
+    EXISTS``), so calling this on every app boot is safe.
     """
+    # Lazy / inline import so this module stays importable even on builds
+    # where the OSS adapter's optional deps are not installed. The fake
+    # embedder below means we never load sentence-transformers.
+    from amp.store.sqlite_vec import SqliteVecStore
+
+    store = SqliteVecStore(db_path=str(db_path), embedder=lambda _text: [0.0])
+    try:
+        # Constructor already invoked _init_schema; we just need the side
+        # effect of the tables existing on this file.
+        pass
+    finally:
+        store.close()
+
     conn = _connect(db_path)
     try:
         conn.execute(
@@ -426,29 +483,43 @@ def list_pending(db_path: str | Path, agent_id: str) -> list[PendingApproval]:
 def approve(
     db_path: str | Path,
     memory_id: str,
+    agent_id: str,
     reviewer: str,
     reason: str | None = None,
 ) -> None:
-    """Approve a pending memory: flip ``deleted_at`` to NULL + audit it."""
+    """Approve a pending memory: flip ``deleted_at`` to NULL + audit it.
+
+    Strictly scoped to ``agent_id`` and the pending sentinel — any attempt
+    to approve a row that is not pending, has been hard-deleted, or
+    belongs to a different agent raises :class:`NotPendingError` (a
+    :class:`LookupError` subclass) so the route layer can return 404.
+    This closes the IDOR where a malicious operator with one agent's UI
+    open could approve / resurrect arbitrary rows by guessing memory ids.
+    """
     conn = _connect(db_path)
     try:
         now = _now_ms()
         with conn:
-            conn.execute(
-                "UPDATE memories SET deleted_at = NULL, updated_at = ? WHERE id = ?",
-                (now, memory_id),
+            cursor = conn.execute(
+                "UPDATE memories SET deleted_at = NULL, updated_at = ? "
+                "WHERE id = ? AND agent_id = ? AND deleted_at = ?",
+                (now, memory_id, agent_id, PENDING_SENTINEL),
             )
+            if cursor.rowcount == 0:
+                raise NotPendingError(
+                    f"memory {memory_id!r} is not a pending approval for agent {agent_id!r}"
+                )
             conn.execute(
                 "INSERT INTO audit_log(ts, operation, agent_id, user_id, memory_id, "
                 "payload, result, approved_by, approval_at) "
-                "VALUES (?, 'remember', "
-                "(SELECT agent_id FROM memories WHERE id = ?), "
-                "(SELECT user_id FROM memories WHERE id = ?), "
+                "VALUES (?, 'remember', ?, "
+                "(SELECT user_id FROM memories WHERE id = ? AND agent_id = ?), "
                 "?, ?, ?, ?, ?)",
                 (
                     now,
+                    agent_id,
                     memory_id,
-                    memory_id,
+                    agent_id,
                     memory_id,
                     json.dumps({"reason": reason, "action": "approve"}),
                     json.dumps({"approved": True}),
@@ -463,29 +534,40 @@ def approve(
 def reject(
     db_path: str | Path,
     memory_id: str,
+    agent_id: str,
     reviewer: str,
     reason: str | None = None,
 ) -> None:
-    """Reject a pending memory: soft-delete it + audit the reason."""
+    """Reject a pending memory: soft-delete it + audit the reason.
+
+    Strictly scoped to ``agent_id`` and the pending sentinel. See
+    :func:`approve` for the security rationale; :class:`NotPendingError`
+    raised on any mismatch.
+    """
     conn = _connect(db_path)
     try:
         now = _now_ms()
         with conn:
-            conn.execute(
-                "UPDATE memories SET deleted_at = ?, updated_at = ? WHERE id = ?",
-                (now, now, memory_id),
+            cursor = conn.execute(
+                "UPDATE memories SET deleted_at = ?, updated_at = ? "
+                "WHERE id = ? AND agent_id = ? AND deleted_at = ?",
+                (now, now, memory_id, agent_id, PENDING_SENTINEL),
             )
+            if cursor.rowcount == 0:
+                raise NotPendingError(
+                    f"memory {memory_id!r} is not a pending approval for agent {agent_id!r}"
+                )
             conn.execute(
                 "INSERT INTO audit_log(ts, operation, agent_id, user_id, memory_id, "
                 "payload, result, approved_by, approval_at) "
-                "VALUES (?, 'forget', "
-                "(SELECT agent_id FROM memories WHERE id = ?), "
-                "(SELECT user_id FROM memories WHERE id = ?), "
+                "VALUES (?, 'forget', ?, "
+                "(SELECT user_id FROM memories WHERE id = ? AND agent_id = ?), "
                 "?, ?, ?, ?, ?)",
                 (
                     now,
+                    agent_id,
                     memory_id,
-                    memory_id,
+                    agent_id,
                     memory_id,
                     json.dumps({"reason": reason, "action": "reject"}),
                     json.dumps({"approved": False}),
@@ -781,20 +863,30 @@ def co_memorize_candidates(
 
 
 def apply_co_memorize(
-    db_path: str | Path, ops: Iterable[CoMemOp], reviewer: str = "co-memorize"
+    db_path: str | Path,
+    agent_id: str,
+    ops: Iterable[CoMemOp],
+    reviewer: str = "co-memorize",
 ) -> ApplyResult:
-    """Apply a list of bulk-review operations.
+    """Apply a list of bulk-review operations, strictly scoped to ``agent_id``.
 
     * ``forget`` — soft-delete the primary and audit it.
     * ``merge``  — soft-delete the secondary; keep the primary as canonical.
 
-    Operations are applied independently; per-op failures are collected
-    into ``ApplyResult.errors`` rather than aborting the batch.
+    Every UPDATE includes ``AND agent_id = ?`` so a malicious operator
+    cannot pivot from their own UI session to another agent's rows by
+    guessing memory ids. If a row is missing, not live, or belongs to a
+    different agent, the op is recorded in ``ApplyResult.results[i]``
+    with ``skipped=True`` and a human-readable reason — we do *not* raise
+    the whole batch, since legitimate races (the row was forgotten by
+    another process between page render and apply) look identical to the
+    cross-agent case at the SQL layer.
     """
     conn = _connect(db_path)
     applied = 0
     skipped = 0
     errors: list[str] = []
+    results: list[ApplyOpResult] = []
     try:
         now = _now_ms()
         for op in ops:
@@ -803,23 +895,32 @@ def apply_co_memorize(
                     if op.op_type == "forget":
                         cursor = conn.execute(
                             "UPDATE memories SET deleted_at = ?, updated_at = ? "
-                            "WHERE id = ? AND deleted_at IS NULL",
-                            (now, now, op.primary_id),
+                            "WHERE id = ? AND agent_id = ? AND deleted_at IS NULL",
+                            (now, now, op.primary_id, agent_id),
                         )
                         if cursor.rowcount == 0:
                             skipped += 1
+                            results.append(
+                                ApplyOpResult(
+                                    op_type="forget",
+                                    primary_id=op.primary_id,
+                                    secondary_id=None,
+                                    skipped=True,
+                                    reason=("not found, not live, or belongs to a different agent"),
+                                )
+                            )
                             continue
                         conn.execute(
                             "INSERT INTO audit_log(ts, operation, agent_id, user_id, "
                             "memory_id, payload, result, approved_by, approval_at) "
-                            "VALUES (?, 'forget', "
-                            "(SELECT agent_id FROM memories WHERE id = ?), "
-                            "(SELECT user_id FROM memories WHERE id = ?), "
+                            "VALUES (?, 'forget', ?, "
+                            "(SELECT user_id FROM memories WHERE id = ? AND agent_id = ?), "
                             "?, ?, ?, ?, ?)",
                             (
                                 now,
+                                agent_id,
                                 op.primary_id,
-                                op.primary_id,
+                                agent_id,
                                 op.primary_id,
                                 json.dumps({"reason": "co-memorize bulk forget"}),
                                 json.dumps({"forgotten_ids": [op.primary_id]}),
@@ -828,30 +929,79 @@ def apply_co_memorize(
                             ),
                         )
                         applied += 1
+                        results.append(
+                            ApplyOpResult(
+                                op_type="forget",
+                                primary_id=op.primary_id,
+                                secondary_id=None,
+                                skipped=False,
+                            )
+                        )
 
                     elif op.op_type == "merge":
                         if not op.secondary_id:
                             skipped += 1
+                            results.append(
+                                ApplyOpResult(
+                                    op_type="merge",
+                                    primary_id=op.primary_id,
+                                    secondary_id=None,
+                                    skipped=True,
+                                    reason="merge op missing secondary_id",
+                                )
+                            )
+                            continue
+                        # Verify the canonical (primary) also belongs to this
+                        # agent. Otherwise an attacker could resolve their own
+                        # primary against another agent's secondary, exfiltrating
+                        # the relationship via the audit log.
+                        primary_row = conn.execute(
+                            "SELECT 1 FROM memories WHERE id = ? AND agent_id = ?",
+                            (op.primary_id, agent_id),
+                        ).fetchone()
+                        if primary_row is None:
+                            skipped += 1
+                            results.append(
+                                ApplyOpResult(
+                                    op_type="merge",
+                                    primary_id=op.primary_id,
+                                    secondary_id=op.secondary_id,
+                                    skipped=True,
+                                    reason="primary not found for this agent",
+                                )
+                            )
                             continue
                         cursor = conn.execute(
                             "UPDATE memories SET deleted_at = ?, updated_at = ? "
-                            "WHERE id = ? AND deleted_at IS NULL",
-                            (now, now, op.secondary_id),
+                            "WHERE id = ? AND agent_id = ? AND deleted_at IS NULL",
+                            (now, now, op.secondary_id, agent_id),
                         )
                         if cursor.rowcount == 0:
                             skipped += 1
+                            results.append(
+                                ApplyOpResult(
+                                    op_type="merge",
+                                    primary_id=op.primary_id,
+                                    secondary_id=op.secondary_id,
+                                    skipped=True,
+                                    reason=(
+                                        "secondary not found, not live, or belongs to a "
+                                        "different agent"
+                                    ),
+                                )
+                            )
                             continue
                         conn.execute(
                             "INSERT INTO audit_log(ts, operation, agent_id, user_id, "
                             "memory_id, payload, result, approved_by, approval_at) "
-                            "VALUES (?, 'merge', "
-                            "(SELECT agent_id FROM memories WHERE id = ?), "
-                            "(SELECT user_id FROM memories WHERE id = ?), "
+                            "VALUES (?, 'merge', ?, "
+                            "(SELECT user_id FROM memories WHERE id = ? AND agent_id = ?), "
                             "?, ?, ?, ?, ?)",
                             (
                                 now,
+                                agent_id,
                                 op.primary_id,
-                                op.primary_id,
+                                agent_id,
                                 op.primary_id,
                                 json.dumps(
                                     {
@@ -866,12 +1016,32 @@ def apply_co_memorize(
                             ),
                         )
                         applied += 1
+                        results.append(
+                            ApplyOpResult(
+                                op_type="merge",
+                                primary_id=op.primary_id,
+                                secondary_id=op.secondary_id,
+                                skipped=False,
+                            )
+                        )
                     else:
+                        # Unreachable per CoMemOp's Literal type, but keep a
+                        # defensive branch in case a future op_type is added
+                        # without updating this dispatch.
                         skipped += 1
+                        results.append(
+                            ApplyOpResult(
+                                op_type=op.op_type,
+                                primary_id=op.primary_id,
+                                secondary_id=op.secondary_id,
+                                skipped=True,
+                                reason=f"unknown op_type {op.op_type!r}",
+                            )
+                        )
             except sqlite3.Error as exc:
                 errors.append(f"{op.op_type} {op.primary_id}: {exc}")
 
-        return ApplyResult(applied=applied, skipped=skipped, errors=errors)
+        return ApplyResult(applied=applied, skipped=skipped, errors=errors, results=results)
     finally:
         conn.close()
 
@@ -1053,12 +1223,14 @@ __all__ = [
     "DEFAULT_AUDIT_PAGE",
     "DEFAULT_PATTERN_THRESHOLD",
     "PENDING_SENTINEL",
+    "ApplyOpResult",
     "ApplyResult",
     "AuditFilters",
     "AuditRow",
     "CoMemCandidate",
     "CoMemOp",
     "HealthMetrics",
+    "NotPendingError",
     "PatternReco",
     "PendingApproval",
     "accept_pattern",

@@ -13,14 +13,22 @@ which builds the same factory off environment variables.
 from __future__ import annotations
 
 import os
+import secrets
 from pathlib import Path
 
 from starlette.applications import Starlette
+from starlette.middleware import Middleware
 from starlette.routing import Mount, Route
 from starlette.staticfiles import StaticFiles
 from starlette.templating import Jinja2Templates
 
 from amp_ui import services
+from amp_ui.middleware import (
+    BearerAuthMiddleware,
+    CSRFMiddleware,
+    csrf_token_for_request,
+    warn_if_public_host,
+)
 from amp_ui.routes import approvals, audit, co_memorize, health, patterns
 
 _TEMPLATES_DIR = Path(__file__).parent / "templates"
@@ -31,6 +39,8 @@ def create_app(
     *,
     db_path: str | Path | None = None,
     agent_id: str = "default",
+    token: str | None = None,
+    csrf_secret: bytes | None = None,
 ) -> Starlette:
     """Build the Starlette app.
 
@@ -43,15 +53,41 @@ def create_app(
         useful for smoke tests).
     agent_id:
         Agent scope used by every screen. Defaults to ``"default"``.
+    token:
+        Optional bearer-token for the governance API. When set, every
+        request must carry ``Authorization: Bearer <token>`` (server
+        clients) or the ``amp_ui_session=<token>`` cookie (browsers).
+        When unset, auth is a no-op — preserved as the opt-in default
+        so local dev keeps working without ceremony.
+    csrf_secret:
+        HMAC secret used to sign CSRF tokens. When ``None`` a fresh
+        random secret is generated per-process. That is fine for v0 dev
+        (and tests) but will mean operators are logged out across
+        restarts; production deployments should pin it explicitly.
     """
     resolved_db = _resolve_db_path(db_path)
     services.ensure_schema(resolved_db)
 
+    if token is None:
+        warn_if_public_host()
+
+    if csrf_secret is None:
+        csrf_secret = secrets.token_bytes(32)
+
     templates = Jinja2Templates(directory=str(_TEMPLATES_DIR))
     templates.env.globals["agent_id"] = agent_id
+    # Expose the per-request CSRF token to templates so the base template
+    # can wire it onto HTMX's hx-headers attribute. The lambda reads from
+    # the active request via Jinja's context, so callers don't have to
+    # pass it through every TemplateResponse manually.
+    templates.env.globals["csrf_token_for_request"] = csrf_token_for_request
 
     app = Starlette(
         debug=False,
+        middleware=[
+            Middleware(BearerAuthMiddleware, token=token),
+            Middleware(CSRFMiddleware, secret=csrf_secret),
+        ],
         routes=[
             Route("/", approvals.list_pending, name="approvals.list"),
             Route(
@@ -93,6 +129,8 @@ def create_app(
     app.state.db_path = str(resolved_db)
     app.state.agent_id = agent_id
     app.state.templates = templates
+    app.state.token = token
+    app.state.csrf_secret = csrf_secret
     return app
 
 

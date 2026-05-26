@@ -450,6 +450,38 @@ async def test_expire_archive_sets_metadata_and_soft_deletes(store: SqliteVecSto
     assert row["deleted_at"] is not None
 
 
+async def test_expire_rejects_missing_policy(store: SqliteVecStore) -> None:
+    """``expire(policy=None)`` would mass-delete the agent's rows — must raise.
+
+    Regression: before this guard, the WHERE clause collapsed to
+    ``agent_id = ? AND deleted_at IS NULL`` and (with the default
+    ``action=FORGET``) soft-deleted every live row for the agent.
+    """
+    await store.remember(
+        RememberRequest(agent_id="agent-x", type=MemoryType.SEMANTIC, content="keep me")
+    )
+    with pytest.raises(ValueError, match="expire requires a non-empty policy"):
+        await store.expire(ExpireRequest(agent_id="agent-x"))
+    # No row was soft-deleted.
+    row = store._conn.execute(
+        "SELECT deleted_at FROM memories WHERE agent_id = ?", ("agent-x",)
+    ).fetchone()
+    assert row["deleted_at"] is None
+
+
+async def test_expire_rejects_empty_policy_object(store: SqliteVecStore) -> None:
+    """``expire`` with an :class:`ExpirePolicy` of all-None fields must raise."""
+    await store.remember(
+        RememberRequest(agent_id="agent-y", type=MemoryType.SEMANTIC, content="keep me too")
+    )
+    with pytest.raises(ValueError, match="expire requires a non-empty policy"):
+        await store.expire(ExpireRequest(agent_id="agent-y", policy=ExpirePolicy()))
+    row = store._conn.execute(
+        "SELECT deleted_at FROM memories WHERE agent_id = ?", ("agent-y",)
+    ).fetchone()
+    assert row["deleted_at"] is None
+
+
 async def test_health_returns_expected_shape(store: SqliteVecStore) -> None:
     await store.remember(
         RememberRequest(agent_id="agent-h", type=MemoryType.SEMANTIC, content="hi")

@@ -31,6 +31,7 @@ async def test_pending_row_visible_on_home(
 async def test_approve_flips_deleted_at_to_null(
     seeded_db: Any,
     app_for_path: Any,
+    csrf_client: Any,
 ) -> None:
     pending_id = seeded_db.remember("Bob likes cats", approval_required=True)
     # Sanity: row is currently pending.
@@ -40,8 +41,7 @@ async def test_approve_flips_deleted_at_to_null(
     assert row["deleted_at"] == -1
 
     app = app_for_path(seeded_db.db_path)
-    transport = httpx.ASGITransport(app=app)
-    async with httpx.AsyncClient(transport=transport, base_url="http://test") as client:
+    async with csrf_client(app) as client:
         response = await client.post(
             f"/approvals/{pending_id}/approve",
             data={"reviewer": "alice", "reason": "looks good"},
@@ -65,11 +65,11 @@ async def test_approve_flips_deleted_at_to_null(
 async def test_reject_soft_deletes_the_row(
     seeded_db: Any,
     app_for_path: Any,
+    csrf_client: Any,
 ) -> None:
     pending_id = seeded_db.remember("noise", approval_required=True)
     app = app_for_path(seeded_db.db_path)
-    transport = httpx.ASGITransport(app=app)
-    async with httpx.AsyncClient(transport=transport, base_url="http://test") as client:
+    async with csrf_client(app) as client:
         response = await client.post(
             f"/approvals/{pending_id}/reject",
             data={"reviewer": "alice", "reason": "spam"},
@@ -119,3 +119,76 @@ async def test_empty_state_shown_when_no_pending(
         response = await client.get("/")
         assert response.status_code == 200
         assert "No pending approvals" in response.text
+
+
+# ---------------------------------------------------------------------------
+# Bug-2 regressions: agent_id scoping + pending-state guard on approve/reject
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.anyio
+async def test_approve_rejected_when_row_belongs_to_other_agent(
+    seeded_db: Any,
+    app_for_path: Any,
+    csrf_client: Any,
+) -> None:
+    """A pending row owned by ``alpha`` must not be approvable from a UI
+    session scoped to ``beta`` — the prior IDOR would have let any
+    operator with the row id flip ``deleted_at`` regardless of agent."""
+    alpha_id = seeded_db.remember("alice secret", agent_id="alpha", approval_required=True)
+    app = app_for_path(seeded_db.db_path, agent_id="beta")
+    async with csrf_client(app) as client:
+        response = await client.post(f"/approvals/{alpha_id}/approve", data={"reviewer": "mallory"})
+        assert response.status_code == 404
+
+    # Row must still be pending — the cross-agent approve was a no-op.
+    row = seeded_db.conn.execute(
+        "SELECT deleted_at FROM memories WHERE id = ?", (alpha_id,)
+    ).fetchone()
+    assert row["deleted_at"] == -1
+
+
+@pytest.mark.anyio
+async def test_reject_rejected_when_row_belongs_to_other_agent(
+    seeded_db: Any,
+    app_for_path: Any,
+    csrf_client: Any,
+) -> None:
+    """Symmetric guard on reject — cross-agent reject must 404."""
+    alpha_id = seeded_db.remember("alice secret 2", agent_id="alpha", approval_required=True)
+    app = app_for_path(seeded_db.db_path, agent_id="beta")
+    async with csrf_client(app) as client:
+        response = await client.post(f"/approvals/{alpha_id}/reject", data={"reviewer": "mallory"})
+        assert response.status_code == 404
+
+    row = seeded_db.conn.execute(
+        "SELECT deleted_at FROM memories WHERE id = ?", (alpha_id,)
+    ).fetchone()
+    assert row["deleted_at"] == -1
+
+
+@pytest.mark.anyio
+async def test_approve_rejected_when_row_is_not_pending(
+    seeded_db: Any,
+    app_for_path: Any,
+    csrf_client: Any,
+) -> None:
+    """A row that has already been soft-deleted (deleted_at = timestamp,
+    not the pending sentinel) must not be resurrectable via approve.
+    Before the fix, ``UPDATE ... WHERE id = ?`` would happily clear
+    ``deleted_at`` on a non-pending row, undoing a legitimate forget."""
+    mid = seeded_db.remember("already-forgotten", agent_id="alpha")
+    # Soft-delete it the way the OSS adapter would.
+    seeded_db.conn.execute(
+        "UPDATE memories SET deleted_at = ? WHERE id = ?",
+        (123456789, mid),
+    )
+
+    app = app_for_path(seeded_db.db_path, agent_id="alpha")
+    async with csrf_client(app) as client:
+        response = await client.post(f"/approvals/{mid}/approve", data={"reviewer": "alice"})
+        assert response.status_code == 404
+
+    row = seeded_db.conn.execute("SELECT deleted_at FROM memories WHERE id = ?", (mid,)).fetchone()
+    # deleted_at must still be the soft-delete timestamp, not NULL.
+    assert row["deleted_at"] == 123456789

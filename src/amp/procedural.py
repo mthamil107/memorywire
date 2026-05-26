@@ -40,6 +40,25 @@ _WILDCARD: str = "*"
 _REQUIRED_KEYS: tuple[str, ...] = ("name", "initial", "states", "transitions")
 
 
+# Keys allowed on a transition dict. ANYTHING else — in particular
+# pytransitions' ``before`` / ``after`` / ``prepare`` callback keys — is
+# rejected because pytransitions resolves string callbacks via
+# ``__import__(module)`` + ``getattr``, which is an arbitrary-code-execution
+# vector: a procedural memory with ``"before": "os.system"`` would run
+# ``os.system(...)`` when the trigger fires.
+#
+# ``conditions`` and ``unless`` are permitted (they gate transitions) BUT
+# their string values are restricted below to bare identifiers (no ``.``)
+# because pytransitions only resolves dotted strings to imports for
+# callback keys; ``conditions``/``unless`` strings are looked up as
+# attributes on the model. Restricting to identifiers means they can only
+# resolve to model attributes (which our private :class:`_ProcedureModel`
+# does not expose), never to arbitrary imports.
+_ALLOWED_TRANSITION_KEYS: frozenset[str] = frozenset(
+    {"trigger", "source", "dest", "conditions", "unless"}
+)
+
+
 def validate_procedure_dict(data: dict[str, Any]) -> None:
     """Validate a procedure-content dict per spec §7. Raise ``ValueError`` on failure."""
     if not isinstance(data, dict):
@@ -87,6 +106,34 @@ def validate_procedure_dict(data: dict[str, Any]) -> None:
         for key in ("trigger", "source", "dest"):
             if key not in tr:
                 raise ValueError(f"transition[{idx}] missing required key {key!r}")
+        # Reject any keys outside the safe allow-list. pytransitions'
+        # ``before`` / ``after`` / ``prepare`` callback keys accept dotted
+        # strings that the engine resolves via ``__import__`` — i.e. an RCE
+        # vector. We refuse them outright at validation time.
+        disallowed = sorted(set(tr.keys()) - _ALLOWED_TRANSITION_KEYS)
+        if disallowed:
+            raise ValueError(
+                f"transition[{idx}] has disallowed key(s) {disallowed!r}; "
+                f"allowed keys are {sorted(_ALLOWED_TRANSITION_KEYS)!r}"
+            )
+        # ``conditions`` and ``unless`` may be a method name (string) or a
+        # list of method names. Restrict string values to bare identifiers
+        # (no ``.``) so pytransitions resolves them to attributes on the
+        # model and not to imported modules.
+        for guard_key in ("conditions", "unless"):
+            if guard_key not in tr:
+                continue
+            raw_guard = tr[guard_key]
+            guard_values: list[Any] = (
+                list(raw_guard) if isinstance(raw_guard, list) else [raw_guard]
+            )
+            for gv in guard_values:
+                if isinstance(gv, str) and "." in gv:
+                    raise ValueError(
+                        f"transition[{idx}].{guard_key} {gv!r} must not contain '.': "
+                        f"only bare identifiers (resolved against the FSM model) are "
+                        f"permitted, to avoid pytransitions importing arbitrary modules"
+                    )
         trigger = tr["trigger"]
         source = tr["source"]
         dest = tr["dest"]
@@ -235,19 +282,33 @@ class ProcedureRunner:
 
     @staticmethod
     def _expand_transitions(procedure: Procedure) -> list[dict[str, Any]]:
-        """Expand ``"source": "*"`` rows to one row per declared state."""
+        """Expand ``"source": "*"`` rows to one row per declared state.
+
+        Defensively drops any keys outside :data:`_ALLOWED_TRANSITION_KEYS`
+        before forwarding to :class:`transitions.Machine`. This is
+        belt-and-braces: :func:`validate_procedure_dict` should already
+        have rejected disallowed keys, but a caller can build a
+        :class:`Procedure` directly without going through ``from_dict``.
+        Forwarding e.g. ``before="os.system"`` to pytransitions would
+        execute arbitrary code at trigger time, so we strip it here as
+        well as rejecting it at validation.
+        """
+
+        def _safe(tr: dict[str, Any]) -> dict[str, Any]:
+            return {k: v for k, v in tr.items() if k in _ALLOWED_TRANSITION_KEYS}
+
         out: list[dict[str, Any]] = []
         for tr in procedure.transitions:
-            if tr.get("source") == _WILDCARD:
-                # Emit one transition per state. We preserve all other keys
-                # (conditions/unless/before/after) so backend-specific
-                # extras roundtrip through the engine.
+            sanitized = _safe(tr)
+            if sanitized.get("source") == _WILDCARD:
+                # Emit one transition per state. Only the allow-listed keys
+                # (trigger/source/dest/conditions/unless) are forwarded.
                 for state in procedure.states:
-                    expanded_row = dict(tr)
+                    expanded_row = dict(sanitized)
                     expanded_row["source"] = state
                     out.append(expanded_row)
             else:
-                out.append(dict(tr))
+                out.append(sanitized)
         return out
 
     @property

@@ -62,7 +62,7 @@ async def apply(request: Request) -> Response:
                 services.CoMemOp(op_type="merge", primary_id=primary, secondary_id=secondary)
             )
 
-    result = services.apply_co_memorize(db_path, ops)
+    result = services.apply_co_memorize(db_path, agent_id, ops)
 
     if request.headers.get("HX-Request") == "true":
         candidates = services.co_memorize_candidates(db_path, agent_id)
