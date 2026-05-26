@@ -1,0 +1,25 @@
+[build-system]
+requires = ["hatchling>=1.27"]
+build-backend = "hatchling.build"
+
+[project]
+name = "amp-governance-ui"
+description = "Governance UI for the Agent Memory Protocol — Pro tier"
+readme = "README.md"
+license = "LicenseRef-FSL-1.1-Apache-2.0"
+license-files = ["LICENSE"]
+requires-python = ">=3.11"
+version = "0.0.0.dev0"
+dependencies = [
+  "agent-memory-protocol>=0.0.0.dev0",
+  "starlette>=0.37",
+  "uvicorn[standard]>=0.30",
+  "jinja2>=3.1",
+  "python-multipart>=0.0.9",
+]
+
+[project.scripts]
+amp-ui = "amp_ui.__main__:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/amp_ui"]

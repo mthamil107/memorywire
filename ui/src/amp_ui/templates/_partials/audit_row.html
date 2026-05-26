@@ -1,0 +1,12 @@
+<tr class="border-t border-slate-200">
+  <td class="px-2 py-1 font-mono text-xs">{{ row.id }}</td>
+  <td class="px-2 py-1 text-xs">{{ row.ts }}</td>
+  <td class="px-2 py-1 text-xs">
+    <span class="inline-flex items-center rounded bg-slate-100 px-1.5 py-0.5 font-medium">{{ row.operation }}</span>
+  </td>
+  <td class="px-2 py-1 font-mono text-xs">{{ row.agent_id or "" }}</td>
+  <td class="px-2 py-1 font-mono text-xs">{{ row.user_id or "" }}</td>
+  <td class="px-2 py-1 font-mono text-xs">{{ row.memory_id or "" }}</td>
+  <td class="px-2 py-1 font-mono text-xs">{{ row.approved_by or "" }}</td>
+  <td class="px-2 py-1 text-xs"><code class="break-all">{{ row.payload }}</code></td>
+</tr>

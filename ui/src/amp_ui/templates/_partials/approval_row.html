@@ -1,0 +1,62 @@
+<article class="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+  <header class="flex items-start justify-between gap-3">
+    <div class="min-w-0">
+      <div class="flex flex-wrap items-center gap-2">
+        <span class="inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-700">
+          {{ row.type }}
+        </span>
+        {% if row.confidence is not none %}
+          <span class="text-xs text-slate-500">confidence {{ "%.2f"|format(row.confidence) }}</span>
+        {% endif %}
+        {% if row.auto_approved %}
+          <span class="inline-flex items-center rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-semibold text-emerald-800">
+            auto-approved (pattern)
+          </span>
+        {% endif %}
+      </div>
+      <p class="mt-2 break-words text-sm text-slate-900">{{ row.content }}</p>
+      <p class="mt-1 text-xs text-slate-500">
+        id <code>{{ row.id }}</code>
+        {% if row.source %} · source <code>{{ row.source }}</code>{% endif %}
+        · created {{ row.created_at }}
+      </p>
+    </div>
+    <div class="flex shrink-0 gap-2">
+      <form hx-post="/approvals/{{ row.id }}/approve" hx-target="#approvals-list" hx-swap="outerHTML">
+        <button class="rounded-md bg-emerald-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-emerald-700">
+          Approve
+        </button>
+      </form>
+      <form hx-post="/approvals/{{ row.id }}/reject" hx-target="#approvals-list" hx-swap="outerHTML">
+        <button class="rounded-md bg-rose-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-rose-700">
+          Reject
+        </button>
+      </form>
+    </div>
+  </header>
+  {% set diff = row.diff %}
+  {% if diff.added or diff.removed or diff.modified %}
+    <details class="mt-3 text-xs">
+      <summary class="cursor-pointer text-slate-600 hover:text-slate-900">
+        diff vs current ({{ (diff.added|length) + (diff.removed|length) + (diff.modified|length) }} changes)
+      </summary>
+      <ul class="mt-2 space-y-1 font-mono">
+        {% for change in diff.added %}
+          <li><span class="diff-added">+ {{ change.field }}: {{ change.value }}</span></li>
+        {% endfor %}
+        {% for change in diff.removed %}
+          <li><span class="diff-removed">- {{ change.field }}: {{ change.value }}</span></li>
+        {% endfor %}
+        {% for change in diff.modified %}
+          <li>
+            <span class="diff-modified">~ {{ change.field }}</span>
+            <span class="text-slate-500">{{ change.before }}</span> →
+            <span class="text-slate-900">{{ change.after }}</span>
+          </li>
+        {% endfor %}
+      </ul>
+    </details>
+  {% else %}
+    <p class="mt-3 text-xs text-slate-500">No live counterpart — this is a brand-new memory.</p>
+  {% endif %}
+</article>

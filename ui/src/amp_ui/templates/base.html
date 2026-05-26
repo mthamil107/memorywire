@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>AMP Governance UI — {% block title %}Governance{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/htmx.org@2.0.3"></script>
+    <link rel="stylesheet" href="/static/app.css" />
+  </head>
+  <body class="bg-slate-50 text-slate-900 min-h-screen">
+    <header class="border-b border-slate-200 bg-white">
+      <div class="mx-auto max-w-6xl px-4 py-3 flex items-center gap-6">
+        <a href="/" class="font-semibold text-slate-900">AMP Governance</a>
+        <nav class="flex gap-4 text-sm">
+          <a href="/" class="nav-link {% if active == 'approvals' %}nav-active{% endif %}">Approvals</a>
+          <a href="/health-dashboard" class="nav-link {% if active == 'health' %}nav-active{% endif %}">Health</a>
+          <a href="/audit" class="nav-link {% if active == 'audit' %}nav-active{% endif %}">Audit</a>
+          <a href="/co-memorize" class="nav-link {% if active == 'co_memorize' %}nav-active{% endif %}">Co-memorize</a>
+          <a href="/patterns" class="nav-link {% if active == 'patterns' %}nav-active{% endif %}">Patterns</a>
+        </nav>
+        <span class="ml-auto text-xs text-slate-500">agent: <code>{{ agent_id }}</code></span>
+      </div>
+    </header>
+    <main class="mx-auto max-w-6xl px-4 py-6">
+      {% block content %}{% endblock %}
+    </main>
+  </body>
+</html>

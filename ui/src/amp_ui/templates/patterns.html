@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block title %}Approval patterns{% endblock %}
+{% block content %}
+  <h1 class="text-2xl font-semibold">Approval patterns</h1>
+  <p class="mt-1 text-sm text-slate-600">
+    Repeated approval decisions clustered by approver + operation + memory type + keyword.
+    Accepting a recommendation auto-approves future matching memories.
+  </p>
+
+  {% if recos %}
+    <table class="mt-4 min-w-full divide-y divide-slate-200 rounded-md border border-slate-200 bg-white text-sm">
+      <thead class="bg-slate-50 text-xs uppercase text-slate-500">
+        <tr>
+          <th class="px-2 py-1">approver</th>
+          <th class="px-2 py-1">operation</th>
+          <th class="px-2 py-1">type</th>
+          <th class="px-2 py-1">keyword</th>
+          <th class="px-2 py-1">decision</th>
+          <th class="px-2 py-1">count</th>
+          <th class="px-2 py-1">action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in recos %}
+          <tr class="border-t border-slate-200">
+            <td class="px-2 py-2 font-mono text-xs">{{ r.approver }}</td>
+            <td class="px-2 py-2 text-xs">{{ r.operation }}</td>
+            <td class="px-2 py-2 text-xs">{{ r.memory_type }}</td>
+            <td class="px-2 py-2 text-xs">{{ r.keyword }}</td>
+            <td class="px-2 py-2 text-xs">
+              {% if r.decision == 'approve' %}
+                <span class="rounded bg-emerald-100 px-1.5 py-0.5 text-emerald-800">approve</span>
+              {% else %}
+                <span class="rounded bg-rose-100 px-1.5 py-0.5 text-rose-800">reject</span>
+              {% endif %}
+            </td>
+            <td class="px-2 py-2 text-xs">{{ r.count }}</td>
+            <td class="px-2 py-2 text-xs">
+              {% if r.accepted %}
+                <span class="text-slate-500">accepted</span>
+              {% else %}
+                <form hx-post="/patterns/{{ r.key }}/auto-allow" hx-target="body" hx-swap="outerHTML">
+                  <button class="rounded bg-slate-800 px-2 py-1 text-white hover:bg-slate-900">
+                    auto-allow?
+                  </button>
+                </form>
+              {% endif %}
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    {% with message = "No recurring patterns yet. Patterns appear after at least " ~ threshold ~ " consistent decisions." %}
+      {% include "_partials/empty_state.html" %}
+    {% endwith %}
+  {% endif %}
+{% endblock %}

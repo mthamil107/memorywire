@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}Pending approvals{% endblock %}
+{% block content %}
+  <section class="mb-4 flex items-end justify-between">
+    <div>
+      <h1 class="text-2xl font-semibold">Pending approvals</h1>
+      <p class="mt-1 text-sm text-slate-600">
+        {{ rows|length }} memor{{ "y" if rows|length == 1 else "ies" }} awaiting review.
+        Auto-refreshes every 10s.
+      </p>
+    </div>
+  </section>
+  {% include "_partials/approvals_list.html" %}
+{% endblock %}

@@ -1,0 +1,11 @@
+<div id="approvals-list" class="space-y-3" hx-get="/" hx-trigger="every 10s" hx-target="#approvals-list" hx-swap="outerHTML">
+  {% if rows %}
+    {% for row in rows %}
+      {% include "_partials/approval_row.html" %}
+    {% endfor %}
+  {% else %}
+    {% with message = "No pending approvals. Memories with approval_required=true will appear here." %}
+      {% include "_partials/empty_state.html" %}
+    {% endwith %}
+  {% endif %}
+</div>
