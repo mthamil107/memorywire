@@ -1,0 +1,19 @@
+{
+  "description": "Interesting scenario: low-confidence semantic facts get demoted rather than deleted — action=demote drops their effective score in future recalls without removing them. Combines confidence_below and type filters.",
+  "_schema": "operations/expire",
+  "request": {
+    "agent_id": "research-assistant",
+    "policy": {
+      "confidence_below": 0.3,
+      "type": "semantic",
+      "older_than_days": 30
+    },
+    "action": "demote"
+  },
+  "response": {
+    "matched_count": 23,
+    "action_taken": "demote",
+    "stores": ["sqlite-vec", "mem0"]
+  },
+  "notes": "demote applies a server-side score-multiplier (default 0.25) to matched rows on subsequent recall, without modifying the row itself. The combination confidence_below=0.3 + older_than_days=30 + type=semantic captures: \"stale, weakly-held facts\" — a common cleanup target. Multiple policy keys are ANDed together."
+}

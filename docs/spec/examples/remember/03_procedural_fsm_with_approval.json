@@ -1,0 +1,26 @@
+{
+  "description": "Interesting scenario: a procedural memory writes a pytransitions-compatible FSM, embedded as a JSON-stringified blob in content. approval_required is true, so the response is staged and pending HITL review.",
+  "_schema": "operations/remember",
+  "request": {
+    "agent_id": "travel-agent-v2",
+    "user_id": "alice@example.com",
+    "type": "procedural",
+    "content": "{\"name\":\"book-flight\",\"initial\":\"searching\",\"states\":[\"searching\",\"comparing\",\"selecting\",\"paying\",\"confirmed\",\"cancelled\"],\"transitions\":[{\"trigger\":\"found_options\",\"source\":\"searching\",\"dest\":\"comparing\"},{\"trigger\":\"picked\",\"source\":\"comparing\",\"dest\":\"selecting\"},{\"trigger\":\"paid\",\"source\":\"selecting\",\"dest\":\"paying\"},{\"trigger\":\"receipt\",\"source\":\"paying\",\"dest\":\"confirmed\"},{\"trigger\":\"cancel\",\"source\":\"*\",\"dest\":\"cancelled\"}],\"current\":\"searching\"}",
+    "metadata": {
+      "procedure_name": "book-flight",
+      "version": "1.0.0",
+      "fsm_format": "pytransitions"
+    },
+    "confidence": 1.0,
+    "source": "agent-author:travel-agent-v2",
+    "approval_required": true
+  },
+  "response": {
+    "id": "01HZK6FAPENDX0X1X2X3X4X5X6",
+    "stored_at": 1716701002000,
+    "stores": [],
+    "pending_approval": true,
+    "approval_url": "https://governance.example.com/review/01HZK6FAPENDX0X1X2X3X4X5X6"
+  },
+  "notes": "When approval_required is true, the router stages the request but does not fan out to backing stores yet, so the stores array is empty until a governance reviewer approves. The FSM payload follows section 7 of the spec (pytransitions-compatible). Wrapping the FSM JSON in the string-typed content field is the v0 convention; v0.2 may promote it to a structured field."
+}

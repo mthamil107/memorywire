@@ -1,0 +1,20 @@
+{
+  "description": "Edge case: three-way merge — one canonical, two duplicates. Uses keep_highest_confidence so that whichever of the three has the highest confidence wins for any disputed field.",
+  "_schema": "operations/merge",
+  "request": {
+    "agent_id": "crm-agent",
+    "canonical": "Alice Smith",
+    "duplicates": [
+      "alice",
+      "A. Smith"
+    ],
+    "strategy": "keep_highest_confidence"
+  },
+  "response": {
+    "canonical": "Alice Smith",
+    "merged_count": 2,
+    "strategy_used": "keep_highest_confidence",
+    "stores": ["sqlite-vec", "mem0"]
+  },
+  "notes": "canonical and duplicates use entity-name strings (per spec: \"the surviving entity id or name\"), not ULIDs. This is the alternate addressing mode supported by the schema. When strategy=keep_highest_confidence, ties are broken by created_at (older wins) — see Editor's note in docs/spec/v0.md §3.4."
+}

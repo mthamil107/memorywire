@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amp.dev/schemas/v0/types/episodic",
+  "title": "AMP episodic memory record",
+  "description": "A stored episodic memory: a specific past event with time and place context.",
+  "type": "object",
+  "required": ["id", "agent_id", "type", "content", "created_at"],
+  "properties": {
+    "id":         { "type": "string", "minLength": 1 },
+    "agent_id":   { "type": "string", "minLength": 1, "maxLength": 256 },
+    "user_id":    { "type": "string", "maxLength": 256 },
+    "type":       { "const": "episodic" },
+    "content":    { "type": "string", "minLength": 1 },
+    "metadata":   { "type": "object", "additionalProperties": true },
+    "confidence": { "type": "number", "minimum": 0, "maximum": 1, "default": 1.0 },
+    "source":     { "type": "string" },
+    "created_at": { "type": "integer", "description": "Unix epoch ms when the record was written" },
+    "updated_at": { "type": "integer", "description": "Unix epoch ms" },
+    "expires_at": { "type": ["integer", "null"], "description": "Unix epoch ms; optional TTL" },
+    "event_time": {
+      "type": "integer",
+      "description": "Unix epoch ms when the underlying event actually happened (may differ from created_at)."
+    },
+    "location": {
+      "type": "string",
+      "description": "Free-form description of where the event occurred (place name, room, URL, coordinates, etc.)."
+    },
+    "participants": {
+      "type": "array",
+      "description": "Identifiers (user_ids, agent_ids, names) of entities present at the event.",
+      "items": { "type": "string" }
+    }
+  },
+  "additionalProperties": true
+}

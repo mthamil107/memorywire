@@ -1,0 +1,24 @@
+{
+  "description": "Happy path: a customer-support agent stores a stable semantic fact about a known user. Single store, no governance, written immediately.",
+  "_schema": "operations/remember",
+  "request": {
+    "agent_id": "customer-support-bot",
+    "user_id": "customer-12345",
+    "type": "semantic",
+    "content": "Customer 12345 prefers email over phone for follow-ups.",
+    "metadata": {
+      "channel": "support-chat",
+      "session_id": "sess_2026_05_26_001"
+    },
+    "confidence": 0.95,
+    "source": "support-conversation:2026-05-26"
+  },
+  "response": {
+    "id": "01HZK6F7Q8Y3M2N4P5R7S8T9V0",
+    "stored_at": 1716700000000,
+    "stores": ["sqlite-vec"],
+    "pending_approval": false,
+    "approval_url": null
+  },
+  "notes": "Confidence 0.95 reflects high signal from an explicit user statement. The agent did not request approval, so the memory is committed immediately."
+}

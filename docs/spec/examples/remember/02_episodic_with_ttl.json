@@ -1,0 +1,21 @@
+{
+  "description": "Edge case: an episodic event with an explicit TTL via expires_at, no user_id (system-level observation), and an empty metadata object. Demonstrates optional-field boundary handling.",
+  "_schema": "operations/remember",
+  "request": {
+    "agent_id": "ops-monitor",
+    "type": "episodic",
+    "content": "On 2026-05-26T14:02:11Z the deploy pipeline retried twice before succeeding.",
+    "metadata": {},
+    "confidence": 1.0,
+    "source": "ci-webhook:run-9182",
+    "expires_at": 1724476131000
+  },
+  "response": {
+    "id": "01HZK6F8AAAB3C4D5E6F7G8H9J",
+    "stored_at": 1716700931000,
+    "stores": ["sqlite-vec", "mem0"],
+    "pending_approval": false,
+    "approval_url": null
+  },
+  "notes": "expires_at is ~90 days after stored_at, modelling a routine TTL on ephemeral ops episodes. user_id is omitted (allowed — only agent_id, type, content are required). metadata is intentionally empty to exercise the additionalProperties:true with zero keys path."
+}

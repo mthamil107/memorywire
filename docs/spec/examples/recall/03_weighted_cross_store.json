@@ -1,0 +1,44 @@
+{
+  "description": "Interesting scenario: fusion=weighted across three heterogeneous stores (vector, graph, keyword), with a custom filter narrowing by project tag. Demonstrates cross-store fusion where each backend contributes a differently-shaped signal.",
+  "_schema": "operations/recall",
+  "request": {
+    "agent_id": "engineering-copilot",
+    "query": "open questions about the memory router fusion algorithm",
+    "k": 10,
+    "types": ["semantic", "episodic", "procedural"],
+    "hops": 0,
+    "fusion": "weighted",
+    "filter": {
+      "project": "amp",
+      "tags": ["router", "fusion"]
+    }
+  },
+  "response": {
+    "results": [
+      {
+        "id": "01HZK9NOTEFUSION00000000001",
+        "type": "semantic",
+        "content": "RRF k=60 is the AMP default; per-store weights only apply when fusion=weighted.",
+        "score": 0.81,
+        "metadata": {"project": "amp", "tags": ["router", "fusion"]},
+        "created_at": 1716600000000,
+        "supporting": [],
+        "source_store": "cognee"
+      },
+      {
+        "id": "01HZK9MEET2026Q2FUSIONNOTES",
+        "type": "episodic",
+        "content": "On 2026-04-12 the team agreed weighted fusion needed per-store config before v1.",
+        "score": 0.74,
+        "metadata": {"project": "amp", "tags": ["router", "fusion"]},
+        "created_at": 1712880000000,
+        "supporting": [],
+        "source_store": "letta"
+      }
+    ],
+    "fusion_used": "weighted",
+    "stores_queried": ["cognee", "letta", "sqlite-vec"],
+    "latency_ms": 412
+  },
+  "notes": "Under weighted fusion, scores are not normalized to RRF magnitudes — they are the sum of per-store weight × per-store raw score. Per-store weights are configured on the router (out-of-band of this request). filter is opaque to AMP and forwarded to each backend; backends that do not understand a filter key MAY ignore it."
+}

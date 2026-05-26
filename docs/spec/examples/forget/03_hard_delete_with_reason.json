@@ -1,0 +1,30 @@
+{
+  "description": "Interesting scenario: a GDPR-style erasure request — hard_delete=true (row removed, not just marked) with a human-readable reason captured in the audit log. Combines ids and filter for a belt-and-suspenders erasure.",
+  "_schema": "operations/forget",
+  "request": {
+    "agent_id": "customer-support-bot",
+    "user_id": "alice@example.com",
+    "ids": [
+      "01HZKAEP01ALICE0000000000A"
+    ],
+    "filter": {
+      "user_id": "alice@example.com"
+    },
+    "hard_delete": true,
+    "reason": "GDPR Article 17 erasure request, ticket #RTBF-2026-0518"
+  },
+  "response": {
+    "forgotten_ids": [
+      "01HZKAEP01ALICE0000000000A",
+      "01HZKAEP02ALICE0000000000B",
+      "01HZKAEP03ALICE0000000000C",
+      "01HZKAEP04ALICE0000000000D"
+    ],
+    "hard_delete": true,
+    "stores": [
+      { "store": "sqlite-vec", "count": 4 },
+      { "store": "mem0", "count": 4 }
+    ]
+  },
+  "notes": "The reason field is required by policy in regulated deployments and lands verbatim on the audit_log row (per ARCHITECTURE.md §3). Hard delete removes the row from memories but the audit_log entry remains — that is the design intent: erase the data, not the proof we erased it."
+}

@@ -1,0 +1,25 @@
+{
+  "description": "Edge case: forget by filter only (no ids), scoped to one user_id and one type. Demonstrates the filter-only branch — the server resolves matching rows itself.",
+  "_schema": "operations/forget",
+  "request": {
+    "agent_id": "customer-support-bot",
+    "user_id": "alice@example.com",
+    "filter": {
+      "user_id": "alice@example.com",
+      "type": "episodic"
+    }
+  },
+  "response": {
+    "forgotten_ids": [
+      "01HZKAEP01ALICE0000000000A",
+      "01HZKAEP02ALICE0000000000B",
+      "01HZKAEP03ALICE0000000000C"
+    ],
+    "hard_delete": false,
+    "stores": [
+      { "store": "sqlite-vec", "count": 3 },
+      { "store": "mem0", "count": 3 }
+    ]
+  },
+  "notes": "When both ids and filter are absent the request MUST be rejected (defensive: avoid a no-scope mass-delete). The user_id is duplicated at the top level and inside filter so a backend that does not look at the filter object still scopes correctly. Soft delete by default."
+}

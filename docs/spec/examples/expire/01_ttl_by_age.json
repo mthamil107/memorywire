@@ -1,0 +1,17 @@
+{
+  "description": "Happy path: TTL by age — expire all episodic memories older than 90 days. Default action=forget removes them through the same soft-delete path as the forget operation.",
+  "_schema": "operations/expire",
+  "request": {
+    "agent_id": "customer-support-bot",
+    "policy": {
+      "older_than_days": 90,
+      "type": "episodic"
+    }
+  },
+  "response": {
+    "matched_count": 412,
+    "action_taken": "forget",
+    "stores": ["sqlite-vec", "mem0"]
+  },
+  "notes": "Per the spec, policy.type narrows expiration to one memory type. Action defaults to forget — see §3.5. Episodic memories are the canonical target for age-based expiry because they accumulate fastest."
+}

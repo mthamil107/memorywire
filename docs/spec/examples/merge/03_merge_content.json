@@ -1,0 +1,20 @@
+{
+  "description": "Interesting scenario: strategy=merge_content concatenates / unions content and metadata across the canonical and duplicates instead of discarding them. Useful when each duplicate carries unique facts that should survive.",
+  "_schema": "operations/merge",
+  "request": {
+    "agent_id": "crm-agent",
+    "canonical": "01HZKCCANONACME0000000000C1",
+    "duplicates": [
+      "01HZKCDUPACME00000000000D2",
+      "01HZKCDUPACME00000000000D3"
+    ],
+    "strategy": "merge_content"
+  },
+  "response": {
+    "canonical": "01HZKCCANONACME0000000000C1",
+    "merged_count": 2,
+    "strategy_used": "merge_content",
+    "stores": ["sqlite-vec", "mem0"]
+  },
+  "notes": "merge_content semantics (kickoff spec is silent): backends MUST union metadata keys (last-write-wins on conflict, ordered by created_at ascending) and MAY concatenate content with a newline separator. See Editor's note in docs/spec/v0.md §3.4. confidence on the canonical becomes max(confidence) over all merged rows."
+}

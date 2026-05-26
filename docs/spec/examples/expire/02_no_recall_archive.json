@@ -1,0 +1,17 @@
+{
+  "description": "Edge case: cold-storage policy — anything not recalled in the last 180 days gets archived (not forgotten). Demonstrates the no_recall_in_days policy lever combined with action=archive.",
+  "_schema": "operations/expire",
+  "request": {
+    "agent_id": "research-assistant",
+    "policy": {
+      "no_recall_in_days": 180
+    },
+    "action": "archive"
+  },
+  "response": {
+    "matched_count": 87,
+    "action_taken": "archive",
+    "stores": ["sqlite-vec"]
+  },
+  "notes": "no_recall_in_days requires the backend to track last-recalled-at per memory. Backends that do not (capability \"recall_tracking\" absent) MUST return an error rather than silently skipping the policy — see Editor's note in docs/spec/v0.md §3.5. action=archive moves rows to cold storage; they no longer surface in recall but are not deleted."
+}

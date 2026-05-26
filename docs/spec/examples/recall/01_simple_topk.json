@@ -1,0 +1,43 @@
+{
+  "description": "Happy path: a simple natural-language query against a single agent's memory, default k=5, default RRF fusion, no type filter.",
+  "_schema": "operations/recall",
+  "request": {
+    "agent_id": "customer-support-bot",
+    "user_id": "customer-12345",
+    "query": "what do I know about customer 12345?",
+    "k": 5
+  },
+  "response": {
+    "results": [
+      {
+        "id": "01HZK6F7Q8Y3M2N4P5R7S8T9V0",
+        "type": "semantic",
+        "content": "Customer 12345 prefers email over phone for follow-ups.",
+        "score": 0.0312,
+        "metadata": {
+          "channel": "support-chat",
+          "session_id": "sess_2026_05_26_001"
+        },
+        "created_at": 1716700000000,
+        "supporting": [],
+        "source_store": "sqlite-vec"
+      },
+      {
+        "id": "01HZK7G2Z3A4B5C6D7E8F9G0H1",
+        "type": "episodic",
+        "content": "On 2026-05-20 customer 12345 reported a billing issue with invoice INV-882.",
+        "score": 0.0289,
+        "metadata": {
+          "invoice_id": "INV-882"
+        },
+        "created_at": 1716268800000,
+        "supporting": [],
+        "source_store": "mem0"
+      }
+    ],
+    "fusion_used": "rrf",
+    "stores_queried": ["sqlite-vec", "mem0"],
+    "latency_ms": 184
+  },
+  "notes": "RRF scores look small (≈1/(60+rank)) because the spec's reference formula uses k_rrf=60. supporting is empty since hops=0 by default."
+}

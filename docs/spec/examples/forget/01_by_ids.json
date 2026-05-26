@@ -1,0 +1,23 @@
+{
+  "description": "Happy path: soft-delete a small batch of memories by explicit id list. Default hard_delete=false retains rows with deleted_at set for the audit trail.",
+  "_schema": "operations/forget",
+  "request": {
+    "agent_id": "customer-support-bot",
+    "ids": [
+      "01HZK6F7Q8Y3M2N4P5R7S8T9V0",
+      "01HZK7G2Z3A4B5C6D7E8F9G0H1"
+    ]
+  },
+  "response": {
+    "forgotten_ids": [
+      "01HZK6F7Q8Y3M2N4P5R7S8T9V0",
+      "01HZK7G2Z3A4B5C6D7E8F9G0H1"
+    ],
+    "hard_delete": false,
+    "stores": [
+      { "store": "sqlite-vec", "count": 2 },
+      { "store": "mem0", "count": 2 }
+    ]
+  },
+  "notes": "Response shape is not defined verbatim in the kickoff spec — see Editor's note in docs/spec/v0.md §3.3 for the inferred shape used here (forgotten_ids, hard_delete echo, per-store {store, count, error?} aggregate). The audit log row is written regardless of hard_delete value."
+}

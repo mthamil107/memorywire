@@ -1,0 +1,18 @@
+{
+  "description": "Happy path: two near-duplicate entity rows collapsed into one canonical entity. Default strategy keep_canonical drops the duplicates outright once references are repointed.",
+  "_schema": "operations/merge",
+  "request": {
+    "agent_id": "crm-agent",
+    "canonical": "01HZKBCANONALICE000000000A1",
+    "duplicates": [
+      "01HZKBDUPALICE0000000000B2"
+    ]
+  },
+  "response": {
+    "canonical": "01HZKBCANONALICE000000000A1",
+    "merged_count": 1,
+    "strategy_used": "keep_canonical",
+    "stores": ["sqlite-vec", "mem0"]
+  },
+  "notes": "duplicates is required to have minItems:1. The default strategy keep_canonical preserves the canonical row verbatim — content and metadata from duplicates are discarded after pointer migration."
+}

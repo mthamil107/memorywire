@@ -1,0 +1,42 @@
+{
+  "description": "Edge case: multi-type filter, hops=1 graph-boost, fresher_than_days bounds the recall to the last 30 days, and k is pushed to a higher value (50). Exercises the graph-boost path and the recency filter together.",
+  "_schema": "operations/recall",
+  "request": {
+    "agent_id": "research-assistant",
+    "user_id": "researcher-22",
+    "query": "anything about peanut allergies in the team",
+    "k": 50,
+    "types": ["semantic", "episodic"],
+    "hops": 1,
+    "fusion": "rrf",
+    "fresher_than_days": 30
+  },
+  "response": {
+    "results": [
+      {
+        "id": "01HZK8AAALICE000000000000A1",
+        "type": "semantic",
+        "content": "Alice is allergic to peanuts.",
+        "score": 0.0344,
+        "metadata": {"subject": "Alice"},
+        "created_at": 1716528000000,
+        "supporting": ["01HZK8AABBOB000000000000B2"],
+        "source_store": "sqlite-vec"
+      },
+      {
+        "id": "01HZK8AABBOB000000000000B2",
+        "type": "episodic",
+        "content": "On 2026-05-15 Bob mentioned Alice's peanut allergy at the team lunch.",
+        "score": 0.0297,
+        "metadata": {"subject": "Alice", "witness": "Bob"},
+        "created_at": 1715731200000,
+        "supporting": ["01HZK8AAALICE000000000000A1"],
+        "source_store": "mem0"
+      }
+    ],
+    "fusion_used": "rrf",
+    "stores_queried": ["sqlite-vec", "mem0"],
+    "latency_ms": 263
+  },
+  "notes": "Because hops=1, each result's supporting array lists neighbour memories that contributed a graph-hop boost. Per ARCHITECTURE.md §5, the boost is final_score = rrf_score * (1 + 0.1 * (1/(1+hop_distance))), so a 1-hop neighbour contributes a 5% bump."
+}
