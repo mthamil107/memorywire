@@ -1,0 +1,142 @@
+[build-system]
+requires = ["hatchling>=1.27", "hatch-vcs>=0.4"]
+build-backend = "hatchling.build"
+
+[project]
+name = "agent-memory-protocol"
+description = "Vendor-neutral protocol and reference implementation for agent memory operations"
+readme = "README.md"
+license = "Apache-2.0"
+license-files = ["LICENSE", "NOTICE"]
+requires-python = ">=3.11"
+dynamic = ["version"]
+authors = [
+  { name = "AMP contributors" },
+]
+keywords = ["agent", "memory", "protocol", "llm", "mcp", "rag", "vector", "knowledge-graph"]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: Apache Software License",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Topic :: Scientific/Engineering :: Artificial Intelligence",
+  "Topic :: Software Development :: Libraries :: Python Modules",
+  "Typing :: Typed",
+]
+dependencies = [
+  "pydantic>=2.7",
+  "jsonschema>=4.21",
+  "transitions>=0.9",
+  "typing-extensions>=4.10",
+  "anyio>=4.3",
+]
+
+[project.optional-dependencies]
+sqlite-vec = ["sqlite-vec>=0.1.6", "sentence-transformers>=3.0"]
+mem0       = ["mem0ai>=0.1.40"]
+letta      = ["letta-client>=0.5"]
+cognee     = ["cognee>=0.2"]
+postgres   = ["asyncpg>=0.29", "pgvector>=0.3"]
+ui         = ["starlette>=0.37", "uvicorn>=0.30", "jinja2>=3.1", "python-multipart>=0.0.9"]
+all        = [
+  "agent-memory-protocol[sqlite-vec,mem0,letta,cognee,postgres,ui]",
+]
+
+[project.scripts]
+amp = "amp.cli:main"
+
+[project.urls]
+Homepage      = "https://github.com/mthamil107/agent-memory-protocol"
+Documentation = "https://github.com/mthamil107/agent-memory-protocol/tree/main/docs"
+Repository    = "https://github.com/mthamil107/agent-memory-protocol"
+Issues        = "https://github.com/mthamil107/agent-memory-protocol/issues"
+Changelog     = "https://github.com/mthamil107/agent-memory-protocol/blob/main/CHANGELOG.md"
+
+[tool.hatch.version]
+source = "vcs"
+fallback-version = "0.0.0.dev0"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/amp"]
+
+[tool.hatch.build.targets.sdist]
+include = [
+  "src/",
+  "docs/spec/",
+  "tests/",
+  "examples/",
+  "scripts/",
+  "README.md",
+  "LICENSE",
+  "NOTICE",
+  "CHANGELOG.md",
+  "pyproject.toml",
+]
+
+[dependency-groups]
+dev = [
+  "pytest>=8.2",
+  "pytest-cov>=5.0",
+  "pytest-asyncio>=0.23",
+  "pytest-benchmark>=4.0",
+  "ruff>=0.5",
+  "mypy>=1.10",
+  "mkdocs-material>=9.5",
+  "mkdocstrings[python]>=0.25",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra --strict-markers"
+asyncio_mode = "auto"
+markers = [
+  "integration: tests that require a real backend (mem0, postgres, etc.)",
+  "slow: tests that take longer than 1 second",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+extend-exclude = ["docs/kickoff"]
+
+[tool.ruff.lint]
+select = [
+  "E", "F", "W",   # pycodestyle / pyflakes
+  "I",             # isort
+  "B",             # flake8-bugbear
+  "UP",            # pyupgrade
+  "SIM",           # flake8-simplify
+  "RUF",           # ruff-specific
+]
+ignore = ["E501"]  # line length enforced by formatter
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+warn_unused_ignores = true
+warn_redundant_casts = true
+exclude = ["docs/kickoff/", "build/", "dist/"]
+
+[[tool.mypy.overrides]]
+module = ["sqlite_vec.*", "mem0.*", "transitions.*", "sentence_transformers.*"]
+ignore_missing_imports = true
+
+[tool.coverage.run]
+source = ["src/amp"]
+branch = true
+
+[tool.coverage.report]
+exclude_lines = [
+  "pragma: no cover",
+  "raise NotImplementedError",
+  "if TYPE_CHECKING:",
+  "if __name__ == .__main__.:",
+]
