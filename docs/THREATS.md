@@ -184,6 +184,28 @@ by reporting it at rank 0. There is no cross-store identity proof —
 `quorum_k` parameter requiring an item to appear in `k` distinct stores
 before fusion considers it.
 
+**Measured.** `scripts/run_adversarial.py` (driven by the harness in
+`tests/benchmarks/test_adversarial.py`) sweeps a 1-of-N rogue-backend
+attack against a real `MemoryRouter` and records recall@5 / leak rate /
+gold-displacement rate at attacker budgets K=0,5,...,M. Headline,
+measured 2026-05-27 at N=3, 1 adversarial, M=50 corpus, Q=20 queries,
+seed=1337:
+
+| K | recall@5 (RRF) | leak (RRF) | recall@5 (MAX) | leak (MAX) |
+|---:|---:|---:|---:|---:|
+| 0  | 1.000 | 0.000 | 1.000 | 0.000 |
+| 5  | 1.000 | 0.000 | 0.500 | 0.800 |
+| 50 | 1.000 | 0.000 | 0.500 | 0.800 |
+
+The RRF curve stays flat at the no-attack baseline across the entire
+sweep — the consensus of two benign rank-0 votes (`1/60 + 1/61 ≈
+0.0330`) provably dominates the single rogue rank-0 vote (`1/60 ≈
+0.0167`). `fusion="max"` collapses immediately at K=5: the attacker
+ties or beats the benign rank-0 score, pulls 4 of 5 fused top-5 slots,
+and halves recall. See `docs/benchmarks.md`'s "Adversarial fusion
+experiment" section for the full methodology, caveats, and
+machine-readable output (`docs/adversarial-results.{rrf,max,weighted}.json`).
+
 ### 3.4 Audit log tampering
 
 **Current mitigation:** the audit log is append-only by code convention.

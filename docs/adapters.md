@@ -69,3 +69,62 @@ The adapter encodes AMP-specific fields (`type`, `confidence`, `source`,
 prefixes; the recall path parses them back out. Structured (nested)
 metadata is lossy under this encoding — see the module docstring for
 the full list of spec-gap notes.
+
+## Conformance matrix
+
+16 protocol scenarios from `tests/conformance/scenarios.py`, evaluated
+against every shipped adapter. The suite is the empirical evidence that
+the `MemoryStore` Protocol is in fact vendor-neutral: the same setup +
+action + predicate runs against the SQLite reference implementation and
+the four backend-mocked adapters.
+
+Legend: ✅ = passes; ⏭ = SKIPPED for a documented adapter limitation
+(see `tests/conformance/conftest.py::SKIP_OVERRIDES` and the per-adapter
+module docstrings for the spec-gap notes referenced below); ❌ = fails.
+
+| Scenario                              | sqlite-vec | mem0 | letta | cognee | pgvector |
+| ------------------------------------- | :--------: | :--: | :---: | :----: | :------: |
+| basic_remember_recall                 |     ✅     |  ✅  |  ✅   |   ✅   |    ✅    |
+| remember_recall_by_user_filter        |     ✅     |  ✅  |  ⏭   |   ⏭   |    ✅    |
+| type_filter                           |     ✅     |  ✅  |  ✅   |   ✅   |    ✅    |
+| forget_by_ids                         |     ✅     |  ✅  |  ✅   |   ⏭   |    ✅    |
+| forget_no_scope_raises                |     ✅     |  ✅  |  ✅   |   ✅   |    ✅    |
+| expire_empty_policy_raises            |     ✅     |  ⏭  |  ⏭   |   ⏭   |    ✅    |
+| expire_empty_policy_object_raises     |     ✅     |  ⏭  |  ⏭   |   ⏭   |    ✅    |
+| expire_by_age                         |     ✅     |  ⏭  |  ✅   |   ⏭   |    ✅    |
+| merge_keep_canonical                  |     ✅     |  ✅  |  ✅   |   ⏭   |    ✅    |
+| approval_required_pending             |     ✅     |  ✅  |  ✅   |   ✅   |    ✅    |
+| capabilities_declared                 |     ✅     |  ✅  |  ✅   |   ✅   |    ✅    |
+| health_returns_status                 |     ✅     |  ✅  |  ✅   |   ✅   |    ✅    |
+| isinstance_protocol                   |     ✅     |  ✅  |  ✅   |   ✅   |    ✅    |
+| recall_returns_score_metadata         |     ✅     |  ✅  |  ✅   |   ✅   |    ✅    |
+| fresher_than_days_filter              |     ✅     |  ✅  |  ✅   |   ✅   |    ✅    |
+| multi_remember_then_recall            |     ✅     |  ✅  |  ✅   |   ✅   |    ✅    |
+| **pass / skip**                       | **16 / 0** | **13 / 3** | **13 / 3** | **10 / 6** | **16 / 0** |
+
+Aggregate: **PASS 68 / SKIP 12 / FAIL 0** out of 80 cells (16 scenarios ×
+5 adapters). Every non-skipped cell passes.
+
+### Documented skip reasons
+
+* **letta + cognee, `remember_recall_by_user_filter`** — neither backend
+  has a `user_id` namespace separate from its top-level scope (Letta
+  scopes by `agent_id`, Cognee by dataset). AMP's `user_id` dimension is
+  lost on the backend.
+* **mem0 + letta + cognee, `expire_empty_policy_raises` /
+  `expire_empty_policy_object_raises`** — only the SQL adapters
+  (sqlite-vec, pgvector) defensively raise on an empty `ExpirePolicy`.
+  The three SDK-wrapping adapters silently fall through to
+  match-everything. **v0.2 should tighten this in the spec and require
+  every adapter to raise.**
+* **mem0, `expire_by_age`** — mem0's `created_at` format is heterogenous
+  (int seconds, int ms, ISO-8601 strings) depending on the SDK build; the
+  conformance mock doesn't model this. The translation is verified in
+  `tests/unit/store/test_mem0_adapter.py`.
+* **cognee, `forget_by_ids` / `expire_by_age` / `merge_keep_canonical`**
+  — Cognee's `forget` primitive requires a pipeline-assigned `data_id`
+  UUID. The adapter mints synthetic `cog:<sha1>` ids at write time
+  because Cognee's `add` doesn't surface per-record ids, so per-id
+  deletes (and the operations that depend on them — expire-forget and
+  merge-then-drop) are no-ops. **v0.2 should require backends to surface
+  a stable per-record id from their write primitive.**

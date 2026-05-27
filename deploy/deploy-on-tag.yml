@@ -1,0 +1,44 @@
+# GitHub Actions workflow to redeploy the hosted demo on every tagged
+# release. Intentionally lives in deploy/ rather than .github/workflows/
+# so a human reviews it before it goes live.
+#
+# To activate:
+#   1. Provision FLY_API_TOKEN as a repository secret (Settings → Secrets
+#      → Actions → New repository secret). Generate with `fly tokens create
+#      deploy --expiry 8760h`.
+#   2. Move this file to .github/workflows/deploy-on-tag.yml.
+#   3. Push a v* tag (e.g. `git tag -a v0.1.0 -m "first release" && git
+#      push --tags`) to trigger.
+#
+# We use `flyctl deploy --remote-only` so the image is built on Fly's
+# builder VM, not the GitHub runner — keeps the action fast and avoids
+# Docker-in-Docker juggling on ubuntu-latest.
+
+name: deploy-hosted-demo
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch: {}
+
+jobs:
+  deploy:
+    name: Redeploy amp-governance-demo
+    runs-on: ubuntu-latest
+    concurrency:
+      group: fly-deploy
+      cancel-in-progress: false
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install flyctl
+        uses: superfly/flyctl-actions/setup-flyctl@master
+
+      - name: Deploy to Fly.io
+        run: flyctl deploy --remote-only --config deploy/fly.toml
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}

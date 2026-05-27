@@ -1,0 +1,102 @@
+# Anything not strictly needed inside the image. Keep this in sync with
+# .gitignore — the runtime image is a stripped subset of the source tree.
+
+# Version control
+.git/
+.gitignore
+.github/
+
+# Virtual envs and tool caches
+.venv/
+venv/
+env/
+ENV/
+.uv/
+.tools/
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+.hypothesis/
+.benchmarks/
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+
+# Tests + examples — not part of the runtime image
+tests/
+examples/
+
+# Local SQLite working files
+*.db
+*.sqlite
+*.sqlite3
+*.db-journal
+*.db-wal
+*.db-shm
+amp-cli.db
+demo-ui.db
+
+# Demo-render intermediates
+docs/demos/frames/
+docs/demos/*.gif
+docs/demos/*.db
+docs/demos/*.db-journal
+docs/demos/*.db-wal
+docs/demos/*.db-shm
+docs/demos/cli.tape
+docs/architecture.png
+docs/architecture.svg
+
+# Build artifacts
+build/
+dist/
+sdist/
+wheels/
+share/python-wheels/
+develop-eggs/
+downloads/
+eggs/
+.eggs/
+parts/
+lib/
+lib64/
+var/
+
+# Coverage + profiling
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.nox/
+coverage.xml
+*.cover
+
+# Local logs / smoke-test artifacts
+test-ui.log
+test-ui.err
+site/
+docs/_build/
+
+# OS + editor cruft
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Local secrets
+.env
+.env.*
+!.env.example
+.claude/
+
+# The deploy bundle itself — we copy the bits we need explicitly via
+# COPY deploy/seed-on-boot.py rather than dragging the whole directory in.
+deploy/README.md
+deploy/deploy-on-tag.yml
+deploy/.dockerignore
+deploy/fly.toml

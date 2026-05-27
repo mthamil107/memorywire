@@ -121,6 +121,104 @@ SLA the implementation aims at:
 The 100k-memory recall scaling test, FSM latency, consolidation, and UI
 page-load targets are v0.2 follow-ups.
 
+## Adversarial fusion experiment
+
+A 1-of-N malicious-backend, rank-0 injection experiment that measures
+how much the router's RRF fusion is moved by a single rogue store. Maps
+1:1 to the threat enumerated in `docs/THREATS.md` §3.3.
+
+### Methodology
+
+- N child stores (default 3): N-1 *benign* + 1 *adversarial*. Benign
+  stores return each query's gold ids at the top ranks with an
+  independent random distractor tail (different distractor permutation
+  per benign store — simulates "different embedders / different
+  indexes"). The adversarial store returns ``K`` attacker-controlled
+  ids (disjoint from the gold corpus, prefix ``a***``) at ranks
+  ``0..K-1``, then optionally a benign tail so it still "looks normal"
+  past rank K.
+- Q queries (default 20), each with two gold ids drawn without
+  replacement from a synthetic corpus of M memories (default 50).
+- For ``K ∈ {0, 5, 10, ..., M}`` the script issues every query through
+  a real `MemoryRouter.recall(k=5)` and measures:
+  - **recall@5** against the gold set;
+  - **adversarial leak rate** — fraction of returned ids that are
+    attacker-controlled;
+  - **gold displacement rate** — fraction of gold ids in the K=0
+    baseline top-5 that were pushed out at higher K.
+- Three fusion modes tested by re-running with `--target rrf|max|weighted`.
+
+### Results (N=3, 1 adversarial, M=50, Q=20, k=5, seed=1337)
+
+Numbers measured 2026-05-27 with the default config. Reproduce with
+`python scripts/run_adversarial.py --json`.
+
+| K (attacker budget) | recall@5 (RRF) | leak (RRF) | recall@5 (MAX) | leak (MAX) |
+|---:|---:|---:|---:|---:|
+| 0   | 1.000 | 0.000 | 1.000 | 0.000 |
+| 5   | 1.000 | 0.000 | 0.500 | 0.800 |
+| 10  | 1.000 | 0.000 | 0.500 | 0.800 |
+| 25  | 1.000 | 0.000 | 0.500 | 0.800 |
+| 50  | 1.000 | 0.000 | 0.500 | 0.800 |
+
+Under `fusion="weighted"` with equal per-store weights the result is
+identical to RRF: the consensus of two benign votes for each gold id
+outpoints the single attacker vote regardless of K. The fusion algorithm
+under attack — not the attack budget — is the dominant variable.
+
+### Headline
+
+- **RRF: defensible across the full sweep.** With 2 benign + 1
+  adversarial backend, recall@5 stays at 1.000 even at K=50
+  (attacker filling every top slot), and leak/displacement stay at
+  0.000. This is the mathematical consequence of RRF being
+  score-independent and sum-across-stores: a single rogue vote of
+  `1/60 ≈ 0.0167` cannot beat two benign votes summing to
+  `1/60 + 1/61 ≈ 0.0330`.
+- **MAX collapses at K=5.** With the same setup, a single rogue
+  store at attacker rank 0 immediately ties or beats the benign
+  rank-0 score, pulls 4 of 5 fused top-5 slots, and halves recall.
+  Operators picking `fusion="max"` (or `"weighted"` with attacker
+  weight not down-weighted) accept this.
+
+The operating point for the default config is **K=50 with recall@5 =
+1.000 under RRF** — the curve does not cross the 0.6 floor in the
+swept range. The defensible claim is therefore "RRF tolerates an
+arbitrarily large 1-of-N rank-0 injection as long as the majority of
+backends are benign and agree on the gold set," not "RRF tolerates K
+up to some specific number."
+
+### Reproduce
+
+```bash
+# Default sweep (RRF, N=3, 1 adversarial, M=50, Q=20)
+.venv/Scripts/python.exe scripts/run_adversarial.py --json
+
+# Compare fusion algorithms
+.venv/Scripts/python.exe scripts/run_adversarial.py --target max
+.venv/Scripts/python.exe scripts/run_adversarial.py --target weighted
+
+# Stress: 50% rogue
+.venv/Scripts/python.exe scripts/run_adversarial.py --n-backends 2 --n-adversarial 1
+
+# Plot (requires matplotlib; silently skipped otherwise)
+.venv/Scripts/python.exe scripts/run_adversarial.py --plot
+```
+
+Plot output (when matplotlib is installed): `docs/adversarial-results.png`.
+
+### What this number is *not*
+
+- **Not an end-to-end recall measurement.** Benign stores are perfect
+  by construction (always return gold at top); the experiment isolates
+  the fusion-math property, not the storage-stack property.
+- **Not LongMemEval.** No LLM grader, uniform-difficulty queries, no
+  long-context retrieval.
+- **Adversary has full knowledge** of the router's k*4 over-fetch and
+  fills exactly that block; a black-box attacker would do worse.
+- **1-of-N case only by default.** Once `n_adversarial >= n_benign`
+  the RRF consensus argument fails — see `--n-adversarial` to sweep.
+
 ## Roadmap to v0.2
 
 - LongMemEval proper with a GPT-4-class grader (paid).

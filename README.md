@@ -9,14 +9,23 @@
   <a href="LICENSE"><img alt="License" src="https://img.shields.io/badge/license-Apache--2.0-blue.svg"></a>
   <a href="https://www.python.org"><img alt="Python" src="https://img.shields.io/badge/python-3.11%20%7C%203.12%20%7C%203.13-blue.svg"></a>
   <img alt="Status" src="https://img.shields.io/badge/status-v0%20draft-orange.svg">
-  <img alt="Tests" src="https://img.shields.io/badge/tests-290%20passing-brightgreen.svg">
+  <img alt="Tests" src="https://img.shields.io/badge/tests-390%20passing-brightgreen.svg">
+  <img alt="Adapters" src="https://img.shields.io/badge/adapters-5-brightgreen.svg">
+</p>
+
+<p align="center">
+  <a href="https://amp-governance-demo.fly.dev">🚀 Try the governance UI live</a>
+  &nbsp;·&nbsp;
+  <a href="docs/spec/v0.md">📖 Read the spec</a>
+  &nbsp;·&nbsp;
+  <a href="docs/MCP-RELATIONSHIP.md">🤝 How AMP relates to MCP</a>
 </p>
 
 ---
 
 Every agent memory framework today &mdash; mem0, Letta, Cognee, Zep, MemoryOS &mdash; stores memories in its own format. There is no common protocol. AMP is the layer above them: a small, stable wire format so any memory client can talk to any memory backend, and any agent can carry its memory across runtimes.
 
-This repository contains the spec, a reference Python implementation, three day-1 backend adapters, and a governance UI for diff-and-approve workflows on what agents remember.
+This repository contains the spec, a reference Python implementation, **five day-1 backend adapters** (sqlite-vec, mem0, Letta, Cognee, pgvector), and a governance UI for diff-and-approve workflows on what agents remember.
 
 ## Demo
 
