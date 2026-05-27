@@ -18,6 +18,22 @@ Every agent memory framework today &mdash; mem0, Letta, Cognee, Zep, MemoryOS &m
 
 This repository contains the spec, a reference Python implementation, three day-1 backend adapters, and a governance UI for diff-and-approve workflows on what agents remember.
 
+## Demo
+
+**Governance UI — diff and approve a pending memory, audit the decision:**
+
+<p align="center">
+  <img alt="AMP governance UI diff-and-approve flow" src="docs/demos/ui.gif" width="820">
+</p>
+
+**`amp` CLI &mdash; remember, recall, forget:**
+
+<p align="center">
+  <img alt="amp CLI quickstart" src="docs/demos/cli.gif" width="720">
+</p>
+
+Reproduce: [`docs/demos/README.md`](docs/demos/README.md).
+
 ## Status
 
 | Component | State |

@@ -79,3 +79,13 @@ desktop.ini
 .env.*
 !.env.example
 .claude/
+
+# Local demo tooling (vhs.exe, ffmpeg.exe, ttyd.exe — fetched on demand)
+.tools/
+
+# Demo render intermediates (regenerate via docs/demos scripts)
+docs/demos/frames/
+docs/demos/*.db
+docs/demos/*.db-journal
+docs/demos/*.db-wal
+docs/demos/*.db-shm
