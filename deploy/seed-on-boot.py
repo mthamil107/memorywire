@@ -50,16 +50,28 @@ def _log(event: str, **fields: object) -> None:
 
 
 def _fake_embedder(text: str) -> list[float]:
-    """Deterministic 16-dim float vector derived from sha256(text).
+    """Deterministic 384-dim float vector derived from sha256(text).
 
-    Avoids pulling sentence-transformers into the runtime image. The UI
-    never embeds; the seeded rows just need *some* vector so the
-    sqlite-vec virtual table is consistent.
+    Avoids pulling sentence-transformers into the runtime image. The
+    dim *must* match :data:`SqliteVecStore.DEFAULT_EMBEDDING_DIM` (384)
+    because the UI's recall path uses the default sentence-transformers
+    embedder, which also produces 384-d vectors. If this seeder writes
+    rows at a different dim, either (a) the schema is created at the
+    wrong dim and the UI's writes later fail, or (b) the schema is
+    created at 384 and these seed writes fail. Either way, the demo
+    is broken on first boot of a fresh Fly.io volume.
+
+    sha256 yields 32 bytes; repeating it 12x gives 384 bytes; we
+    truncate to exactly 384 and rescale to [0, 1]. The values aren't
+    semantically meaningful — the demo UI shows static seeded content
+    so no real recall scoring happens against these vectors — but the
+    *dimensionality* is load-bearing.
     """
     import hashlib
 
     digest = hashlib.sha256(text.encode("utf-8")).digest()
-    return [((digest[i] / 255.0) * 2.0) - 1.0 for i in range(16)]
+    expanded = (digest * 12)[:384]
+    return [b / 255.0 for b in expanded]
 
 
 def _already_seeded(db_path: Path) -> bool:
@@ -95,10 +107,14 @@ async def _seed(db_path: Path) -> None:
     """Write the demo fixture into ``db_path``. Caller guarantees emptiness."""
     db_path.parent.mkdir(parents=True, exist_ok=True)
 
+    # Do NOT override `embedding_dim` — let it default to 384 so the
+    # virtual table schema matches what the real UI (sentence-
+    # transformers default) will later write. The fake embedder above
+    # produces 384-d vectors so this seeder's writes succeed against
+    # the default-dim schema.
     store = SqliteVecStore(
         db_path=str(db_path),
         embedder=_fake_embedder,
-        embedding_dim=16,
     )
     try:
         # --- Approved historical memories --------------------------------

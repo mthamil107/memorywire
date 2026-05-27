@@ -172,6 +172,84 @@ def test_eval_dry_run_longmemeval(tmp_path: Path) -> None:
     assert data["per_condition"], "per_condition aggregate missing"
 
 
+def test_longmemeval_per_question_isolation(tmp_path: Path) -> None:
+    """Bug-2 regression: question 2 must NOT see question 1's ingested content.
+
+    Builds two LMEQuestions, each with a uniquely-fingerprinted fact in
+    its session history, runs ``_run_condition`` against an isolated
+    sqlite-vec DB in dry-run mode, then asserts the recorded candidate
+    answer for question 2 contains question 2's fingerprint and NOT
+    question 1's. Before the per-(seed, qid) ``Memory`` isolation fix,
+    question 2's recall would surface question 1's content because they
+    shared a single agent-scoped store.
+    """
+    import asyncio
+
+    from scripts.run_longmemeval import (
+        LMEQuestion,
+        _NoOpGrader,
+        _run_condition,
+    )
+
+    db_path = tmp_path / "leak-check.db"
+    store_url = f"sqlite-vec://{db_path}"
+    fingerprint_q1 = "ZEBRA-ALPHA-72431"
+    fingerprint_q2 = "OCTOPUS-DELTA-19287"
+
+    questions = [
+        LMEQuestion(
+            qid="qid-001",
+            task_type="single_session_preferences",
+            question="What is the unique fingerprint mentioned?",
+            gold_answer=fingerprint_q1,
+            sessions=[
+                [
+                    {"role": "user", "content": f"My secret code is {fingerprint_q1}."},
+                    {"role": "assistant", "content": "Noted."},
+                ],
+            ],
+            rubric=None,
+        ),
+        LMEQuestion(
+            qid="qid-002",
+            task_type="single_session_preferences",
+            question="What is the unique fingerprint mentioned?",
+            gold_answer=fingerprint_q2,
+            sessions=[
+                [
+                    {"role": "user", "content": f"My secret code is {fingerprint_q2}."},
+                    {"role": "assistant", "content": "Noted."},
+                ],
+            ],
+            rubric=None,
+        ),
+    ]
+
+    rows = asyncio.run(
+        _run_condition(
+            condition=store_url,
+            store_urls=[store_url],
+            questions=questions,
+            seeds=[0],
+            k=5,
+            grader=_NoOpGrader(),
+            dry_run=True,
+        )
+    )
+
+    assert len(rows) == 2, f"expected 2 result rows, got {len(rows)}"
+    row_q2 = next(r for r in rows if r.qid == "qid-002")
+    # Question 2's recall surfaced its own ingest (fingerprint_q2). The
+    # leak we're protecting against is question 1's fingerprint showing
+    # up in question 2's recall context — that would indicate the agent
+    # scope did not isolate the two.
+    assert fingerprint_q1 not in row_q2.candidate_answer, (
+        f"cross-question leak detected: question 1's fingerprint "
+        f"{fingerprint_q1!r} surfaced in question 2's recall: "
+        f"{row_q2.candidate_answer!r}"
+    )
+
+
 def test_eval_dry_run_locomo(tmp_path: Path) -> None:
     """``run_locomo.py --dry-run --n-queries 3`` exits 0."""
     out_json = tmp_path / "locomo-dry.json"

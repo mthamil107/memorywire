@@ -5,6 +5,13 @@ on:
     branches: [main]
     tags:
       - "v*"
+  # release-please creates the v* tag using the default GITHUB_TOKEN, and
+  # GitHub's anti-recursion rule prevents that tag-push event from firing
+  # downstream workflows. We therefore *also* listen for `release: published`,
+  # which release-please emits once the GitHub release is cut. Either trigger
+  # is sufficient for the build + publish chain below.
+  release:
+    types: [published]
   workflow_dispatch:
     inputs:
       testpypi:
@@ -50,11 +57,15 @@ jobs:
   # --------------------------------------------------------------------------
   build:
     name: Build distributions
-    if: startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'
+    if: startsWith(github.ref, 'refs/tags/v') || github.event_name == 'release' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
+          # On a `release: published` event the workflow runs against the
+          # default branch ref; check out the actual release tag so the
+          # version derived by hatch-vcs matches the wheel name.
+          ref: ${{ github.event.release.tag_name || github.ref }}
           fetch-depth: 0  # required for hatch-vcs to derive the version from the tag
 
       - name: Install uv
@@ -100,6 +111,7 @@ jobs:
     needs: build
     if: |
       (startsWith(github.ref, 'refs/tags/v') && contains(github.ref, '-')) ||
+      (github.event_name == 'release' && contains(github.event.release.tag_name, '-')) ||
       (github.event_name == 'workflow_dispatch' && github.event.inputs.testpypi == 'true')
     runs-on: ubuntu-latest
     environment:
@@ -129,7 +141,9 @@ jobs:
   publish-pypi:
     name: Publish to PyPI
     needs: build
-    if: startsWith(github.ref, 'refs/tags/v') && !contains(github.ref, '-')
+    if: |
+      (startsWith(github.ref, 'refs/tags/v') && !contains(github.ref, '-')) ||
+      (github.event_name == 'release' && !contains(github.event.release.tag_name, '-'))
     runs-on: ubuntu-latest
     environment:
       name: pypi
@@ -157,12 +171,14 @@ jobs:
   github-release:
     name: Attach artifacts to GitHub release
     needs: build
-    if: startsWith(github.ref, 'refs/tags/v')
+    if: startsWith(github.ref, 'refs/tags/v') || github.event_name == 'release'
     runs-on: ubuntu-latest
     permissions:
       contents: write
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.release.tag_name || github.ref }}
 
       - name: Download AMP distributions
         uses: actions/download-artifact@v4
@@ -179,7 +195,10 @@ jobs:
       - name: Upload artifacts to GitHub release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
         run: |
-          TAG="${GITHUB_REF#refs/tags/}"
+          # On tag-push GITHUB_REF is refs/tags/vX.Y.Z; on `release: published`
+          # it's the default branch ref, so prefer release.tag_name when set.
+          TAG="${RELEASE_TAG:-${GITHUB_REF#refs/tags/}}"
           echo "Attaching artifacts to release $TAG"
           gh release upload "$TAG" dist/*.whl dist/*.tar.gz dist-ui/*.whl --clobber

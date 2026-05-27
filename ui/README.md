@@ -31,7 +31,19 @@ Environment variables:
 * `AMP_UI_PORT` — bind port (default: `8765`).
 * `AMP_UI_TOKEN` — optional bearer token. When set, every request must carry
   `Authorization: Bearer <token>` or the `amp_ui_session=<token>` cookie.
-  Strongly recommended for any non-loopback bind.
+  **Required** for any non-loopback bind: if `AMP_UI_HOST` is anything other
+  than `127.0.0.1` / `localhost` / `::1` and `AMP_UI_TOKEN` is empty, the
+  process refuses to start (exit code 1) so an unauthenticated governance UI
+  can't be accidentally exposed to the public internet. Generate one with:
+
+  ```
+  python -c "import secrets; print(secrets.token_urlsafe(32))"
+  ```
+
+* `AMP_UI_ALLOW_UNAUTHENTICATED_PUBLIC` — set to `1` to opt out of the
+  public-bind safety check above. Use only when the UI sits behind another
+  auth layer (e.g. a reverse proxy with mTLS, or a demo deployment that
+  intentionally has no auth and is segregated to throwaway data).
 * `AMP_UI_CSRF_SECRET` — base64-encoded HMAC secret (must decode to at least
   16 raw bytes) used to sign CSRF tokens. When unset, a fresh random secret
   is generated per-process, which invalidates every browser session across

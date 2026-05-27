@@ -21,6 +21,14 @@ freely; clicking an approve button returns **401**. That is the demo
 contract — let the world see the workflow, but don't let randos
 mutate state.
 
+`AMP_UI_TOKEN` is also **required** by the boot guard whenever
+`AMP_UI_HOST` is non-loopback (`fly.toml` binds `0.0.0.0`). If the
+secret is missing the container exits with code 1 before uvicorn
+starts — Fly will surface this as a deploy failure rather than
+publishing an unauthenticated UI. Set
+`AMP_UI_ALLOW_UNAUTHENTICATED_PUBLIC=1` only if you intentionally
+front the UI with another auth layer.
+
 ## One-time setup
 
 Run from the repository root:

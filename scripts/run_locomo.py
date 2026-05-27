@@ -6,6 +6,18 @@ conversational memory: pairs of conversational episodes spanning many
 sessions, with a GPT-4 grader judging answer quality and a BLEU
 overlap score for reference.
 
+Per-question isolation invariant
+--------------------------------
+For each (seed, episode_id, qid) tuple we construct a *fresh*
+:class:`amp.api.Memory` with a unique ``agent_id`` of the form
+``f"locomo-{condition}-{seed}-{episode_id}-{qid}"``. Question N's
+recall therefore never sees question N-1's ingested turns. The episode
+session history is re-ingested per question into the fresh
+agent-scoped slice; this is correctness-critical (an episode's QA
+rows share the same session history but each question must see only
+that history, not the answers leaked through previous questions'
+ingest paths) and trades a small ingest cost for honest numbers.
+
 Shape vs LongMemEval
 --------------------
 * LongMemEval is question-answer over a static history; LoCoMo is
@@ -334,38 +346,42 @@ async def _run_locomo_condition(
 ) -> list[LoCoMoPerQuestionResult]:
     rows: list[LoCoMoPerQuestionResult] = []
     for seed in seeds:
-        agent_id = f"locomo-{condition}-{seed}"
         _ = random.Random(seed)
 
-        mem = Memory(agent_id=agent_id, stores=list(store_urls))
-        try:
-            for ep in episodes:
-                # Ingest every turn across every session into one episode-scoped
-                # memory bag. Metadata keeps episode + session provenance so
-                # the recall + grader can attribute facts back to specific turns.
-                for sess_ix, session in enumerate(ep.sessions):
-                    for turn_ix, turn in enumerate(session):
-                        if not turn.get("content"):
-                            continue
-                        try:
-                            await mem.remember(
-                                turn["content"],
-                                type=MemoryType.EPISODIC,
-                                metadata={
-                                    "episode_id": ep.episode_id,
-                                    "session_id": sess_ix,
-                                    "turn_ix": turn_ix,
-                                    "role": turn.get("role", "user"),
-                                },
-                            )
-                        except Exception as exc:
-                            sys.stderr.write(
-                                f"warning: remember failed for {ep.episode_id}/"
-                                f"{sess_ix}/{turn_ix}: {type(exc).__name__}: {exc}\n"
-                            )
+        for ep in episodes:
+            # One pass over every QA pair for this episode, but each
+            # question runs against a *fresh* Memory with a unique
+            # agent_id so question N's recall can't see question N-1's
+            # ingested turns. We re-ingest the episode's session
+            # history per question — the extra ingest cost is the price
+            # for honest isolation.
+            for q in ep.questions:
+                agent_id = f"locomo-{condition}-{seed}-{ep.episode_id}-{q['qid']}"
+                mem = Memory(agent_id=agent_id, stores=list(store_urls))
+                try:
+                    # Ingest the episode session history into THIS
+                    # question's agent-scoped slice.
+                    for sess_ix, session in enumerate(ep.sessions):
+                        for turn_ix, turn in enumerate(session):
+                            if not turn.get("content"):
+                                continue
+                            try:
+                                await mem.remember(
+                                    turn["content"],
+                                    type=MemoryType.EPISODIC,
+                                    metadata={
+                                        "episode_id": ep.episode_id,
+                                        "session_id": sess_ix,
+                                        "turn_ix": turn_ix,
+                                        "role": turn.get("role", "user"),
+                                    },
+                                )
+                            except Exception as exc:
+                                sys.stderr.write(
+                                    f"warning: remember failed for {ep.episode_id}/"
+                                    f"{sess_ix}/{turn_ix}: {type(exc).__name__}: {exc}\n"
+                                )
 
-                # One pass over every QA pair for this episode.
-                for q in ep.questions:
                     t0 = time.perf_counter()
                     try:
                         hits = await mem.recall(q["question"], k=k)
@@ -419,8 +435,8 @@ async def _run_locomo_condition(
                             gold_answer=q["gold_answer"],
                         )
                     )
-        finally:
-            await mem.close()
+                finally:
+                    await mem.close()
     return rows
 
 

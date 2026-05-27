@@ -8,7 +8,7 @@ from typing import Any
 
 import httpx
 import pytest
-from amp_ui.__main__ import _load_csrf_secret_from_env
+from amp_ui.__main__ import _assert_safe_public_config, _load_csrf_secret_from_env
 from amp_ui.app import create_app
 from amp_ui.middleware import CSRF_COOKIE_NAME, CSRF_HEADER_NAME
 
@@ -263,3 +263,40 @@ def test_csrf_secret_env_unset_returns_none() -> None:
     """Empty / unset env var falls back to per-process randomness."""
     assert _load_csrf_secret_from_env(None) is None
     assert _load_csrf_secret_from_env("") is None
+
+
+# ---------------------------------------------------------------------------
+# Bug-4 regressions: fail-closed public-bind safety check
+# ---------------------------------------------------------------------------
+
+
+def test_assert_safe_public_config_loopback_no_token_passes() -> None:
+    """Loopback bind (127.0.0.1) without a token is fine — nothing off-box reaches it."""
+    # No exception expected.
+    _assert_safe_public_config("127.0.0.1", None, False)
+    _assert_safe_public_config("localhost", None, False)
+    _assert_safe_public_config("::1", None, False)
+
+
+def test_assert_safe_public_config_public_no_token_exits() -> None:
+    """Public bind (0.0.0.0) without a token must terminate the process."""
+    with pytest.raises(SystemExit) as exc_info:
+        _assert_safe_public_config("0.0.0.0", None, False)
+    assert exc_info.value.code == 1
+    # Empty-string token (Fly secrets sometimes injects "") must also fail.
+    with pytest.raises(SystemExit):
+        _assert_safe_public_config("0.0.0.0", "", False)
+
+
+def test_assert_safe_public_config_public_with_token_passes() -> None:
+    """Public bind with a non-empty token is the production path — must succeed."""
+    _assert_safe_public_config("0.0.0.0", "tok", False)
+    _assert_safe_public_config("203.0.113.10", "another-token", False)
+
+
+def test_assert_safe_public_config_explicit_opt_out_passes() -> None:
+    """``AMP_UI_ALLOW_UNAUTHENTICATED_PUBLIC=1`` must bypass the check."""
+    # No exception even with a public host and no token, because the
+    # operator explicitly accepted the risk.
+    _assert_safe_public_config("0.0.0.0", None, True)
+    _assert_safe_public_config("0.0.0.0", "", True)

@@ -6,9 +6,13 @@ environment, builds the Starlette app via :func:`amp_ui.app.create_app`,
 and hands it to ``uvicorn.run``.
 
 ``AMP_UI_TOKEN`` — when set, gates every request behind that bearer
-token. Strongly recommended for any non-loopback bind; the app will emit
-a stderr warning at boot when ``AMP_UI_HOST`` is set to anything other
-than ``127.0.0.1`` / ``localhost`` / ``::1`` without it.
+token. **Required** when ``AMP_UI_HOST`` resolves to any non-loopback
+address (anything other than ``127.0.0.1`` / ``localhost`` / ``::1``);
+the process refuses to start in that configuration and exits with code
+1 so a forgetful operator can't accidentally expose an unauthenticated
+governance UI to the public internet. Set
+``AMP_UI_ALLOW_UNAUTHENTICATED_PUBLIC=1`` to explicitly opt out of the
+check (e.g. demo-only deployments fronted by their own auth layer).
 
 ``AMP_UI_CSRF_SECRET`` — base64-encoded HMAC secret (>= 16 raw bytes)
 used to sign CSRF tokens. When unset a fresh random secret is generated
@@ -33,6 +37,59 @@ from amp_ui.app import create_app
 
 CSRF_SECRET_ENV_VAR = "AMP_UI_CSRF_SECRET"
 _MIN_CSRF_SECRET_BYTES = 16
+
+# Hostnames that bind only to the local machine — safe to run without
+# AMP_UI_TOKEN because nothing off-box can reach the listener.
+_LOOPBACK_HOSTS: frozenset[str] = frozenset({"127.0.0.1", "localhost", "::1"})
+
+
+def _assert_safe_public_config(
+    host: str,
+    token: str | None,
+    allow_unauth: bool,
+) -> None:
+    """Fail-closed guard: refuse to expose an unauthenticated UI publicly.
+
+    Parameters
+    ----------
+    host:
+        The value of ``AMP_UI_HOST`` (or equivalent CLI arg). Anything
+        outside ``{127.0.0.1, localhost, ::1}`` is treated as a
+        potentially public bind — including the catch-all ``0.0.0.0``
+        and ``::`` that Fly.io's ``fly.toml`` defaults to.
+    token:
+        The value of ``AMP_UI_TOKEN``. ``None`` or empty string means
+        "no bearer auth" and the UI's middleware becomes a no-op.
+    allow_unauth:
+        Truthy when ``AMP_UI_ALLOW_UNAUTHENTICATED_PUBLIC=1`` is set.
+        Opt-out escape hatch for operators who explicitly accept the
+        risk (e.g. demo-only deployments fronted by their own auth
+        layer).
+
+    Raises
+    ------
+    SystemExit
+        With code 1 and a clear stderr message when ``host`` is a
+        non-loopback address, ``token`` is empty, and ``allow_unauth``
+        is false. The caller does NOT need to catch this — the goal is
+        to terminate the boot before uvicorn binds the port.
+    """
+    is_loopback = host.strip().lower() in _LOOPBACK_HOSTS
+    has_token = bool(token)
+    if is_loopback or has_token or allow_unauth:
+        return
+    print(
+        "amp_ui: refusing to start a public-bound UI without AMP_UI_TOKEN.\n"
+        f"AMP_UI_HOST is set to {host!r}. Either:\n"
+        "  - Set AMP_UI_HOST=127.0.0.1 (loopback-only), OR\n"
+        "  - Set AMP_UI_TOKEN=<a-bearer-token-string> via env or "
+        "`fly secrets set`.\n"
+        "See ui/README.md for token generation.\n"
+        "To explicitly opt out of this check (e.g. a demo behind your "
+        "own auth layer), set AMP_UI_ALLOW_UNAUTHENTICATED_PUBLIC=1.",
+        file=sys.stderr,
+    )
+    raise SystemExit(1)
 
 
 def _load_csrf_secret_from_env(
@@ -94,6 +151,16 @@ def main() -> None:
     agent_id = os.environ.get("AMP_UI_AGENT_ID", "default")
     db_path = os.environ.get("AMP_UI_DB_PATH")
     token = os.environ.get("AMP_UI_TOKEN") or None
+    allow_unauth = os.environ.get("AMP_UI_ALLOW_UNAUTHENTICATED_PUBLIC", "") in {
+        "1",
+        "true",
+        "yes",
+        "on",
+    }
+
+    # Fail-closed: refuse to expose an unauthenticated UI publicly.
+    # Must run before uvicorn binds the port.
+    _assert_safe_public_config(host, token, allow_unauth)
 
     try:
         csrf_secret = _load_csrf_secret_from_env()

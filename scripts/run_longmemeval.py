@@ -5,6 +5,18 @@ This script runs AMP against LongMemEval (Wu et al., 2024 —
 mean ± 95% paired-bootstrap CI with Holm-Bonferroni-corrected p-values
 for inclusion in paper §5.
 
+Per-question isolation invariant
+--------------------------------
+For each (seed, qid) pair we construct a *fresh* :class:`amp.api.Memory`
+instance with a unique ``agent_id`` of the form ``f"lme-{condition}-{seed}-{qid}"``.
+This guarantees that question N's recall never sees question N-1's
+ingested turns — without this invariant the harness silently cross-
+contaminates and the paper §5 numbers measure the wrong thing. The
+underlying sqlite-vec store is the same file per condition, but every
+row carries the question-scoped ``agent_id`` so the adapter's row-level
+filter keeps results disjoint. ``Memory.close()`` is invoked after each
+question to release the per-instance connection.
+
 LongMemEval at a glance
 -----------------------
 Five task types, each measuring a different facet of long-term memory:
@@ -356,24 +368,33 @@ async def _run_condition(
     grader: GraderProtocol,
     dry_run: bool,
 ) -> list[PerQuestionResult]:
-    """Run one AMP configuration across all (question, seed) pairs."""
+    """Run one AMP configuration across all (question, seed) pairs.
+
+    Per-question isolation
+    ----------------------
+    We construct a *fresh* :class:`amp.api.Memory` with a unique
+    ``agent_id`` per (seed, qid). This is the harness's only correctness
+    knob — without it question N's recall scores against question N-1's
+    ingested turns and the paper numbers are meaningless. The fresh
+    ``Memory`` is closed after each question so connection state doesn't
+    leak across iterations.
+    """
     results: list[PerQuestionResult] = []
 
     for seed in seeds:
-        # Fresh agent_id per seed isolates state between seeds when the
-        # backend is persistent (sqlite-vec on disk would otherwise pile
-        # ingests across seeds and pollute recall).
-        agent_id = f"lme-{condition}-{seed}"
         # Per-seed RNG so any randomised behaviour (e.g. tie-breaking,
         # query order) is reproducible.
         _ = random.Random(seed)
 
-        # For multi-store conditions we use the URL list as-is. The
-        # first store is the "primary" — its name appears in the
-        # condition label.
-        mem = Memory(agent_id=agent_id, stores=list(store_urls))
-        try:
-            for q in questions:
+        for q in questions:
+            # Fresh agent_id per (seed, qid) is the isolation primitive.
+            # The sqlite-vec adapter row-filters by agent_id, so two
+            # questions running against the same DB URL can't see each
+            # other's memories. Closing `mem` per-question releases the
+            # connection cleanly.
+            agent_id = f"lme-{condition}-{seed}-{q.qid}"
+            mem = Memory(agent_id=agent_id, stores=list(store_urls))
+            try:
                 # ---- Ingest session history -------------------------
                 for sess_ix, session in enumerate(q.sessions):
                     for turn_ix, turn in enumerate(session):
@@ -456,8 +477,8 @@ async def _run_condition(
                         gold_answer=q.gold_answer,
                     )
                 )
-        finally:
-            await mem.close()
+            finally:
+                await mem.close()
 
     return results
 

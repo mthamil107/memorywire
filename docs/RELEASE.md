@@ -60,12 +60,20 @@ The full happy-path flow:
    - Updates `CITATION.cff` and `src/amp/__init__.py`.
    - Rewrites `CHANGELOG.md`.
    - Creates a GitHub release with tag `vX.Y.Z`.
-4. **The `vX.Y.Z` tag push** triggers `release.yml`, which:
+4. **The GitHub release publication** triggers `release.yml`, which:
    - Builds the AMP wheel + sdist with `uv build`.
    - Builds the UI wheel (FSL-licensed; attached as an artifact, **not**
      published to PyPI).
    - Publishes the AMP wheel + sdist to PyPI via Trusted Publisher (OIDC).
    - Attaches all wheels + the sdist to the GitHub release.
+
+   The workflow fires on **`release: published`** (emitted by
+   release-please when it cuts the GitHub release) **and** on `push`
+   of any `v*` tag. Both trigger the same build + publish chain. The
+   dual trigger exists because the `vX.Y.Z` tag is created with the
+   default `GITHUB_TOKEN`, and GitHub's anti-recursion rule prevents
+   that tag-push event from firing downstream workflows — so we listen
+   for the release event as well to guarantee the first publish runs.
 5. **Verify install**:
 
    ```bash

@@ -58,6 +58,12 @@ test-ui.log
 test-ui.err
 amp-cli.db
 
+# Eval harness dry-run / live outputs (regenerated on every run)
+docs/longmemeval-results.json
+docs/locomo-results.json
+docs/longmemeval-results.csv
+docs/locomo-results.csv
+
 # Generated docs
 site/
 docs/_build/
