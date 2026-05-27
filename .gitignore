@@ -10,8 +10,10 @@ dist/
 downloads/
 eggs/
 .eggs/
-lib/
-lib64/
+# Anchor to repo root so we don't accidentally ignore subpackages
+# like scripts/lib/ (which is a real Python package, not a venv leftover).
+/lib/
+/lib64/
 parts/
 sdist/
 var/
