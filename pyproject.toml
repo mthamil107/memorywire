@@ -39,7 +39,7 @@ dependencies = [
 sqlite-vec = ["sqlite-vec>=0.1.6", "sentence-transformers>=3.0"]
 mem0       = ["mem0ai>=0.1.40"]
 letta      = ["letta-client>=0.5"]
-cognee     = ["cognee>=0.2"]
+cognee     = ["cognee>=1.1"]
 postgres   = ["asyncpg>=0.29", "pgvector>=0.3"]
 ui         = ["starlette>=0.37", "uvicorn>=0.30", "jinja2>=3.1", "python-multipart>=0.0.9"]
 all        = [
@@ -127,7 +127,7 @@ warn_redundant_casts = true
 exclude = ["docs/kickoff/", "docs/demos/", "build/", "dist/"]
 
 [[tool.mypy.overrides]]
-module = ["sqlite_vec.*", "mem0.*", "letta_client.*", "transitions.*", "sentence_transformers.*"]
+module = ["sqlite_vec.*", "mem0.*", "letta_client.*", "transitions.*", "sentence_transformers.*", "asyncpg.*", "pgvector.*", "cognee.*"]
 ignore_missing_imports = true
 
 [tool.coverage.run]

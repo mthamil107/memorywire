@@ -72,6 +72,9 @@ def _build_store(url: str) -> MemoryStore:
       SQLite + sqlite-vec store.
     * ``mem0://...`` — mem0 SDK adapter.
     * ``letta://...`` — Letta (letta-client) archival-memory adapter.
+    * ``cognee://...`` — Cognee graph + vector adapter.
+    * ``pgvector://...`` (also ``pgvector+postgres``) — Postgres + pgvector
+      ANN store. ``pgvector://default`` reads ``DATABASE_URL``.
 
     Any other scheme raises :class:`ValueError`. The function does *not*
     validate that the optional dependencies for the chosen adapter are
@@ -93,6 +96,14 @@ def _build_store(url: str) -> MemoryStore:
         from amp.store.letta_adapter import LettaStore
 
         return LettaStore.from_url(url)
+    if scheme == "cognee":
+        from amp.store.cognee_adapter import CogneeStore
+
+        return CogneeStore.from_url(url)
+    if scheme in {"pgvector", "pgvector+postgres", "pgvector+postgresql"}:
+        from amp.store.pgvector_adapter import PgVectorStore
+
+        return PgVectorStore.from_url(url)
     raise ValueError(f"unknown store URL scheme: {url}")
 
 

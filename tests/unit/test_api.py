@@ -190,6 +190,25 @@ def test_build_store_letta_url() -> None:
     assert isinstance(store, LettaStore)
 
 
+def test_build_store_cognee_url() -> None:
+    """``cognee://default`` resolves to :class:`CogneeStore`."""
+    from amp.store.cognee_adapter import CogneeStore
+
+    store = _build_store("cognee://default")
+    assert isinstance(store, CogneeStore)
+
+
+def test_build_store_pgvector_url() -> None:
+    """``pgvector://`` resolves to :class:`PgVectorStore` without connecting."""
+    from amp.store.pgvector_adapter import PgVectorStore
+
+    # No pool / DSN is reachable; PgVectorStore.from_url only validates the
+    # URL shape and stashes config — actual connection is deferred to first
+    # operation, which never runs in this test.
+    store = _build_store("pgvector://localhost:5432/amp")
+    assert isinstance(store, PgVectorStore)
+
+
 def test_build_store_unknown_scheme_raises() -> None:
     """An unknown scheme raises :class:`ValueError` with the URL in the message."""
     with pytest.raises(ValueError, match="unknown store URL scheme"):

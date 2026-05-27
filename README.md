@@ -40,7 +40,7 @@ Reproduce: [`docs/demos/README.md`](docs/demos/README.md).
 | --- | --- |
 | Spec v0 (5 operations &times; 4 memory types, JSON Schema 2020-12) | [draft published](docs/spec/v0.md) |
 | Reference implementation (`pip install agent-memory-protocol`) | shipped &mdash; not yet on PyPI |
-| Backend adapters | `sqlite-vec`, `mem0`, `letta` |
+| Backend adapters (5) | `sqlite-vec`, `mem0`, `letta`, `cognee`, `pgvector` |
 | Memory router (RRF fusion + 1-hop graph boost) | shipped |
 | FSM procedural memory (`transitions` library) | shipped |
 | STM&harr;LTM async transformer | shipped |
@@ -60,13 +60,13 @@ cd agent-memory-protocol
 uv venv && uv pip install -e ".[sqlite-vec]"
 
 # With every backend
-uv pip install -e ".[sqlite-vec,mem0,letta]"
+uv pip install -e ".[sqlite-vec,mem0,letta,cognee,postgres]"
 ```
 
 When the package lands on PyPI:
 
 ```bash
-pip install "agent-memory-protocol[sqlite-vec,mem0,letta]"
+pip install "agent-memory-protocol[sqlite-vec,mem0,letta,cognee,postgres]"
 ```
 
 ## Quickstart

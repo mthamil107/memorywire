@@ -1,0 +1,97 @@
+cff-version: 1.2.0
+message: "If you use AMP, please cite it as below."
+title: "Agent Memory Protocol (AMP): A vendor-neutral wire format for agent memory operations"
+type: software
+authors:
+  - family-names: "M. Thamil"
+    given-names: "M."
+    email: "mthamil107@gmail.com"
+version: 0.0.0
+date-released: 2026-05-26
+url: "https://github.com/mthamil107/agent-memory-protocol"
+repository-code: "https://github.com/mthamil107/agent-memory-protocol"
+license: Apache-2.0
+keywords:
+  - agent
+  - memory
+  - protocol
+  - vendor-neutral
+  - governance
+  - RAG
+  - vector-store
+  - MCP
+abstract: >-
+  Agent Memory Protocol (AMP) is a vendor-neutral wire format and reference
+  implementation for agent memory operations. It defines five operations
+  (remember, recall, forget, merge, expire) over four memory types (semantic,
+  episodic, procedural, emotional), a `MemoryStore` protocol that any backend
+  can implement, and an optional governance channel for human-in-the-loop
+  diff-and-approve review of writes. AMP composes above existing memory
+  frameworks (mem0, Letta, Cognee, Zep, sqlite-vec, pgvector) rather than
+  replacing them, with a memory router that fans operations across stores and
+  fuses recall results via Reciprocal Rank Fusion (k=60) with an optional
+  one-hop graph boost.
+references:
+  - type: article
+    title: "LongMemEval: Benchmarking Chat Assistants on Long-Term Interactive Memory"
+    authors:
+      - family-names: "Wu"
+        given-names: "Di"
+      - family-names: "Wang"
+        given-names: "Hongwei"
+      - family-names: "Yu"
+        given-names: "Wenhao"
+      - family-names: "Zhang"
+        given-names: "Yuwei"
+      - family-names: "Chang"
+        given-names: "Kai-Wei"
+      - family-names: "Yu"
+        given-names: "Dong"
+    year: 2024
+    identifiers:
+      - type: other
+        value: "arXiv:2410.10813"
+        description: "arXiv preprint identifier"
+    url: "https://arxiv.org/abs/2410.10813"
+  - type: article
+    title: "Evaluating Very Long-Term Conversational Memory of LLM Agents (LoCoMo)"
+    authors:
+      - family-names: "Maharana"
+        given-names: "Adyasha"
+      - family-names: "Lee"
+        given-names: "Dong-Ho"
+      - family-names: "Tulyakov"
+        given-names: "Sergey"
+      - family-names: "Bansal"
+        given-names: "Mohit"
+      - family-names: "Barbieri"
+        given-names: "Francesco"
+      - family-names: "Fang"
+        given-names: "Yuwei"
+    year: 2024
+    identifiers:
+      - type: other
+        value: "arXiv:2402.17753"
+        description: "arXiv preprint identifier"
+    url: "https://arxiv.org/abs/2402.17753"
+  - type: article
+    title: "Governed Memory: Human-in-the-Loop Co-memorize for Long-Lived Agent Memory"
+    authors:
+      - name: "Governed Memory authors (see arXiv listing)"
+    year: 2026
+    identifiers:
+      - type: other
+        value: "arXiv:2603.17787"
+        description: "arXiv preprint identifier (per docs/kickoff/FINDINGS-CONTEXT.md; verify on arXiv before publication)"
+    notes: >-
+      Citation transcribed from project kickoff notes. The diff-and-approve
+      workflow in AMP's governance channel draws on the Co-memorize HITL pattern
+      surfaced in this paper.
+  - type: software
+    title: "Model Context Protocol (MCP)"
+    authors:
+      - name: "Anthropic and the Model Context Protocol community"
+    url: "https://modelcontextprotocol.io"
+    notes: >-
+      AMP follows the cross-vendor wire-format pattern established by MCP for
+      agent tool use; AMP applies the same shape to agent memory.
