@@ -92,6 +92,47 @@ async def test_reject_soft_deletes_the_row(
 
 
 @pytest.mark.anyio
+async def test_initial_full_page_does_not_duplicate_count(
+    seeded_db: Any,
+    app_for_path: Any,
+) -> None:
+    """A non-HTMX GET / must render the count exactly once.
+
+    The OOB swap target lives in the same partial that the HTMX response
+    inlines; without the HX-Request gate the count would appear twice on
+    the first page load.
+    """
+    seeded_db.remember("only pending", approval_required=True)
+    app = app_for_path(seeded_db.db_path)
+    transport = httpx.ASGITransport(app=app)
+    async with httpx.AsyncClient(transport=transport, base_url="http://test") as client:
+        response = await client.get("/")
+        assert response.status_code == 200
+        assert response.text.count('id="approvals-count"') == 1
+
+
+@pytest.mark.anyio
+async def test_htmx_partial_updates_count_via_oob_swap(
+    seeded_db: Any,
+    app_for_path: Any,
+) -> None:
+    """The HTMX list partial must carry an OOB-swapped count so the H1 subtitle
+    updates when rows are added/removed without reloading the page chrome."""
+    seeded_db.remember("first pending", approval_required=True)
+    seeded_db.remember("second pending", approval_required=True)
+    app = app_for_path(seeded_db.db_path)
+    transport = httpx.ASGITransport(app=app)
+    async with httpx.AsyncClient(transport=transport, base_url="http://test") as client:
+        response = await client.get("/", headers={"HX-Request": "true"})
+        assert response.status_code == 200
+        # The OOB element must target #approvals-count so HTMX swaps it
+        # alongside the list update — without it, the subtitle goes stale.
+        assert 'id="approvals-count"' in response.text
+        assert 'hx-swap-oob="true"' in response.text
+        assert "2 memories awaiting review" in response.text
+
+
+@pytest.mark.anyio
 async def test_htmx_request_returns_only_partial(
     seeded_db: Any,
     app_for_path: Any,

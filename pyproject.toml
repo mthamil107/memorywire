@@ -102,7 +102,7 @@ markers = [
 [tool.ruff]
 line-length = 100
 target-version = "py311"
-extend-exclude = ["docs/kickoff"]
+extend-exclude = ["docs/kickoff", "docs/demos"]
 
 [tool.ruff.lint]
 select = [
@@ -124,7 +124,7 @@ python_version = "3.11"
 strict = true
 warn_unused_ignores = true
 warn_redundant_casts = true
-exclude = ["docs/kickoff/", "build/", "dist/"]
+exclude = ["docs/kickoff/", "docs/demos/", "build/", "dist/"]
 
 [[tool.mypy.overrides]]
 module = ["sqlite_vec.*", "mem0.*", "letta_client.*", "transitions.*", "sentence_transformers.*"]

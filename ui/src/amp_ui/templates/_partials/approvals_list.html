@@ -9,3 +9,11 @@
     {% endwith %}
   {% endif %}
 </div>
+{# Out-of-band count swap — only emitted on HTMX responses so the initial
+   full-page render in approvals.html doesn't duplicate it. #}
+{% if request.headers.get("HX-Request") == "true" %}
+<p id="approvals-count" hx-swap-oob="true" class="mt-1 text-sm text-slate-600">
+  {{ rows|length }} memor{{ "y" if rows|length == 1 else "ies" }} awaiting review.
+  Auto-refreshes every 10s.
+</p>
+{% endif %}
