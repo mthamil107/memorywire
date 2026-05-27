@@ -36,6 +36,13 @@ jobs:
     name: release-please
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
+    # Non-fatal: this job requires a one-time repo setting toggle
+    # (Settings -> Actions -> General -> "Allow GitHub Actions to create and
+    # approve pull requests"). Until the user enables it, release-please
+    # cannot create the release PR — but we don't want that to block CI
+    # signal. continue-on-error keeps the workflow green; the setting flip
+    # is documented in docs/RELEASE.md.
+    continue-on-error: true
     permissions:
       contents: write
       pull-requests: write

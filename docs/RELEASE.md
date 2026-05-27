@@ -7,7 +7,22 @@ Actions secrets.
 
 ## 1. One-time setup (~5 minutes, done once per project)
 
-### 1a. Configure the PyPI Trusted Publisher
+### 1a. Enable GitHub Actions to create release PRs
+
+**This step is required before `release-please` will work.** Without it, the
+release workflow fails with `GitHub Actions is not permitted to create or
+approve pull requests`.
+
+1. Open **GitHub repo → Settings → Actions → General**.
+2. Scroll to **Workflow permissions**.
+3. Check **"Allow GitHub Actions to create and approve pull requests"**.
+4. Save.
+
+The `release-please` job is marked `continue-on-error: true` so CI stays
+green until this is enabled, but no release PR will appear until the toggle
+is on.
+
+### 1b. Configure the PyPI Trusted Publisher
 
 1. Sign in to <https://pypi.org/> as the project owner.
 2. Open **"Your projects" → Trusted Publisher Management**
