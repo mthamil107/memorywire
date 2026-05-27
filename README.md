@@ -1,30 +1,59 @@
-# Agent Memory Protocol (AMP)
+<h1 align="center">Agent Memory Protocol (AMP)</h1>
 
-> Vendor-neutral protocol and reference implementation for agent memory operations.
+<p align="center">
+  <strong>A vendor-neutral wire format for agent memory operations &mdash; the MCP for memory.</strong>
+</p>
 
-AMP is to agent memory what MCP is to agent tool-use: a small, stable wire format so any memory client can talk to any memory backend, and any agent can carry its memory across runtimes.
+<p align="center">
+  <a href="https://github.com/mthamil107/agent-memory-protocol/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/mthamil107/agent-memory-protocol/actions/workflows/ci.yml/badge.svg?branch=main"></a>
+  <a href="LICENSE"><img alt="License" src="https://img.shields.io/badge/license-Apache--2.0-blue.svg"></a>
+  <a href="https://www.python.org"><img alt="Python" src="https://img.shields.io/badge/python-3.11%20%7C%203.12%20%7C%203.13-blue.svg"></a>
+  <img alt="Status" src="https://img.shields.io/badge/status-v0%20draft-orange.svg">
+  <img alt="Tests" src="https://img.shields.io/badge/tests-290%20passing-brightgreen.svg">
+</p>
 
-**Status: v0 draft.** Spec and reference implementation under active development. See [`docs/spec/v0.md`](docs/spec/v0.md) once published.
+---
 
-## What AMP defines
+Every agent memory framework today &mdash; mem0, Letta, Cognee, Zep, MemoryOS &mdash; stores memories in its own format. There is no common protocol. AMP is the layer above them: a small, stable wire format so any memory client can talk to any memory backend, and any agent can carry its memory across runtimes.
 
-- **5 operations** — `remember`, `recall`, `forget`, `merge`, `expire`
-- **4 memory types** — `semantic`, `episodic`, `procedural`, `emotional`
-- **A `MemoryStore` interface** that backends implement
-- **A memory router** with RRF fusion (k=60) + optional 1-hop graph boost across N backends
-- **An FSM-based procedural memory backend** (via `pytransitions`)
-- **An always-on STM↔LTM transformer** for background consolidation
-- **An optional governance channel** for human-in-the-loop diff-and-approve workflows
+This repository contains the spec, a reference Python implementation, three day-1 backend adapters, and a governance UI for diff-and-approve workflows on what agents remember.
 
-## Quick install (once published)
+## Status
+
+| Component | State |
+| --- | --- |
+| Spec v0 (5 operations &times; 4 memory types, JSON Schema 2020-12) | [draft published](docs/spec/v0.md) |
+| Reference implementation (`pip install agent-memory-protocol`) | shipped &mdash; not yet on PyPI |
+| Backend adapters | `sqlite-vec`, `mem0`, `letta` |
+| Memory router (RRF fusion + 1-hop graph boost) | shipped |
+| FSM procedural memory (`transitions` library) | shipped |
+| STM&harr;LTM async transformer | shipped |
+| `amp` CLI (`remember` / `recall` / `forget`) | shipped |
+| Governance UI (Starlette + HTMX, Pro tier) | shipped, see [`ui/`](ui/) |
+| LongMemEval / LoCoMo benchmark | v0.2 (microbench live &mdash; see [Benchmarks](#benchmarks)) |
+| IETF Internet-Draft | v0.5 |
+
+Spec and reference implementation are Apache-2.0. The governance UI is source-available under FSL (becomes Apache-2.0 after 2 years).
+
+## Install
 
 ```bash
-pip install agent-memory-protocol
-# or with backend extras
+# From source until first PyPI release
+git clone https://github.com/mthamil107/agent-memory-protocol
+cd agent-memory-protocol
+uv venv && uv pip install -e ".[sqlite-vec]"
+
+# With every backend
+uv pip install -e ".[sqlite-vec,mem0,letta]"
+```
+
+When the package lands on PyPI:
+
+```bash
 pip install "agent-memory-protocol[sqlite-vec,mem0,letta]"
 ```
 
-## Minimal example
+## Quickstart
 
 ```python
 import asyncio
@@ -32,41 +61,147 @@ from amp import Memory, MemoryType
 
 async def main():
     mem = Memory(
-        agent_id="my-agent",
+        agent_id="customer-bot",
         stores=["sqlite-vec://./mem.db", "mem0://default"],
     )
+
     await mem.remember(
         "Alice is allergic to peanuts",
         type=MemoryType.SEMANTIC,
         user_id="alice@example.com",
     )
-    hits = await mem.recall("what should I avoid feeding alice?", k=5)
+    await mem.remember(
+        "On 2026-03-10 Alice reported a billing issue",
+        type=MemoryType.EPISODIC,
+        user_id="alice@example.com",
+    )
+
+    hits = await mem.recall(
+        "what should I avoid feeding alice?",
+        k=5,
+        hops=1,
+    )
     for h in hits:
-        print(h.score, h.content)
+        print(f"{h.score:.2f}  {h.type}  {h.content}")
 
 asyncio.run(main())
 ```
 
+End-to-end demos that actually run: [`examples/01_quickstart.py`](examples/01_quickstart.py) (50 facts &rarr; recall &rarr; forget) and [`examples/03_procedural_fsm.py`](examples/03_procedural_fsm.py) (FSM procedural memory).
+
+## Architecture
+
+```
+                          ┌──────────────────────┐
+                          │  Governance UI       │
+                          │  approvals · audit   │  Pro tier (FSL)
+                          │  health · patterns   │
+                          └──────────┬───────────┘
+                                     │ same SQLite DB
+                                     ▼
+   ┌──────────────────┐      ┌───────────────────┐      ┌─────────────────────┐
+   │  Agent / SDK     │ ───► │  Memory router    │ ───► │  MemoryStore        │
+   │  amp CLI         │      │  RRF k=60         │      │  sqlite-vec | mem0  │
+   │  amp.Memory      │      │  + graph boost    │      │  letta | (your own) │
+   └──────────────────┘      └───────────────────┘      └─────────────────────┘
+                                     │
+                          ┌──────────┼──────────┐
+                          ▼          ▼          ▼
+                    procedural   STM↔LTM    governance
+                    FSM (FSM     transformer  channel
+                    via transitions)        (HITL approve)
+```
+
+## Concepts
+
+**Five operations.** `remember`, `recall`, `forget`, `merge`, `expire`. Each is a JSON-Schema-defined request/response shape.
+
+**Four memory types.** `semantic` (facts), `episodic` (events with time/place), `procedural` (how-to, encoded as `transitions`-compatible FSMs), `emotional` (sentiment associations).
+
+**`MemoryStore` Protocol.** A runtime-checkable async Protocol with `remember` / `recall` / `forget` / `merge` / `expire` / `health` / `capabilities`. Any backend implementing it composes.
+
+**Memory router.** Fans queries out across N stores, fuses results with RRF (k=60 by default), applies an optional 1-hop graph boost, returns a unified `RecallHit` list. The router itself implements `MemoryStore`, so routers compose.
+
+**FSM procedural memory.** Store agent how-to procedures as `transitions` state machines &mdash; serialize, replay, inspect, edit in the UI. Spec &sect;7 fixes the JSON shape.
+
+**STM&harr;LTM transformer.** Always-on async background task. Scores short-term items on importance + recency + recall-count and promotes them to long-term storage; evicts the rest. Pluggable scorer; deterministic clock injection for tests.
+
+**Governance channel.** Optional. When configured, `remember`-with-`approval_required` calls stage instead of commit; the UI shows a structured diff against current state; reviewers approve or reject and the decision is audit-logged.
+
+The full surface is one page: [`docs/spec/v0.md`](docs/spec/v0.md).
+
+## Benchmarks
+
+> Recall@5 = **1.000** on 42 labelled queries, ingest p50 **37.8 ms**, recall p50 **40.6 ms** &mdash; `sentence-transformers/all-MiniLM-L6-v2` + `sqlite-vec` &lcub;`:memory:`&rcub;, CPU-only.
+
+This is a microbench, not LongMemEval/LoCoMo (deferred to v0.2). 100 hand-authored facts, 50 labelled queries (paraphrase / exact-match / multi-hit / no-match). Reproduce with `python scripts/run_microbench.py`. Full methodology and caveats in [`docs/benchmarks.md`](docs/benchmarks.md).
+
+## How AMP relates to existing memory frameworks
+
+AMP is a layer **above** the storage frameworks &mdash; not a competitor. The router calls into them.
+
+| Project | Storage | Cross-vendor wire format | Diff-and-approve UI | FSM procedural memory |
+| --- | :---: | :---: | :---: | :---: |
+| **AMP** | uses theirs | &check; | &check; | &check; |
+| mem0 | own | &mdash; | &mdash; | &mdash; |
+| Letta | own | &mdash; | &mdash; | &mdash; |
+| Cognee | own | &mdash; | &mdash; | &mdash; |
+| Zep / Graphiti | own | &mdash; | &mdash; | &mdash; |
+| MCP memory extension | n/a | proposed | &mdash; | &mdash; |
+
+If you already use mem0 or Letta or Cognee &mdash; keep using them. AMP gives you a stable interface across them and a governance plane to audit what they remember.
+
+## Why does this exist
+
+Memory storage is saturated. Memory operations, governance, and the cross-vendor protocol layer above storage are not. The discovery story &mdash; four sequential research scouts converging on the same meta-pattern &mdash; lives in [`docs/kickoff/FINDINGS-CONTEXT.md`](docs/kickoff/FINDINGS-CONTEXT.md). The honest roadmap (best / likely / worst case + acquisition signals) is in [`docs/kickoff/FUTURE.md`](docs/kickoff/FUTURE.md).
+
 ## Project layout
 
 ```
-src/amp/              # protocol + reference implementation
+src/amp/              # protocol + reference implementation (Apache-2.0)
   schemas/            # JSON Schema 2020-12 files (operations + types)
-  store/              # MemoryStore adapters (sqlite-vec, mem0, letta, ...)
-  governance/         # diff / health / audit modules
-ui/                   # governance UI (Starlette + HTMX, Pro tier)
+  store/              # MemoryStore adapters (sqlite-vec, mem0, letta)
+  governance/         # diff / health / audit helpers
+ui/                   # governance UI (Starlette + HTMX, FSL)
 docs/                 # spec + adapter guide + benchmarks
-docs/kickoff/         # original kickoff materials (vision, findings, plan)
+  spec/v0.md          # the AMP wire format
+  kickoff/            # origin story, architecture, findings
 examples/             # runnable end-to-end demos
-tests/                # unit / integration / benchmarks
+tests/                # unit (290) / integration (env-gated) / benchmarks (opt-in)
+scripts/              # verify_spec, run_microbench
 ```
+
+## Roadmap
+
+**v0.2 (post-launch hardening, 4&ndash;6 weeks)** &mdash; LongMemEval + LoCoMo grader runs, Cognee + pgvector adapters, calibrated recall threshold cutoff, `privacy_intent` flags (consent / retention / share-scope), MCP working-group RFC, AMP_UI multi-tenant per-session agent scoping.
+
+**v0.5 (Q3 2026)** &mdash; Spec frozen, IETF Internet-Draft submitted (`draft-<name>-agent-memory-protocol-00`), cross-language ports begin (Rust / TypeScript), benchmark leaderboard.
+
+**v1.0 (Q1 2027)** &mdash; Stable wire format, federated multi-tenant primitives, enterprise governance (SSO / RBAC), W3C Community Group.
+
+Kill triggers and pivots: [`docs/kickoff/PROJECT-PLAN.md`](docs/kickoff/PROJECT-PLAN.md).
 
 ## Contributing
 
-See [`CONTRIBUTING.md`](CONTRIBUTING.md). Spec edits are PRs against `docs/spec/v0.md`. Adapter contributions are welcome — see [`docs/adapters.md`](docs/adapters.md) for the integration contract.
+Spec edits, new adapters, and bug fixes welcome. Start with [`CONTRIBUTING.md`](CONTRIBUTING.md) and [`docs/adapters.md`](docs/adapters.md). Conventional Commits; one concern per PR.
+
+Local dev:
+
+```bash
+uv venv && uv pip install -e ".[sqlite-vec,mem0,letta]"
+uv pip install pytest pytest-asyncio pytest-cov ruff mypy
+.venv/Scripts/python.exe -m pytest -m "not integration and not benchmark"
+```
 
 ## License
 
-Apache-2.0. See [`LICENSE`](LICENSE).
+- **Protocol + reference implementation:** [Apache-2.0](LICENSE)
+- **Governance UI (`ui/`):** [Functional Source License 1.1](ui/LICENSE) &mdash; source-available; auto-converts to Apache-2.0 two years after each release
 
-The governance UI in `ui/` is source-available under a separate Functional Source License (FSL); see `ui/LICENSE` once published.
+## Acknowledgments
+
+Modelled on [MCP](https://modelcontextprotocol.io) (cross-vendor protocol shape), informed by the [LongMemEval](https://arxiv.org/abs/2410.10813), [LoCoMo](https://arxiv.org/abs/2402.17753), and Governed Memory papers, and by the published architecture writeups of mem0, Letta, Cognee, Zep/Graphiti.
+
+The diff-and-approve workflow draws on the Co-memorize HITL pattern surfaced in the *Governed Memory* literature.
+
+<sub>Made for the upcoming wave of agent-memory infrastructure. Honest about what it is: a protocol + reference + UI, not an algorithmic invention.</sub>
