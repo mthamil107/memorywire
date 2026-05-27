@@ -8,6 +8,18 @@ authors:
     email: "mthamil107@gmail.com"
 version: 0.0.0
 date-released: 2026-05-26
+# NOTE: `version:` and `date-released:` above are managed by release-please
+# (see .github/release-please-config.json — CITATION.cff is in `extra-files`).
+# Do NOT bump them by hand; merging the release-PR will rewrite them.
+#
+# DOI placeholder — replace once the GitHub <-> Zenodo integration is wired.
+# To wire Zenodo:
+#   1. Sign in to https://zenodo.org with your GitHub account.
+#   2. Toggle ON the `mthamil107/agent-memory-protocol` repo in Zenodo's
+#      GitHub settings panel — Zenodo will then mint a concept DOI and a
+#      per-release DOI every time a GitHub release is published.
+#   3. Replace the placeholder below with the concept DOI Zenodo returns.
+doi: 10.5281/zenodo.PLACEHOLDER
 url: "https://github.com/mthamil107/agent-memory-protocol"
 repository-code: "https://github.com/mthamil107/agent-memory-protocol"
 license: Apache-2.0
