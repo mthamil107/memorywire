@@ -21,7 +21,7 @@ AMP is to agent memory what MCP is to agent tool-use: a small, stable wire forma
 ```bash
 pip install agent-memory-protocol
 # or with backend extras
-pip install "agent-memory-protocol[sqlite-vec,mem0]"
+pip install "agent-memory-protocol[sqlite-vec,mem0,letta]"
 ```
 
 ## Minimal example
@@ -52,7 +52,7 @@ asyncio.run(main())
 ```
 src/amp/              # protocol + reference implementation
   schemas/            # JSON Schema 2020-12 files (operations + types)
-  store/              # MemoryStore adapters (sqlite-vec, mem0, ...)
+  store/              # MemoryStore adapters (sqlite-vec, mem0, letta, ...)
   governance/         # diff / health / audit modules
 ui/                   # governance UI (Starlette + HTMX, Pro tier)
 docs/                 # spec + adapter guide + benchmarks

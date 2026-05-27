@@ -14,6 +14,7 @@ strings. The URL → adapter mapping is centralized in :func:`_build_store`:
 
 * ``sqlite-vec://<path>`` → :class:`amp.store.sqlite_vec.SqliteVecStore`
 * ``mem0://<profile>``    → :class:`amp.store.mem0_adapter.Mem0Store`
+* ``letta://<host>``      → :class:`amp.store.letta_adapter.LettaStore`
 
 Unknown schemes raise :class:`ValueError`. This is the only place where
 URL → backend wiring lives; adapters under :mod:`amp.store` are
@@ -70,6 +71,7 @@ def _build_store(url: str) -> MemoryStore:
     * ``sqlite-vec://...`` (also ``sqlite+vec``, ``sqlitevec``) — local
       SQLite + sqlite-vec store.
     * ``mem0://...`` — mem0 SDK adapter.
+    * ``letta://...`` — Letta (letta-client) archival-memory adapter.
 
     Any other scheme raises :class:`ValueError`. The function does *not*
     validate that the optional dependencies for the chosen adapter are
@@ -87,6 +89,10 @@ def _build_store(url: str) -> MemoryStore:
         from amp.store.mem0_adapter import Mem0Store
 
         return Mem0Store.from_url(url)
+    if scheme == "letta":
+        from amp.store.letta_adapter import LettaStore
+
+        return LettaStore.from_url(url)
     raise ValueError(f"unknown store URL scheme: {url}")
 
 

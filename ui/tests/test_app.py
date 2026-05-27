@@ -2,11 +2,13 @@
 
 from __future__ import annotations
 
+import base64
 from pathlib import Path
 from typing import Any
 
 import httpx
 import pytest
+from amp_ui.__main__ import _load_csrf_secret_from_env
 from amp_ui.app import create_app
 from amp_ui.middleware import CSRF_COOKIE_NAME, CSRF_HEADER_NAME
 
@@ -182,3 +184,82 @@ async def test_csrf_token_exposed_to_template(
         assert "X-CSRF-Token" in response.text
         # The body tag should carry the hx-headers attribute.
         assert "hx-headers" in response.text
+
+
+# ---------------------------------------------------------------------------
+# AMP_UI_CSRF_SECRET env-var handling
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.anyio
+async def test_csrf_secret_from_env_var(
+    seeded_db: Any,
+    app_for_path: Any,
+) -> None:
+    """Two apps built with the same pinned CSRF secret must accept each
+    other's tokens — proving the env-var path bypasses the per-process
+    random default and keeps sessions stable across restarts."""
+    raw_secret = b"x" * 32
+    encoded = base64.b64encode(raw_secret).decode("ascii")
+
+    # The helper that __main__ uses to parse the env var must decode the
+    # same bytes back when given the base64 payload.
+    decoded = _load_csrf_secret_from_env(encoded)
+    assert decoded == raw_secret
+
+    app_a = app_for_path(seeded_db.db_path, csrf_secret=raw_secret)
+    app_b = app_for_path(seeded_db.db_path, csrf_secret=raw_secret)
+
+    # Mint a CSRF token against app_a, then send it back to app_b along
+    # with the matching cookie. If both apps share the same secret app_b
+    # must accept it (i.e. *not* return 403).
+    transport_a = httpx.ASGITransport(app=app_a)
+    async with httpx.AsyncClient(transport=transport_a, base_url="http://test") as client_a:
+        await client_a.get("/")
+        token = client_a.cookies.get(CSRF_COOKIE_NAME, "")
+    assert token, "GET against app_a should have minted a CSRF token"
+
+    transport_b = httpx.ASGITransport(app=app_b)
+    async with httpx.AsyncClient(transport=transport_b, base_url="http://test") as client_b:
+        client_b.cookies.set(CSRF_COOKIE_NAME, token)
+        response = await client_b.post(
+            "/approvals/some-bogus-id/approve",
+            data={"reviewer": "alice"},
+            headers={CSRF_HEADER_NAME: token},
+        )
+        # 403 would mean app_b rejected the CSRF token minted by app_a;
+        # any other status means it accepted the token (the memory id is
+        # bogus on purpose — we don't care whether the handler 404s).
+        assert response.status_code != 403, response.text[:200]
+
+    # And the negative control: a *different* secret must reject the
+    # foreign token.
+    app_c = app_for_path(seeded_db.db_path, csrf_secret=b"y" * 32)
+    transport_c = httpx.ASGITransport(app=app_c)
+    async with httpx.AsyncClient(transport=transport_c, base_url="http://test") as client_c:
+        client_c.cookies.set(CSRF_COOKIE_NAME, token)
+        rejected = await client_c.post(
+            "/approvals/some-bogus-id/approve",
+            data={"reviewer": "alice"},
+            headers={CSRF_HEADER_NAME: token},
+        )
+        assert rejected.status_code == 403, rejected.text[:200]
+
+
+def test_csrf_secret_too_short_rejected() -> None:
+    """A base64 value that decodes to <16 bytes must raise, not silently pass."""
+    too_short = base64.b64encode(b"abcd").decode("ascii")
+    with pytest.raises(ValueError, match="at least 16"):
+        _load_csrf_secret_from_env(too_short)
+
+
+def test_csrf_secret_invalid_base64_rejected() -> None:
+    """Garbage that isn't valid base64 must raise, not silently pass."""
+    with pytest.raises(ValueError, match="not valid base64"):
+        _load_csrf_secret_from_env("this is !!! not base64 @@@")
+
+
+def test_csrf_secret_env_unset_returns_none() -> None:
+    """Empty / unset env var falls back to per-process randomness."""
+    assert _load_csrf_secret_from_env(None) is None
+    assert _load_csrf_secret_from_env("") is None

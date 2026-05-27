@@ -43,6 +43,7 @@ from amp.models import (
     RememberRequest,
     RememberResponse,
 )
+from amp.store.letta_adapter import LettaStore
 from amp.store.mem0_adapter import Mem0Store
 from amp.store.sqlite_vec import SqliteVecStore
 
@@ -177,6 +178,16 @@ def test_build_store_mem0_url() -> None:
     """``mem0://default`` resolves to :class:`Mem0Store`."""
     store = _build_store("mem0://default")
     assert isinstance(store, Mem0Store)
+
+
+def test_build_store_letta_url() -> None:
+    """``letta://default`` resolves to :class:`LettaStore`."""
+    # No client is required to *construct* the adapter — the real Letta
+    # client is lazy-loaded on first operation. The URL carries an
+    # agent_id query string to satisfy the `agent_id`-required invariant
+    # if any operation were to be invoked (none are, in this test).
+    store = _build_store("letta://default?agent_id=ag-1")
+    assert isinstance(store, LettaStore)
 
 
 def test_build_store_unknown_scheme_raises() -> None:

@@ -96,6 +96,7 @@ asyncio_mode = "auto"
 markers = [
   "integration: tests that require a real backend (mem0, postgres, etc.)",
   "slow: tests that take longer than 1 second",
+  "benchmark: opt-in microbenchmark harness (see tests/benchmarks/)",
 ]
 
 [tool.ruff]
@@ -126,7 +127,7 @@ warn_redundant_casts = true
 exclude = ["docs/kickoff/", "build/", "dist/"]
 
 [[tool.mypy.overrides]]
-module = ["sqlite_vec.*", "mem0.*", "transitions.*", "sentence_transformers.*"]
+module = ["sqlite_vec.*", "mem0.*", "letta_client.*", "transitions.*", "sentence_transformers.*"]
 ignore_missing_imports = true
 
 [tool.coverage.run]

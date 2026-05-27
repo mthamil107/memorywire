@@ -53,6 +53,11 @@ coverage.xml
 *.db-wal
 *.db-shm
 
+# Local smoke-test artifacts
+test-ui.log
+test-ui.err
+amp-cli.db
+
 # Generated docs
 site/
 docs/_build/
