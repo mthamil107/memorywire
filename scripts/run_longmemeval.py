@@ -202,15 +202,27 @@ def _load_longmemeval_from_disk(root: Path) -> list[LMEQuestion]:
     doesn't silently truncate the run.
     """
     candidates: list[Path] = []
-    for name in ("longmemeval_s.json", "longmemeval_m.json", "longmemeval_oracle.json"):
-        p = root / name
-        if p.exists():
-            candidates.append(p)
-        else:
-            # Also accept a nested ``data/`` layout (the upstream repo's default).
-            nested = root / "data" / name
-            if nested.exists():
-                candidates.append(nested)
+    # HF Hub snapshots preserve upstream filenames; on this dataset the
+    # files ship extension-less (``longmemeval_s`` not ``..._s.json``).
+    # Accept both forms, and also a nested ``data/`` layout that the
+    # upstream GitHub repo uses.
+    name_pairs = (
+        ("longmemeval_s.json", "longmemeval_s"),
+        ("longmemeval_m.json", "longmemeval_m"),
+        ("longmemeval_oracle.json", "longmemeval_oracle"),
+    )
+    for with_ext, bare in name_pairs:
+        found: Path | None = None
+        for name in (with_ext, bare):
+            for parent in (root, root / "data"):
+                p = parent / name
+                if p.exists():
+                    found = p
+                    break
+            if found:
+                break
+        if found:
+            candidates.append(found)
 
     if not candidates:
         # Fall back: try any *.json in root, last-ditch.
@@ -219,7 +231,7 @@ def _load_longmemeval_from_disk(root: Path) -> list[LMEQuestion]:
     if not candidates:
         raise FileNotFoundError(
             f"No LongMemEval JSON files under {root}. "
-            f"Expected one of longmemeval_s.json / _m.json / _oracle.json."
+            f"Expected one of longmemeval_s(.json) / _m(.json) / _oracle(.json)."
         )
 
     out: list[LMEQuestion] = []
