@@ -219,10 +219,66 @@ Plot output (when matplotlib is installed): `docs/adversarial-results.png`.
 - **1-of-N case only by default.** Once `n_adversarial >= n_benign`
   the RRF consensus argument fails — see `--n-adversarial` to sweep.
 
+## LongMemEval + LoCoMo — initial real-grader run
+
+A first live pass through `scripts/run_longmemeval.py` and
+`scripts/run_locomo.py` against the canonical datasets with a real
+LLM grader. Honest about what these numbers do and do not show.
+
+| Bench | Subset | Seeds | Calls | Cache | Wall | Cost | Score |
+|---|---|---:|---:|---:|---:|---:|---:|
+| LongMemEval | 24 questions | 3 | 72 | 40 hit | 29 min | $0.010 | **overall = 0.286** |
+| LoCoMo | 20 questions × 1 episode | 3 | 60 | 10 hit | 19 min | $0.012 | **grader = 0.018 · BLEU-4 = 0.000** |
+
+- Grader: `gpt-4o-mini` (chosen for cost; v0.2 will rerun under
+  `gpt-4-turbo`/`gpt-4o` for the final paper §5 numbers).
+- AMP path: `sqlite-vec://./{lme,locomo}.db` with the default
+  `sentence-transformers/all-MiniLM-L6-v2` embedder.
+- Bootstrap CI bands: zero-width on this run because the per-task
+  bootstrap requires more questions than this minimal subset
+  provides; the wider runs in the v0.2 plan will surface real CIs.
+- Cost-cache reuse across reruns is large (56% LME hit rate, 17%
+  LoCoMo) because the grader cache survives between attempts.
+
+**What these numbers actually say.** LongMemEval at 0.286 and LoCoMo
+at 0.018 *under-measure* AMP's recall capability in a specific way:
+the harness fixes a Wave-E correctness bug (cross-question memory
+leakage within a seed) by constructing a fresh `Memory(agent_id=…)`
+per question — but on these benchmarks the question expects *prior
+sessions in the same conversation* to be in scope. The current
+ingest pattern feeds only the question's own session, so a question
+like "what was my favourite colour two weeks ago?" sees nothing. The
+result is a genuine measurement of "recall when prior context is
+absent" — informative but not what the benchmark is designed to
+test.
+
+**Per-benchmark ingest scoping** is the v0.2 fix: keep the
+per-question `agent_id` isolation (which protects cross-question
+contamination) but extend the ingest loop to feed the question's
+*authorized* prior session history before recall. That gives the
+benchmarks their actual surface to measure, and the corrected
+numbers go into the final paper §5 numbers under
+`gpt-4-turbo`/`gpt-4o`.
+
+Reproduce:
+
+```bash
+export HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1
+python scripts/run_longmemeval.py --grader-model gpt-4o-mini \
+  --seeds 3 --n-queries 20 --json
+python scripts/run_locomo.py --grader-model gpt-4o-mini \
+  --seeds 3 --n-queries 20 --json
+```
+
+JSON outputs land at `docs/longmemeval-results.json` and
+`docs/locomo-results.json` (gitignored — every run regenerates them).
+
 ## Roadmap to v0.2
 
 - LongMemEval proper with a GPT-4-class grader (paid).
 - LoCoMo proper with a grader (paid).
+- **Per-question authorized-context ingest scoping** so the
+  cross-session benchmarks measure what they're designed to.
 - 100k-memory recall scaling test with a synthetic corpus and recall@k
   measured against a fixed gold set.
 - Cross-vendor fusion benchmark once the Letta and Cognee adapters land,
