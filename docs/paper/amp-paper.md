@@ -1,9 +1,9 @@
 ---
 title: "AMP: A Vendor-Neutral Wire Format for Agent Memory Operations"
-authors: ["Anonymous (Author 1, double-blind review pending)"]
+authors: ["Anonymous (double-blind review pending)"]
 venue_target: "USENIX ATC 2026 / NSDI 2027"
-status: draft v0.1
-date: 2026-05-27
+status: draft v0.2 (polish pass)
+date: 2026-05-28
 artifacts: https://github.com/mthamil107/agent-memory-protocol
 ---
 
@@ -11,7 +11,7 @@ artifacts: https://github.com/mthamil107/agent-memory-protocol
 
 ## Abstract
 
-Agent-memory frameworks --- mem0, Letta/MemGPT, Cognee, Zep/Graphiti, MemoryOS, MemTensor --- each ship their own SDK, storage layout, and operational vocabulary. There is no shared wire format: every integration is bespoke, every migration rebuilds memory from scratch, and no framework ships a governance surface that lets a human review writes before they enter long-term storage. We present the Agent Memory Protocol (AMP), a JSON-Schema 2020-12 wire format for five memory operations (`remember`, `recall`, `forget`, `merge`, `expire`) over four memory types (semantic, episodic, procedural, emotional), with a `MemoryStore` interface, a fan-out router, and an optional HITL governance channel. We describe an open-source reference implementation with five backend adapters (sqlite-vec, mem0, Letta, Cognee, pgvector); a microbenchmark (recall@5 = 1.000, ingest p50 = 37.8 ms, recall p50 = 40.6 ms on a 100-fact / 50-query labelled corpus); an adversarial-fusion experiment showing Reciprocal Rank Fusion holds recall@5 = 1.000 across a 1-of-N rank-0 injection sweep (K ≤ 50) where `max` fusion collapses to 0.500 with 80% leak at K=5; and a 16-scenario cross-adapter conformance suite passing 68 of 80 cells with zero failures. The contribution is not a new algorithm; it is a packaging of established components (RRF, FSMs, STM/LTM consolidation, diff-and-approve workflows) into a venue-neutral protocol with an empirically validated reference, positioned to compose with the Model Context Protocol rather than compete with it.
+Agent-memory frameworks --- mem0, Letta/MemGPT, Cognee, Zep/Graphiti, MemoryOS, MemTensor --- each ship their own SDK, storage layout, and operational vocabulary. There is no shared wire format: every integration is bespoke, every migration rebuilds memory from scratch, and no framework ships a governance surface that lets a human review writes before they enter long-term storage. We present the Agent Memory Protocol (AMP), a JSON-Schema 2020-12 wire format for five memory operations (`remember`, `recall`, `forget`, `merge`, `expire`) over four memory types (semantic, episodic, procedural, emotional), with a `MemoryStore` interface, a fan-out router, and an optional HITL governance channel. We describe an open-source reference implementation with five backend adapters (sqlite-vec, mem0, Letta, Cognee, pgvector); a microbenchmark on a 100-fact / 50-query labelled corpus achieving recall@5 = 1.000 on the 42 labelled queries with ingest p50 = 37.8 ms and recall p50 = 40.6 ms; an adversarial-fusion experiment showing Reciprocal Rank Fusion holds recall@5 = 1.000 across a 1-of-N rank-0 injection sweep ($K \in \{0,5,\dots,50\}$) where `max` fusion collapses to 0.500 with 80% leak at $K \geq 5$; and a 16-scenario cross-adapter conformance suite passing 68 of 80 cells with zero failures. The contribution is not a new algorithm; it is a packaging of established components (RRF, FSMs, STM/LTM consolidation, diff-and-approve workflows) into a venue-neutral protocol with an empirically validated reference, positioned to compose with the Model Context Protocol rather than compete with it.
 
 ## 1. Introduction
 
@@ -35,13 +35,7 @@ This paper makes five contributions:
 
 ### 1.3 Limitations, front-loaded
 
-We are explicit about what this paper is not, so reviewers can calibrate their evaluation against the right rubric.
-
-This is **not a new algorithm**. Reciprocal Rank Fusion is from Cormack, Clarke, and Buettcher (2009). The human-memory taxonomy mapping is from Tulving (1972) and Squire (1992). FSM-based procedural-memory backends use the existing `pytransitions` library. STM/LTM consolidation as an architectural pattern is older than any of the open-source frameworks we cite. The contribution is composition and standardization; the substrate is prior art.
-
-This is **not an LLM contribution**. We do not train models, we do not propose new retrieval heuristics that depend on model behaviour, and we do not benchmark on LongMemEval, LoCoMo, or BEAM in v0. Those benchmarks require gated GPT-4-class graders and hours of model time; landing them honestly is v0.2 work (§8). The microbenchmark in §5 is deliberately scoped to be reproducible on a laptop in five seconds; it measures wire-format viability, not language-model quality.
-
-This is **not a stabilization paper**. AMP v0 reserves the right to break wire-format compatibility through v0.5. Reviewers should evaluate it as a draft specification with a reference implementation and an empirical artifact, not as a frozen standard. The standards-race outcome is uncertain; the IETF Internet-Draft and MCP-WG extension paths described in §2 and §8 are intent, not commitment.
+We state up front what this paper is *not*. It is not a new algorithm: RRF is from Cormack et al. (2009), the four-type taxonomy is from Tulving (1972) and Squire (1992), procedural FSMs use `pytransitions`, and STM/LTM consolidation predates the frameworks we cite — the contribution is composition and standardization, not new substrate. It is not an LLM contribution: we do not train models, propose model-dependent heuristics, or run LongMemEval/LoCoMo/BEAM in v0 (those require gated GPT-4-class graders and are the largest v0.2 deliverable per §8). And it is not a stabilization paper: AMP v0 reserves the right to break wire-format compatibility through v0.5 (§3.7); the IETF Internet-Draft and MCP-WG extension paths in §2 and §8 are intent, not commitment.
 
 ### 1.4 Paper roadmap
 
@@ -81,7 +75,7 @@ We do not claim that the four-type taxonomy is the *correct* one in any deep sen
 
 ### 2.5 Human-in-the-loop approval for agent actions
 
-The governance channel in AMP implements the Co-memorize diff-and-approve pattern formalized in the Governed Memory line of work (arXiv 2603.17787 [CITATION NEEDED — verify arXiv ID before final submission]; the project's kickoff notes cite this ID, but the canonical arXiv listing should be confirmed). The pattern is: when an agent proposes to write a memory, the system computes a structured diff between the proposed write and the current state, presents the diff to a human reviewer, and commits the write only on approval. The pattern generalizes to any state mutation; AMP applies it to `remember`, `forget`, and `merge`, and excludes `recall` and `expire` from the default approval surface (with `recall` flagged for v0.2 reconsideration; see §6).
+The governance channel in AMP implements the Co-memorize diff-and-approve pattern formalized in the Governed Memory line of work (Taheri, arXiv:2603.17787, 2026). The pattern is: when an agent proposes to write a memory, the system computes a structured diff between the proposed write and the current state, presents the diff to a human reviewer, and commits the write only on approval. The pattern generalizes to any state mutation; AMP applies it to `remember`, `forget`, and `merge`, and excludes `recall` and `expire` from the default approval surface (with `recall` flagged for v0.2 reconsideration; see §6).
 
 The Co-memorize pattern is not novel to this paper. What is new is its standardization at the wire-format layer: AMP defines a `governance` JSON schema for the diff-and-approve message and ships a reference UI that any backend adapter inherits transparently. An agent calling `remember(content="…", approval_required=true)` gets the governance flow regardless of which of the five backends actually stores the row.
 
@@ -162,7 +156,7 @@ $$
 \text{final}(d) = \text{rrf}(d) \cdot \left(1 + \frac{0.1}{1 + \text{hop\_dist}(d)}\right)
 $$
 
-The boost only fires for items already in the fused set; new neighbours are not introduced (per `src/amp/router.py:486-503`). This avoids amplifying a malicious graph store's ability to inject content (see §6.3).
+The boost only fires for items already in the fused set; new neighbours are not introduced (per `src/amp/router.py:482-501`). This avoids amplifying a malicious graph store's ability to inject content (see §6.3).
 
 **Partial-failure model.** Fan-out uses `asyncio.gather(..., return_exceptions=True)` (`src/amp/router.py:261-264, 353-356`). A backend that throws or times out is logged but does not abort the operation; the router proceeds with results from the surviving stores. This is what makes a five-adapter router tolerant in practice — a transient mem0 outage does not blank the recall.
 
@@ -185,7 +179,7 @@ The intent is to publish AMP v0.5 as an IETF Internet-Draft (`draft-<name>-agent
 
 ## 4. Reference Implementation
 
-The reference implementation lives in `src/amp/` (the SDK and adapters) and `ui/` (the governance UI). It is Python 3.11+, Apache-2.0 licensed for the protocol and reference; the Pro UI ships under the Fair Source License (FSL). Total source size at the time of writing is roughly 14k lines of Python plus the JSON-Schema files and the HTMX templates.
+The reference implementation lives in `src/amp/` (the SDK and adapters) and `ui/` (the governance UI). It is Python 3.11+, Apache-2.0 licensed for the protocol and reference; the Pro UI ships under the Fair Source License (FSL). Non-test source totals roughly 15k lines of Python (8.4k in `src/amp/`, 2.4k in `ui/src/`, 4.2k in `scripts/`) plus the JSON-Schema files and the HTMX templates, with another 10k lines of test code under `tests/`.
 
 ### 4.1 Architecture overview
 
@@ -199,15 +193,15 @@ Table 1 summarizes the five shipped adapters, the capabilities each declares, an
 
 **Table 1.** Backend adapters and their fidelity against the AMP wire format. "Native" means the field is stored in a first-class column or property of the backend's data model; "encoded" means the field is round-tripped through a backend metadata sink (e.g. Letta's `tags` list, mem0's `metadata` dict); "—" means the field is supported but not surfaced to the backend (typically because the router consumes it before fan-out).
 
-| Adapter      | URL scheme        | Capabilities                                    | `confidence`     | `source`        | `expires_at`    | structured `metadata` |
-|--------------|-------------------|-------------------------------------------------|------------------|-----------------|-----------------|-----------------------|
-| sqlite-vec   | `sqlite-vec://`   | semantic, episodic, vector, fts, procedural     | native           | native          | native          | native (JSON column)  |
-| mem0         | `mem0://`         | semantic, episodic, vector                      | encoded          | encoded         | encoded         | native (lossless)     |
-| Letta        | `letta://`        | semantic, episodic, vector                      | encoded (`tags`) | encoded (`tags`)| encoded (`tags`)| lossy (flat KV via `amp_kv:`) |
-| Cognee       | `cognee://`       | semantic, graph                                 | encoded          | encoded         | encoded         | lossy (graph attrs)   |
-| pgvector     | `pgvector://`     | semantic, episodic, vector, fts                 | native           | native          | native          | native (JSONB)        |
+| Adapter      | URL scheme        | Capabilities                                                                  | `confidence`     | `source`         | `expires_at`     | structured `metadata`         |
+|--------------|-------------------|-------------------------------------------------------------------------------|------------------|------------------|------------------|-------------------------------|
+| sqlite-vec   | `sqlite-vec://`   | semantic, episodic, procedural, emotional, vector, fts, recall_tracking       | native           | native           | native           | native (JSON column)          |
+| mem0         | `mem0://`         | semantic, episodic, vector                                                    | encoded          | encoded          | encoded          | native (lossless)             |
+| Letta        | `letta://`        | semantic, episodic, vector                                                    | encoded (`tags`) | encoded (`tags`) | encoded (`tags`) | lossy (flat KV via `amp_kv:`) |
+| Cognee       | `cognee://`       | semantic, episodic, vector, graph                                             | encoded          | encoded          | encoded          | lossy (graph attrs)           |
+| pgvector     | `pgvector://`     | semantic, episodic, procedural, emotional, vector, recall_tracking, governance | native           | native           | native           | native (JSONB)                |
 
-The two adapters with full lossless fidelity (sqlite-vec, pgvector) are the SQL-backed ones; they own their schema and can add the columns AMP needs. The three SDK-wrapping adapters (mem0, Letta, Cognee) inherit whatever fidelity their upstream offers and back-fill the rest through metadata encoding. The conformance suite in §5.3 quantifies what each adapter can and cannot do.
+The two adapters with full lossless fidelity (sqlite-vec, pgvector) are the SQL-backed ones; they own their schema and can add the columns AMP needs. pgvector ships every memory type plus recall-tracking and the governance sentinel; sqlite-vec adds FTS5 keyword indexing on top of the vector path. The three SDK-wrapping adapters (mem0, Letta, Cognee) inherit whatever fidelity their upstream offers and back-fill the rest through metadata encoding. The conformance suite in §5.3 quantifies what each adapter can and cannot do.
 
 ### 4.3 The FSM procedural-memory backend
 
@@ -420,11 +414,9 @@ AMP is a draft. The roadmap below lists the concrete deliverables we have planne
 
 ## 9. Conclusion
 
-We have presented AMP, a vendor-neutral wire format for agent memory operations: five operations, four memory types, a `MemoryStore` Protocol, a fan-out router with three fusion algorithms (with Reciprocal Rank Fusion as the defensible default under a 1-of-N malicious-backend model), and an optional human-in-the-loop governance channel. The reference implementation ships with five backend adapters covering the major open-source memory frameworks; a microbenchmark, an adversarial-fusion experiment, and a 16-scenario cross-adapter conformance suite establish the protocol's empirical viability.
+We have presented AMP, a vendor-neutral wire format for agent memory operations: five operations, four memory types, a `MemoryStore` Protocol, a fan-out router with three fusion algorithms (with Reciprocal Rank Fusion as the defensible default under a 1-of-N malicious-backend model), and an optional human-in-the-loop governance channel. The reference implementation ships with five backend adapters covering the major open-source memory frameworks; a microbenchmark (recall@5 = 1.000 on 42 labelled queries, ingest p50 = 37.8 ms), an adversarial-fusion experiment (RRF holds recall@5 = 1.000 where MAX collapses to 0.500 with 80% leak), and a 16-scenario cross-adapter conformance suite (68 PASS / 12 SKIP / 0 FAIL out of 80 cells) establish the protocol's empirical viability.
 
-We want to be honest about the bet. AMP is not a new algorithm; the algorithmic substrate (RRF, FSMs, STM/LTM, diff-and-approve) is prior art. The contribution is composition and standardization. Standards races take years and have uncertain outcomes; we may or may not be the winning shape for cross-vendor agent memory. The cumulative contribution, whatever the market outcome, is the spec plus the reference plus the threat model plus the conformance suite plus the open-data evaluation artifact — five reusable assets that lower the cost for any future protocol effort in this space (including one that supersedes AMP). The standardization path through MCP-WG and IETF is what we plan to engage; the choice of *what* gets standardized belongs to the working groups, not to us.
-
-The honest framing is the one we open the paper with: AMP is to memory what MCP is to tool-use. Whether AMP itself becomes that protocol, or whether it becomes input material to whichever protocol the working groups eventually settle on, the design work, reference implementation, benchmark data, and governance pattern collected here are intended to compose with — not compete against — the existing ecosystem.
+We are honest about the bet. The algorithmic substrate (RRF, FSMs, STM/LTM, diff-and-approve) is prior art; the contribution is composition and standardization, and standards races have uncertain outcomes. Whatever the market outcome, the cumulative artifact — spec, reference implementation, threat model, conformance suite, open-data evaluation — lowers the cost for any future protocol effort in this space, including one that supersedes AMP. AMP is to memory what MCP is to tool-use. Whether AMP itself becomes that protocol or input material to whichever protocol the working groups settle on, the design work collected here is intended to compose with — not compete against — the existing ecosystem.
 
 ## Acknowledgments
 
@@ -432,21 +424,18 @@ We acknowledge the open-source projects AMP composes with: mem0, Letta (formerly
 
 ## References
 
-The references below are intentionally minimal for the v0 draft. Every entry marked `[CITATION NEEDED]` should be verified against the canonical archive before submission.
-
-- Cormack, G. V., Clarke, C. L. A., and Buettcher, S. (2009). "Reciprocal Rank Fusion outperforms Condorcet and individual Rank Learning Methods." In *Proceedings of the 32nd International ACM SIGIR Conference on Research and Development in Information Retrieval (SIGIR '09)*, pages 758–759.
+- Cormack, G. V., Clarke, C. L. A., and Buettcher, S. (2009). "Reciprocal Rank Fusion outperforms Condorcet and individual Rank Learning Methods." In *Proceedings of the 32nd International ACM SIGIR Conference on Research and Development in Information Retrieval (SIGIR '09)*, pages 758–759. DOI:10.1145/1571941.1572114.
 - Tulving, E. (1972). "Episodic and Semantic Memory." In *Organization of Memory*, Tulving, E., and Donaldson, W. (Eds.), pages 381–402. Academic Press, New York.
-- Squire, L. R. (1992). "Declarative and Nondeclarative Memory: Multiple Brain Systems Supporting Learning and Memory." *Journal of Cognitive Neuroscience* 4(3), pages 232–243.
-- Packer, C., Wooders, S., Lin, K., Fang, V., Patil, S. G., Stoica, I., and Gonzalez, J. E. (2023). "MemGPT: Towards LLMs as Operating Systems." arXiv:2310.08560. [CITATION NEEDED — verify final venue (likely COLM 2024).]
+- Squire, L. R. (1992). "Declarative and Nondeclarative Memory: Multiple Brain Systems Supporting Learning and Memory." *Journal of Cognitive Neuroscience* 4(3), pages 232–243. DOI:10.1162/jocn.1992.4.3.232.
+- Packer, C., Wooders, S., Lin, K., Fang, V., Patil, S. G., Stoica, I., and Gonzalez, J. E. (2023). "MemGPT: Towards LLMs as Operating Systems." arXiv:2310.08560.
 - Wu, D., Wang, H., Yu, W., Zhang, Y., Chang, K.-W., and Yu, D. (2024). "LongMemEval: Benchmarking Chat Assistants on Long-Term Interactive Memory." arXiv:2410.10813.
 - Maharana, A., Lee, D.-H., Tulyakov, S., Bansal, M., Barbieri, F., and Fang, Y. (2024). "Evaluating Very Long-Term Conversational Memory of LLM Agents (LoCoMo)." arXiv:2402.17753.
-- BEAM benchmark. [CITATION NEEDED — locate canonical reference; project's kickoff notes mention BEAM but the canonical paper has not been confirmed.]
-- "Governed Memory: Human-in-the-Loop Co-memorize for Long-Lived Agent Memory." arXiv:2603.17787. [CITATION NEEDED — verify arXiv ID and authors before publication; the ID appears in the project's kickoff notes but should be confirmed on the canonical arXiv listing.]
-- mem0 architecture writeup. [CITATION NEEDED — link to the canonical mem0 documentation or whitepaper.]
-- Model Context Protocol specification. modelcontextprotocol.io. [CITATION NEEDED — pin to a specific version snapshot for stable citation.]
-- JSON Schema 2020-12. https://json-schema.org/draft/2020-12/release-notes
-- Cloudflare Web Bot Auth Internet-Draft, `draft-meunier-web-bot-auth-architecture` (IETF). [CITATION NEEDED — pin to draft revision.]
-- Author's prior work [CITATION NEEDED — self-citation placeholder; CITATION.cff lists no prior publications].
+- Taheri, H. (2026). "Governed Memory: A Production Architecture for Multi-Agent Workflows." arXiv:2603.17787.
+- Chhikara, P., Khant, D., Aryan, S., Singh, T., and Yadav, D. (2025). "Mem0: Building Production-Ready AI Agents with Scalable Long-Term Memory." arXiv:2504.19413.
+- BEAM benchmark for long-term conversational memory. *Canonical reference TBD; cited only as a future evaluation target (§5.4, §8.1).*
+- Model Context Protocol specification, version `2025-11-25`. modelcontextprotocol.io.
+- JSON Schema 2020-12. https://json-schema.org/draft/2020-12/release-notes.
+- Meunier, T., and Ladd, W. (2026). "Web Bot Authentication Architecture." IETF Internet-Draft `draft-meunier-web-bot-auth-architecture-05`, 2 March 2026.
 
 Citation handle for this work (auto-derived from `CITATION.cff` via `cffconvert --format bibtex`):
 
