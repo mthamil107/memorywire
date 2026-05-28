@@ -1,8 +1,8 @@
 ---
 title: "AMP: A Vendor-Neutral Wire Format for Agent Memory Operations"
-authors: ["Anonymous (double-blind review pending)"]
-venue_target: "USENIX ATC 2026 / NSDI 2027"
-status: draft v0.2 (polish pass)
+authors: ["M. Thamil (Independent Researcher, mthamil107@gmail.com)"]
+venue_target: "arXiv preprint (cs.DC primary; cs.AI + cs.SE secondary). USENIX ATC 2026 / NSDI 2027 follow-on."
+status: arXiv-submission-ready v0.2
 date: 2026-05-28
 artifacts: https://github.com/mthamil107/agent-memory-protocol
 ---
