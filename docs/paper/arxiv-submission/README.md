@@ -16,8 +16,16 @@ This directory contains everything arXiv needs to compile the AMP paper PDF serv
 2. **Type of submission:** New submission.
 3. **License:** Recommend `CC BY 4.0` (matches the Apache-2.0 + FSL split of the codebase ethos; allows derivative works with attribution).
 4. **Archive:** `cs` (Computing Research Repository).
-5. **Primary category:** `cs.DC` (Distributed, Parallel, and Cluster Computing).
-6. **Secondary categories:** `cs.AI`, `cs.SE`.
+5. **Primary category:** `cs.CR` (Cryptography and Security) — recommended when
+   the submitter is already endorsed there. AMP's threat-model section (§6)
+   and the governance / HITL approval surface are genuinely cs.CR-shaped, and
+   M. Thamil's prior arXiv paper (`arXiv:2604.18248`, "Beyond Pattern
+   Matching: Seven Cross-Domain Techniques for Prompt Injection Detection")
+   is in cs.CR — readers of that paper see this one in the same digest.
+6. **Secondary categories:** `cs.DC` (Distributed, Parallel, and Cluster
+   Computing), `cs.AI` (Artificial Intelligence), `cs.SE` (Software
+   Engineering). These keep the broader systems / agent / engineering
+   audiences in the loop without forcing a separate endorsement.
 7. **Upload files:** Tar/zip this entire directory (`arxiv-submission/`) and upload. arXiv accepts:
    - `.tex` (main source)
    - `.bib` (bibliography)
