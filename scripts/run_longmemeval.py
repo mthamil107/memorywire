@@ -114,9 +114,11 @@ from scripts.lib.eval_common import (  # noqa: E402
     GraderProtocol,
     LLMGrader,
     build_grader_context,
+    cleanup_question_dbs,
     estimate_grader_cost,
     holm_bonferroni,
     paired_bootstrap_ci,
+    per_question_store_urls,
     stage_dataset,
     write_csv,
     write_json,
@@ -385,13 +387,16 @@ async def _run_condition(
     Per-question isolation
     ----------------------
     We construct a *fresh* :class:`amp.api.Memory` with a unique
-    ``agent_id`` per (seed, qid). This is the harness's only correctness
-    knob — without it question N's recall scores against question N-1's
-    ingested turns and the paper numbers are meaningless. The fresh
-    ``Memory`` is closed after each question so connection state doesn't
-    leak across iterations.
+    ``agent_id`` per (seed, qid) **and** a per-question SQLite file when
+    the store URL is ``sqlite-vec://...``. The per-question DB matters:
+    sqlite-vec's vec0 ANN runs ``MATCH ... AND k=N`` *before* the
+    agent_id WHERE clause, so a shared DB lets cross-agent rows
+    crowd out the current agent's content from the candidate set and
+    the recall returns zero hits. A fresh per-question file makes that
+    impossible. See ``scripts/lib/eval_common.per_question_store_urls``.
     """
     results: list[PerQuestionResult] = []
+    workspace = Path(".amp-eval-dbs") / "longmemeval"
 
     for seed in seeds:
         # Per-seed RNG so any randomised behaviour (e.g. tie-breaking,
@@ -399,13 +404,14 @@ async def _run_condition(
         _ = random.Random(seed)
 
         for q in questions:
-            # Fresh agent_id per (seed, qid) is the isolation primitive.
-            # The sqlite-vec adapter row-filters by agent_id, so two
-            # questions running against the same DB URL can't see each
-            # other's memories. Closing `mem` per-question releases the
-            # connection cleanly.
+            # Fresh agent_id + fresh sqlite-vec file per (seed, qid).
             agent_id = f"lme-{condition}-{seed}-{q.qid}"
-            mem = Memory(agent_id=agent_id, stores=list(store_urls))
+            scoped_urls, owned_dbs = per_question_store_urls(
+                store_urls,
+                workspace=workspace,
+                key=f"{condition}-{seed}-{q.qid}",
+            )
+            mem = Memory(agent_id=agent_id, stores=scoped_urls)
             try:
                 # ---- Ingest session history -------------------------
                 for sess_ix, session in enumerate(q.sessions):
@@ -491,6 +497,7 @@ async def _run_condition(
                 )
             finally:
                 await mem.close()
+                cleanup_question_dbs(owned_dbs)
 
     return results
 

@@ -60,6 +60,10 @@ test-ui.log
 test-ui.err
 amp-cli.db
 
+# Eval harness per-question SQLite workspace + diag scratch.
+.amp-eval-dbs/
+.diag/
+
 # Eval harness dry-run / live outputs (regenerated on every run)
 docs/longmemeval-results.json
 docs/locomo-results.json

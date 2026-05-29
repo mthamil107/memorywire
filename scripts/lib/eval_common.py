@@ -669,6 +669,90 @@ def estimate_grader_cost(
 # ---------------------------------------------------------------------------
 
 
+def per_question_store_urls(
+    base_urls: Sequence[str],
+    *,
+    workspace: Path,
+    key: str,
+) -> tuple[list[str], list[Path]]:
+    """Rewrite store URLs so each question gets a *fresh* SQLite file.
+
+    The eval harnesses rely on a per-question ``agent_id`` to isolate
+    questions from each other on a shared sqlite-vec DB. That isolation
+    is defeated by the vec0 ANN's top-k pre-filter: vec0 returns the K
+    nearest neighbours across *every* agent's rows, then the SQL WHERE
+    clause filters by ``agent_id``. When the shared DB has thousands of
+    other agents' rows, none of the current agent's content makes it
+    into the candidate set and recall returns zero hits.
+
+    This helper sidesteps the issue by giving each (question, seed)
+    combination its own fresh SQLite file under ``workspace``. The path
+    encodes ``key`` so concurrent harness runs don't clobber each
+    other. Non-``sqlite-vec`` URLs pass through unchanged — Mem0,
+    Letta, etc. manage their own per-tenant isolation.
+
+    Parameters
+    ----------
+    base_urls:
+        The original store URLs from the harness's ``--stores`` flag.
+    workspace:
+        Directory to drop per-question SQLite files into. Must exist
+        (or be creatable).
+    key:
+        A filesystem-safe key (e.g. ``f"{condition}-{seed}-{qid}"``)
+        used to make the per-question DB filename unique.
+
+    Returns
+    -------
+    ``(rewritten_urls, owned_paths)``:
+
+    * ``rewritten_urls`` — the URL list to feed to ``Memory(stores=...)``.
+    * ``owned_paths`` — the files the helper created and the caller
+      should delete after ``mem.close()``. Empty for non-sqlite-vec
+      URLs.
+    """
+    workspace.mkdir(parents=True, exist_ok=True)
+    out_urls: list[str] = []
+    owned: list[Path] = []
+    safe = "".join(c if c.isalnum() or c in "-_." else "_" for c in key)
+    for url in base_urls:
+        scheme = url.split("://", 1)[0].lower() if "://" in url else ""
+        if scheme in {"sqlite-vec", "sqlite+vec", "sqlitevec"}:
+            db_path = workspace / f"q-{safe}.db"
+            # Remove any stragglers from a prior crashed run so the file
+            # we hand to sqlite-vec is genuinely fresh.
+            for sfx in ("", "-wal", "-shm", "-journal"):
+                p = db_path.with_name(db_path.name + sfx)
+                if p.exists():
+                    try:
+                        p.unlink()
+                    except OSError:
+                        pass
+            out_urls.append(f"sqlite-vec://{db_path.as_posix()}")
+            owned.append(db_path)
+        else:
+            out_urls.append(url)
+    return out_urls, owned
+
+
+def cleanup_question_dbs(paths: Iterable[Path]) -> None:
+    """Best-effort removal of the per-question DB files + their sidecars.
+
+    SQLite WAL/SHM journals are removed alongside the main DB so the
+    workspace stays bounded across a 1000-question run. Errors are
+    swallowed — losing a stale DB file is never worth aborting the
+    harness for.
+    """
+    for db_path in paths:
+        for sfx in ("", "-wal", "-shm", "-journal"):
+            p = db_path.with_name(db_path.name + sfx)
+            if p.exists():
+                try:
+                    p.unlink()
+                except OSError:
+                    pass
+
+
 def build_grader_context(hits: Iterable[Any], *, max_chars: int = 4000) -> str:
     """Format a list of :class:`RecallHit` rows into a grader-facing context.
 
@@ -719,9 +803,11 @@ __all__ = [
     "LLMGrader",
     "StagedDataset",
     "build_grader_context",
+    "cleanup_question_dbs",
     "estimate_grader_cost",
     "holm_bonferroni",
     "paired_bootstrap_ci",
+    "per_question_store_urls",
     "stage_dataset",
     "write_csv",
     "write_json",

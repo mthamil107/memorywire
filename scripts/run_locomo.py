@@ -67,9 +67,11 @@ from scripts.lib.eval_common import (  # noqa: E402
     GraderProtocol,
     LLMGrader,
     build_grader_context,
+    cleanup_question_dbs,
     estimate_grader_cost,
     holm_bonferroni,
     paired_bootstrap_ci,
+    per_question_store_urls,
     stage_dataset,
     write_csv,
     write_json,
@@ -345,19 +347,28 @@ async def _run_locomo_condition(
     dry_run: bool,
 ) -> list[LoCoMoPerQuestionResult]:
     rows: list[LoCoMoPerQuestionResult] = []
+    workspace = Path(".amp-eval-dbs") / "locomo"
     for seed in seeds:
         _ = random.Random(seed)
 
         for ep in episodes:
             # One pass over every QA pair for this episode, but each
             # question runs against a *fresh* Memory with a unique
-            # agent_id so question N's recall can't see question N-1's
-            # ingested turns. We re-ingest the episode's session
-            # history per question — the extra ingest cost is the price
-            # for honest isolation.
+            # agent_id **and** a per-question sqlite-vec file. The fresh
+            # file is correctness-critical: sqlite-vec's vec0 ANN runs
+            # ``MATCH ... AND k=N`` before the agent_id WHERE filter, so
+            # a shared DB lets earlier questions' rows crowd the current
+            # agent's content out of the candidate set and recall
+            # returns zero hits. See
+            # ``scripts/lib/eval_common.per_question_store_urls``.
             for q in ep.questions:
                 agent_id = f"locomo-{condition}-{seed}-{ep.episode_id}-{q['qid']}"
-                mem = Memory(agent_id=agent_id, stores=list(store_urls))
+                scoped_urls, owned_dbs = per_question_store_urls(
+                    store_urls,
+                    workspace=workspace,
+                    key=f"{condition}-{seed}-{ep.episode_id}-{q['qid']}",
+                )
+                mem = Memory(agent_id=agent_id, stores=scoped_urls)
                 try:
                     # Ingest the episode session history into THIS
                     # question's agent-scoped slice.
@@ -437,6 +448,7 @@ async def _run_locomo_condition(
                     )
                 finally:
                     await mem.close()
+                    cleanup_question_dbs(owned_dbs)
     return rows
 
 
