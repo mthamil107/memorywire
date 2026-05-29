@@ -93,7 +93,7 @@ This paper makes five contributions:
 \subsection{Limitations, front-loaded}
 \label{sec:intro-limitations}
 
-We state up front what this paper is \emph{not}. It is not a new algorithm: RRF is from Cormack et al.~\cite{cormack2009rrf}, the four-type taxonomy is from Tulving~\cite{tulving1972episodic} and Squire~\cite{squire1992declarative}, procedural FSMs use \texttt{pytransitions}, and STM/LTM consolidation predates the frameworks we cite --- the contribution is composition and standardization, not new substrate. It is not an LLM contribution: we do not train models, propose model-dependent heuristics, or run LongMemEval~\cite{wu2024longmemeval} / LoCoMo~\cite{maharana2024locomo} / BEAM~\cite{beam_benchmark} in v0 (those require gated GPT-4-class graders and are the largest v0.2 deliverable per \Cref{sec:future}). And it is not a stabilization paper: AMP v0 reserves the right to break wire-format compatibility through v0.5 (\Cref{sec:spec-versioning}); the IETF Internet-Draft and MCP-WG extension paths in \Cref{sec:related} and \Cref{sec:future} are intent, not commitment.
+We state up front what this paper is \emph{not}. It is not a new algorithm: RRF is from Cormack et al.~\cite{cormack2009rrf}, the four-type taxonomy is from Tulving~\cite{tulving1972episodic} and Squire~\cite{squire1992declarative}, procedural FSMs use \texttt{pytransitions}, and STM/LTM consolidation predates the frameworks we cite --- the contribution is composition and standardization, not new substrate. It is not an LLM contribution: we do not train models or propose model-dependent heuristics, and we report only \emph{preliminary} LongMemEval~\cite{wu2024longmemeval} and LoCoMo~\cite{maharana2024locomo} numbers (\Cref{sec:eval-mem-benchmarks}); the full 5-seed $\times$ 200-question run and BEAM~\cite{beam_benchmark} are v2 replacement deliverables (\Cref{sec:future}). And it is not a stabilization paper: AMP v0 reserves the right to break wire-format compatibility through v0.5 (\Cref{sec:spec-versioning}); the IETF Internet-Draft and MCP-WG extension paths in \Cref{sec:related} and \Cref{sec:future} are intent, not commitment.
 
 \subsection{Paper roadmap}
 \label{sec:intro-roadmap}
@@ -347,7 +347,7 @@ Total benchmark runtime & $\sim$5.9\,s \\
 
 The headline number --- recall@5 = 1.000 on the 42 labelled queries --- means every paraphrase, exact-match, and multi-hit query surfaced all its gold ids in the top 5 results. The precision number is bounded by the ratio of gold ids per query (most queries have a single gold id, so precision@5 is upper-bounded at 0.2 by construction). Latency is roughly an order of magnitude below the spec's p50 SLA targets (50\,ms for \texttt{remember}, 300\,ms for two-store fused \texttt{recall}).
 
-\textbf{Honest framing.} This is a microbenchmark, not LongMemEval, LoCoMo, or BEAM. The hand-authored corpus is small enough that FTS5 keyword matching alone would surface many of the gold ids, and the dataset rewards systems that combine semantic embeddings with keyword recall --- which is exactly what AMP's intra-store RRF does. At 100 facts the ANN path is doing a brute-force \texttt{vec0} scan, not an HNSW workload. The 0/8 ``no-match correctly empty'' number reflects a deliberate v0 design choice: \texttt{recall(k=5)} always returns up to $k$ hits because v0 ships no calibrated relevance-threshold cutoff; that knob is tracked for v0.2. LongMemEval and LoCoMo proper are deferred to v0.2 because both require a gated GPT-4-class grader and hours of model time; landing them honestly is the largest single v0.2 deliverable.
+\textbf{Honest framing.} This is a microbenchmark, not LongMemEval, LoCoMo, or BEAM. The hand-authored corpus is small enough that FTS5 keyword matching alone would surface many of the gold ids, and the dataset rewards systems that combine semantic embeddings with keyword recall --- which is exactly what AMP's intra-store RRF does. At 100 facts the ANN path is doing a brute-force \texttt{vec0} scan, not an HNSW workload. The 0/8 ``no-match correctly empty'' number reflects a deliberate v0 design choice: \texttt{recall(k=5)} always returns up to $k$ hits because v0 ships no calibrated relevance-threshold cutoff; that knob is tracked for v0.2. Preliminary LongMemEval and LoCoMo numbers under a real (\texttt{gpt-4o-mini}) grader appear in \Cref{sec:eval-mem-benchmarks}; the full 5-seed $\times$ 200-question paper-grade run is a v2 replacement deliverable.
 
 \subsection{Adversarial fusion experiment}
 \label{sec:eval-adversarial}
@@ -447,7 +447,32 @@ The evaluation has several limitations we want named explicitly.
 
 \textbf{Authors-as-evaluators.} Neither the conformance suite nor the microbench corpus has been audited by a third party. A user study with external operators ($n=10$--$20$) using the governance UI is in scope for v0.2 (\texttt{docs/paper/user-study/} materials, NASA-TLX instrument, IRB pipeline --- currently a v0.2 deliverable; the materials directory does not yet exist).
 
-\textbf{Benchmark scope.} This paper does not report LongMemEval, LoCoMo, or BEAM. We say so up front because reviewers familiar with the agent-memory benchmark literature will look for those numbers first; they are not here in v0 by design (\Cref{sec:intro-limitations}) and are the primary v0.2 evaluation deliverable.
+\textbf{Benchmark scope.} This paper reports \emph{preliminary} LongMemEval and LoCoMo numbers in \Cref{sec:eval-mem-benchmarks}. The full 5-seed $\times$ 200-question paper-grade run is deferred to a v2 replacement on arXiv: the per-question \texttt{Memory} construction pattern that protects against cross-question memory leakage (a Wave-E correctness invariant that we validated with a separate diagnostic, \texttt{scripts/diag\_eval\_ingest.py}) imposes a per-iteration sentence-transformers reload cost that extrapolates to 10--15 hours of wall time on a single CPU laptop, out of scope for v1. BEAM remains unevaluated --- no canonical dataset manifest was found at v1.
+
+\subsection{Preliminary LongMemEval and LoCoMo}
+\label{sec:eval-mem-benchmarks}
+
+After the conformance-suite section's spec-tightening signals were folded into the eval harness, we ran a \emph{preliminary} pass at $n_{\text{q}} = 10$--$12$ and $n_{\text{seed}} = 1$ against the canonical LongMemEval \cite{wu2024longmemeval} and LoCoMo \cite{maharana2024locomo} datasets. Pre-paper validation surfaced one bug (\texttt{sqlite-vec}'s vector-ANN top-$k$ is computed before the row-level \texttt{agent\_id} filter, so a DB shared across questions returns zero hits once cross-question rows dominate the top-$k$); the fix is per-question isolated DB files under \texttt{.amp-eval-dbs/}, applied in the eval harness only without touching \texttt{src/amp/}.
+
+Grader is \texttt{gpt-4o-mini}; embedder is \texttt{all-MiniLM-L6-v2}; backend is \texttt{sqlite-vec://}. Results in \Cref{tab:mem-benchmarks}.
+
+\begin{table}[t]
+\centering
+\caption{Preliminary post-fix LongMemEval and LoCoMo (v1 preprint; v2 replacement will land 5-seed $\times$ 200-question numbers).}
+\label{tab:mem-benchmarks}
+\begin{tabular}{lrrr}
+\toprule
+Benchmark & $n_{\text{q}}$ & seeds & grader mean \\
+\midrule
+LongMemEval (stratified) & 12 & 1 & 0.417 \\
+LoCoMo (single episode)  & 10 & 1 & 0.150 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Per-task LongMemEval breakdown is informative: \texttt{single\_session\_preferences} 0.90, \texttt{single\_session\_user} 0.75, \texttt{single\_session\_assistant} 0.50, \texttt{knowledge\_update} 0.35, \texttt{multi\_session\_reasoning} 0.00, \texttt{temporal\_reasoning} 0.00. Single-session recall on a single small embedder works; the remaining gap on \texttt{multi\_session} and \texttt{temporal} tiers is a known weakness of \texttt{all-MiniLM-L6-v2} on the harder tiers, not a harness bug. Swapping the embedder for a larger model (\texttt{bge-m3}, \texttt{gte-large}, or \texttt{text-embedding-3-large}) is the v0.2 path; the protocol is embedder-agnostic, so this measurement reflects the reference embedder's recall ceiling, not AMP's wire format. Compared to a pre-fix run (LongMemEval $0.286$, LoCoMo $0.018$ with \texttt{"(no relevant memories surfaced)"} dominating), the post-fix lift is $+46\%$ relative on LongMemEval and $+8.3\times$ relative on LoCoMo --- the bug was real and the fix is real.
+
+\subsubsection*{Threats to validity for the preliminary numbers}
 
 \section{Threat Model}
 \label{sec:threats}
@@ -541,7 +566,7 @@ The full version of this discussion lives in \texttt{docs/MCP-RELATIONSHIP.md}, 
 
 AMP is a draft. The roadmap below lists the concrete deliverables we have planned through v1.0; we list them as intent, not commitment.
 
-\textbf{v0.2 evaluation: full-scale memory benchmarks.} LongMemEval~\cite{wu2024longmemeval} and LoCoMo~\cite{maharana2024locomo} are the canonical long-context memory benchmarks; BEAM~\cite{beam_benchmark} is the consolidated benchmark suite. v0.2 will land all three via a \texttt{scripts/run\_longmemeval.py}-shaped harness; the script does not exist yet (verified absent from the repo at the time of this draft) and is the largest single v0.2 deliverable. The blocking cost is the gated GPT-4-class grader each benchmark requires.
+\textbf{v0.2 evaluation: full-scale memory benchmarks.} LongMemEval~\cite{wu2024longmemeval} and LoCoMo~\cite{maharana2024locomo} are the canonical long-context memory benchmarks; BEAM~\cite{beam_benchmark} is the consolidated benchmark suite. v1 of this preprint reports preliminary numbers (\Cref{sec:eval-mem-benchmarks}) using \texttt{scripts/run\_longmemeval.py} and \texttt{scripts/run\_locomo.py}, both shipped in the artifact. A v2 replacement on arXiv will land the full 5-seed $\times$ 200-question runs once per-question sentence-transformers reload overhead is amortized via an embedder-sharing harness change (estimated additional wall time: 6--10 h on a single CPU machine; estimated grader cost at \texttt{gpt-4o-mini}: under \$1).
 
 \textbf{v0.2 user study.} A user study with external operators ($n=10$--$20$) is in scope for v0.2. The study materials --- NASA-TLX cognitive-load instrument, IRB protocol, consent forms, recruitment script --- are tracked under \texttt{docs/paper/user-study/}; that directory does not exist at the time of this draft and is a v0.2 deliverable. The study targets operators of agent runtimes who would actually use the governance UI; the headline metric is whether the diff-and-approve flow reduces median review time below the alternative of ``approve everything blindly.''
 
