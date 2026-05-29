@@ -1,6 +1,6 @@
 ---
 title: "AMP: A Vendor-Neutral Wire Format for Agent Memory Operations"
-authors: ["M. Thamil (Independent Researcher, mthamil107@gmail.com)"]
+authors: ["Thamilvendhan Munirathinam (Independent Researcher, mthamil107@gmail.com)"]
 venue_target: "arXiv preprint (cs.DC primary; cs.AI + cs.SE secondary). USENIX ATC 2026 / NSDI 2027 follow-on."
 status: arXiv-submission-ready v0.2
 date: 2026-05-28
@@ -441,7 +441,7 @@ Citation handle for this work (auto-derived from `CITATION.cff` via `cffconvert 
 
 ```
 @software{amp_protocol,
-  author = {M. Thamil},
+  author = {Thamilvendhan Munirathinam},
   title  = {Agent Memory Protocol (AMP): A vendor-neutral wire format for agent memory operations},
   year   = {2026},
   url    = {https://github.com/mthamil107/agent-memory-protocol}

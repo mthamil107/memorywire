@@ -12,14 +12,14 @@ This directory contains everything arXiv needs to compile the AMP paper PDF serv
 
 ## How to submit (~10 min on the arXiv side)
 
-1. Go to <https://arxiv.org/submit>. Log in (or sign up — needs endorsement first time; M. Thamil's account, request endorsement from any existing cs.DC arXiv author).
+1. Go to <https://arxiv.org/submit>. Log in (or sign up — needs endorsement first time; Thamilvendhan Munirathinam's account, request endorsement from any existing cs.DC arXiv author).
 2. **Type of submission:** New submission.
 3. **License:** Recommend `CC BY 4.0` (matches the Apache-2.0 + FSL split of the codebase ethos; allows derivative works with attribution).
 4. **Archive:** `cs` (Computing Research Repository).
 5. **Primary category:** `cs.CR` (Cryptography and Security) — recommended when
    the submitter is already endorsed there. AMP's threat-model section (§6)
    and the governance / HITL approval surface are genuinely cs.CR-shaped, and
-   M. Thamil's prior arXiv paper (`arXiv:2604.18248`, "Beyond Pattern
+   Thamilvendhan Munirathinam's prior arXiv paper (`arXiv:2604.18248`, "Beyond Pattern
    Matching: Seven Cross-Domain Techniques for Prompt Injection Detection")
    is in cs.CR — readers of that paper see this one in the same digest.
 6. **Secondary categories:** `cs.DC` (Distributed, Parallel, and Cluster
@@ -35,7 +35,7 @@ This directory contains everything arXiv needs to compile the AMP paper PDF serv
 8. **Compile:** arXiv runs `pdflatex` + `bibtex` + `pdflatex` × 2 server-side. Check the auto-generated PDF preview.
 9. **Title:** `AMP: A Vendor-Neutral Wire Format for Agent Memory Operations`.
 10. **Abstract:** Copy from the `\begin{abstract} ... \end{abstract}` block of `amp-paper.tex` (lines ~60-83). arXiv has a 1920-char limit; the polished abstract fits.
-11. **Authors:** `M. Thamil` · email `mthamil107@gmail.com` · affiliation `Independent Researcher`.
+11. **Authors:** `Thamilvendhan Munirathinam` · email `mthamil107@gmail.com` · affiliation `Independent Researcher`.
 12. **Submit.** arXiv announces new papers Mon-Thu evenings (Eastern Time). Submission today (Thursday) → public announcement typically same evening or Monday morning.
 
 ## Quick sanity checks before uploading

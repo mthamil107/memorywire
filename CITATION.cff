@@ -3,8 +3,8 @@ message: "If you use AMP, please cite it as below."
 title: "Agent Memory Protocol (AMP): A vendor-neutral wire format for agent memory operations"
 type: software
 authors:
-  - family-names: "M. Thamil"
-    given-names: "M."
+  - family-names: "Munirathinam"
+    given-names: "Thamilvendhan"
     email: "mthamil107@gmail.com"
 version: 0.0.0
 date-released: 2026-05-26
