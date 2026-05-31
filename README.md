@@ -24,12 +24,32 @@
 ---
 
 <p align="center">
-  <img alt="memorywire in 6 seconds: islanded frameworks &rarr; memorywire layer &rarr; governance UI" src="docs/demos/memorywire-explainer.gif" width="560">
+  <img alt="memorywire in 13 seconds: islanded frameworks &rarr; memorywire layer &rarr; pending approval &rarr; diff &rarr; approve &rarr; audit log" src="docs/demos/memorywire-explainer.gif" width="560">
 </p>
 
-Every agent memory framework today &mdash; mem0, Letta, Cognee, Zep, MemoryOS &mdash; stores memories in its own format. There is no common protocol. memorywire is the layer above them: a small, stable wire format so any memory client can talk to any memory backend, and any agent can carry its memory across runtimes.
+> **Everyone else built a memory _store_. memorywire is the vendor-neutral protocol and governance layer that sits _above_ all of them.**
 
-This repository contains the spec, a reference Python implementation, **five day-1 backend adapters** (sqlite-vec, mem0, Letta, Cognee, pgvector), and a governance UI for diff-and-approve workflows on what agents remember.
+## Positioning
+
+Memory _storage_ for AI agents is saturated &mdash; mem0, Letta, Cognee, Zep, and a dozen others each ship their own format, their own database, and their own lock-in. memorywire is not another store. It's the thin, stable layer above them: one wire format so any agent can talk to any backend, carry its memory across runtimes, and let a human review and approve what gets remembered before it's committed.
+
+If you already run mem0, Letta, or Cognee, keep them. memorywire gives you a single interface across all of them, plus a governance plane to audit what they remember.
+
+## Why memorywire is different
+
+memorywire's edge is **position**, not feature count. Four things set it apart from the rest of the agent-memory ecosystem.
+
+**1. It's an interop layer, not a silo.** memorywire defines five operations (`remember`, `recall`, `forget`, `merge`, `expire`) as a stable JSON-Schema wire format, and routes them across pluggable backends &mdash; sqlite-vec, mem0, Letta, Cognee, and pgvector on day one. Every other project asks you to adopt _its_ store and _its_ format. memorywire lets you keep what you have and talk to all of it through one surface.
+
+**2. Governance is built in &mdash; and almost no one else has it.** When `approval_required` is set, a `remember` call _stages_ instead of commits. The governance UI shows a structured diff against current state; a reviewer approves or rejects; the decision is audit-logged. Controlling and auditing what an agent is _allowed_ to remember is a real production need that the major memory frameworks simply don't address. This is memorywire's single strongest differentiator.
+
+**3. Routers compose.** The memory router itself implements the `MemoryStore` protocol, so a router can be a backend for another router. Fan-out, fusion, and graph-boost all nest cleanly &mdash; an architectural property most memory systems don't have.
+
+**4. Procedural memory is first-class.** Agent how-to is stored as serializable `transitions` state machines you can replay and inspect &mdash; not flattened into text or vectors. memorywire treats `semantic`, `episodic`, `procedural`, and `emotional` as distinct, spec-defined types rather than one undifferentiated blob.
+
+### What memorywire does _not_ claim to invent
+
+In the interest of an honest pitch: STM&harr;LTM consolidation and tiering are shared with systems like MemOS; RRF is a standard retrieval-fusion technique &mdash; the adversarial-fusion result in [&sect;5 of the paper](docs/paper/memorywire-paper.md) measures the well-known Byzantine-robustness of RRF in the agent-memory routing context, not a new theorem; and MCP composition is documented at [`docs/MCP-RELATIONSHIP.md`](docs/MCP-RELATIONSHIP.md) (three composition modes: memorywire-as-MCP-tool today, memorywire-as-MCP-extension targeted for v0.5). memorywire's claim isn't that these are new &mdash; it's that wrapping them in a **vendor-neutral protocol with a governance plane** is the part nobody else is doing.
 
 ## Demo
 

@@ -71,8 +71,13 @@ BEAT_FRAMES = [
     12,    # B4: 1.0s
     12,    # B5: 1.0s
     18,    # B6: 1.5s hold
+    14,    # B7: ~1.2s zoom transition (8.3 fps eff)
+    14,    # B8: ~1.2s pending approvals queue
+    16,    # B9: ~1.3s diff revealed (needs more for progressive reveal)
+    16,    # B10: ~1.3s approve action
+    20,    # B11: ~1.7s audit log + close
 ]
-TOTAL_FRAMES = sum(BEAT_FRAMES)   # 78
+TOTAL_FRAMES = sum(BEAT_FRAMES)   # 158
 
 # Ease length for pop-in animations
 EASE_FRAMES = 3
@@ -398,6 +403,16 @@ def render_frame(
         _draw_beat5(d, frame_in_beat, fonts)
     elif beat == 5:
         _draw_beat6(d, frame_in_beat, fonts)
+    elif beat == 6:
+        _draw_beat7(d, frame_in_beat, fonts)
+    elif beat == 7:
+        _draw_beat8(d, frame_in_beat, fonts)
+    elif beat == 8:
+        _draw_beat9(d, frame_in_beat, fonts)
+    elif beat == 9:
+        _draw_beat10(d, frame_in_beat, fonts)
+    elif beat == 10:
+        _draw_beat11(d, frame_in_beat, fonts)
 
     return img
 
@@ -1006,6 +1021,671 @@ def _draw_beat6(
 
 
 # ---------------------------------------------------------------------------
+# Governance-zoom shared geometry (beats 7-11)
+# ---------------------------------------------------------------------------
+
+# Final "zoomed" panel target rectangle that beat 7 grows into and that
+# beats 8-11 use as their canvas. Centered horizontally with generous
+# margins so the panel still feels framed, not edge-to-edge.
+ZOOM_PANEL_LEFT = 60
+ZOOM_PANEL_RIGHT = WIDTH - 60          # panel width 960
+ZOOM_PANEL_TOP = 140
+ZOOM_PANEL_BOTTOM = HEIGHT - 140       # panel height 800
+ZOOM_PANEL_W = ZOOM_PANEL_RIGHT - ZOOM_PANEL_LEFT
+ZOOM_PANEL_H = ZOOM_PANEL_BOTTOM - ZOOM_PANEL_TOP
+
+# Beat 5/6 governance panel as it sits before the zoom (must match _draw_beat6).
+PANEL_START_W = 360
+PANEL_START_H = 520
+PANEL_START_TOP = 280
+PANEL_START_RIGHT = WIDTH - 60
+PANEL_START_LEFT = PANEL_START_RIGHT - PANEL_START_W
+
+
+def _draw_zoomed_panel_shell(
+    d: ImageDraw.ImageDraw,
+    fonts: dict[str, ImageFont.ImageFont],
+    title: str,
+    rect: tuple[int, int, int, int] | None = None,
+) -> tuple[int, int, int, int]:
+    """Draw the indigo-bordered cream panel with title bar. Returns body rect."""
+    if rect is None:
+        rect = (ZOOM_PANEL_LEFT, ZOOM_PANEL_TOP, ZOOM_PANEL_RIGHT, ZOOM_PANEL_BOTTOM)
+    pl, pt, pr, pb = rect
+    title_h = 64
+    rounded_rect(d, rect, radius=22, fill=BG, outline=INDIGO, width=3)
+    rounded_rect(d, (pl, pt, pr, pt + title_h), radius=22, fill=INDIGO)
+    d.rectangle((pl, pt + 40, pr, pt + title_h), fill=INDIGO)
+    draw_text_anchored(
+        d, title, pl + 24, pt + title_h // 2,
+        fonts["panel_title_lg"], fill=(255, 255, 255), anchor="lm",
+    )
+    return (pl, pt + title_h, pr, pb)
+
+
+def _draw_approval_row_zoomed(
+    d: ImageDraw.ImageDraw,
+    fonts: dict[str, ImageFont.ImageFont],
+    rect: tuple[int, int, int, int],
+    tag: str,
+    confidence: str,
+    content: str,
+    agent_id: str,
+    source: str,
+    show_diff_handle: bool = True,
+    diff_text: str = "diff vs current (5 changes)",
+    button_highlight: str | None = None,   # "approve" | "reject" | None
+    button_pulse: float = 0.0,             # 0..1
+    fade: float = 1.0,                     # 1 = fully opaque, 0 = invisible
+) -> tuple[int, int, int, int]:
+    """Render a single approval-queue row inside the given rect.
+
+    Returns the approve-button rect so callers can land a focus ring on it.
+    """
+    x0, y0, x1, y1 = rect
+    if fade <= 0.0:
+        return (0, 0, 0, 0)
+    row_fill = _blend(BG, (252, 250, 246), fade)
+    border = _blend(BG, SOFT, fade)
+    rounded_rect(d, rect, radius=14, fill=row_fill, outline=border, width=2)
+
+    # Type pill (muted indigo)
+    pill_fill = _blend(BG, INDIGO_LIGHT, fade)
+    pill_text = _blend(BG, INDIGO, fade)
+    pill_pad_x = 12
+    pill_pad_y = 4
+    pill_y = y0 + 18
+    tag_bbox = d.textbbox((0, 0), tag, font=fonts["mono_sm"])
+    tag_w = tag_bbox[2] - tag_bbox[0]
+    tag_h = tag_bbox[3] - tag_bbox[1]
+    pill_x0 = x0 + 18
+    pill_x1 = pill_x0 + tag_w + 2 * pill_pad_x
+    pill_y0 = pill_y
+    pill_y1 = pill_y + tag_h + 2 * pill_pad_y
+    rounded_rect(d, (pill_x0, pill_y0, pill_x1, pill_y1), radius=14, fill=pill_fill)
+    draw_text_anchored(
+        d, tag, pill_x0 + pill_pad_x, (pill_y0 + pill_y1) // 2,
+        fonts["mono_sm"], fill=pill_text, anchor="lm",
+    )
+    # Confidence text right of pill
+    conf_color = _blend(BG, DIM, fade)
+    draw_text_anchored(
+        d, f"confidence {confidence}",
+        pill_x1 + 14, (pill_y0 + pill_y1) // 2,
+        fonts["mono_sm"], fill=conf_color, anchor="lm",
+    )
+
+    # Content line
+    content_y = pill_y1 + 18
+    content_color = _blend(BG, FG, fade)
+    draw_text_anchored(
+        d, content, x0 + 18, content_y,
+        fonts["body"], fill=content_color, anchor="lt",
+    )
+
+    # Meta line
+    meta_y = content_y + 32
+    meta_color = _blend(BG, DIM, fade)
+    meta = f"agent_id: {agent_id}    source: {source}"
+    draw_text_anchored(
+        d, meta, x0 + 18, meta_y,
+        fonts["mono_sm"], fill=meta_color, anchor="lt",
+    )
+
+    # Diff handle (collapsed)
+    if show_diff_handle:
+        handle_y = meta_y + 30
+        handle_color = _blend(BG, DIM, fade)
+        draw_text_anchored(
+            d, f"> {diff_text}", x0 + 18, handle_y,
+            fonts["mono_sm"], fill=handle_color, anchor="lt",
+        )
+
+    # Action buttons (right-aligned, vertically centered)
+    btn_w = 130
+    btn_h = 44
+    gap = 14
+    by0 = y0 + (y1 - y0 - btn_h) // 2
+    rx1 = x1 - 20
+    rx0 = rx1 - btn_w
+    ax1 = rx0 - gap
+    ax0 = ax1 - btn_w
+
+    # Approve button
+    approve_fill_base = GREEN
+    if button_highlight == "approve" and button_pulse > 0.0:
+        # Pulse: brighten toward white slightly
+        approve_fill_base = _blend(GREEN, (255, 255, 255), 0.25 + 0.3 * button_pulse)
+    approve_fill = _blend(BG, approve_fill_base, fade)
+    rounded_rect(d, (ax0, by0, ax1, by0 + btn_h), radius=10, fill=approve_fill)
+    draw_text_centered(
+        d, "Approve", (ax0 + ax1) // 2, by0 + btn_h // 2,
+        fonts["btn"], fill=_blend(BG, (255, 255, 255), fade),
+    )
+    # Focus ring for approve
+    if button_highlight == "approve":
+        ring_inset = -6 - int(4 * button_pulse)
+        rounded_rect(
+            d,
+            (ax0 + ring_inset, by0 + ring_inset, ax1 - ring_inset, by0 + btn_h - ring_inset),
+            radius=14, outline=_blend(BG, INDIGO, fade), width=3,
+        )
+
+    # Reject button (outline style, muted red)
+    reject_outline = _blend(BG, RED, fade)
+    rounded_rect(
+        d, (rx0, by0, rx1, by0 + btn_h), radius=10,
+        fill=_blend(BG, BG, fade), outline=reject_outline, width=2,
+    )
+    draw_text_centered(
+        d, "Reject", (rx0 + rx1) // 2, by0 + btn_h // 2,
+        fonts["btn"], fill=reject_outline,
+    )
+
+    return (ax0, by0, ax1, by0 + btn_h)
+
+
+# ---------------------------------------------------------------------------
+# Beat 7: zoom transition into the governance panel
+# ---------------------------------------------------------------------------
+
+def _draw_beat7(
+    d: ImageDraw.ImageDraw,
+    f: int,
+    fonts: dict[str, ImageFont.ImageFont],
+) -> None:
+    # Progress 0..1 across the beat (~1.5s).
+    p = ease_out_cubic(min(1.0, f / max(1, BEAT_FRAMES[6] - 2)))
+
+    # Fade the architecture backdrop out.
+    backdrop_alpha = 1.0 - p
+    if backdrop_alpha > 0.02:
+        # Cheap "fade": composite a backdrop image then alpha-blend with BG.
+        bd_img = Image.new("RGB", (WIDTH, HEIGHT), BG)
+        bd_draw = ImageDraw.Draw(bd_img)
+        # Re-render the ruled-paper rails + header on the backdrop layer too,
+        # otherwise they'd disappear briefly.
+        bd_draw.line((60, 70, WIDTH - 60, 70), fill=SOFT, width=1)
+        bd_draw.line((60, HEIGHT - 70, WIDTH - 60, HEIGHT - 70), fill=SOFT, width=1)
+        _draw_beat4_backdrop(bd_draw, fonts)
+        blended = Image.blend(
+            Image.new("RGB", (WIDTH, HEIGHT), BG), bd_img, backdrop_alpha
+        )
+        parent = d._image  # type: ignore[attr-defined]
+        parent.paste(blended, (0, 0))
+        # Re-draw header rails over the blended image so they stay crisp.
+        d.line((60, 70, WIDTH - 60, 70), fill=SOFT, width=1)
+        d.line((60, HEIGHT - 70, WIDTH - 60, HEIGHT - 70), fill=SOFT, width=1)
+        draw_text_anchored(
+            d, "MEMORYWIRE", 80, 40, fonts["mono_sm"], fill=INDIGO, anchor="lt",
+        )
+        draw_text_anchored(
+            d, "explainer", WIDTH - 80, 40, fonts["mono_sm"], fill=DIM, anchor="rt",
+        )
+
+    # Interpolate the panel rect from beat-5/6 size to the zoomed canvas.
+    pl = int(PANEL_START_LEFT + (ZOOM_PANEL_LEFT - PANEL_START_LEFT) * p)
+    pr = int(PANEL_START_RIGHT + (ZOOM_PANEL_RIGHT - PANEL_START_RIGHT) * p)
+    pt = int(PANEL_START_TOP + (ZOOM_PANEL_TOP - PANEL_START_TOP) * p)
+    pb_start = PANEL_START_TOP + PANEL_START_H
+    pb = int(pb_start + (ZOOM_PANEL_BOTTOM - pb_start) * p)
+
+    # Title scales with the panel.
+    title = "governance / pending review"
+    title_h = int(50 + (64 - 50) * p)
+    rounded_rect(d, (pl, pt, pr, pb), radius=22, fill=BG, outline=INDIGO, width=3)
+    rounded_rect(d, (pl, pt, pr, pt + title_h), radius=22, fill=INDIGO)
+    d.rectangle((pl, pt + max(20, title_h - 20), pr, pt + title_h), fill=INDIGO)
+    title_font = fonts["panel_title_lg"] if p > 0.4 else fonts["panel_title"]
+    draw_text_anchored(
+        d, title, pl + 24, pt + title_h // 2,
+        title_font, fill=(255, 255, 255), anchor="lm",
+    )
+
+    # Caption fades in late.
+    if p > 0.55:
+        cap_p = (p - 0.55) / 0.45
+        cap_color = _blend(BG, FG, cap_p)
+        draw_text_centered(
+            d, "Zoom in on the governance plane.",
+            WIDTH // 2, HEIGHT - 100,
+            fonts["caption_xl"], fill=cap_color,
+        )
+
+
+# ---------------------------------------------------------------------------
+# Beat 8: pending approvals queue
+# ---------------------------------------------------------------------------
+
+PENDING_ROW_1 = {
+    "tag": "episodic",
+    "confidence": "0.88",
+    "content": "On 2026-03-10 alice@acme.com reported a billing issue with order #7821.",
+    "agent_id": "customer-bot",
+    "source": "chat-session-4421",
+}
+PENDING_ROW_2 = {
+    "tag": "semantic",
+    "confidence": "0.92",
+    "content": "Customer alice@acme.com prefers email over phone.",
+    "agent_id": "customer-bot",
+    "source": "chat-session-4421",
+}
+
+
+def _layout_approval_rows(body_rect: tuple[int, int, int, int]) -> list[tuple[int, int, int, int]]:
+    bx0, by0, bx1, by1 = body_rect
+    row_h = 170
+    row_gap = 20
+    inset_x = 28
+    rects = []
+    cur_y = by0 + 80   # leave space for caption above the rows
+    for _ in range(2):
+        rects.append((bx0 + inset_x, cur_y, bx1 - inset_x, cur_y + row_h))
+        cur_y += row_h + row_gap
+    return rects
+
+
+def _draw_beat8(
+    d: ImageDraw.ImageDraw,
+    f: int,
+    fonts: dict[str, ImageFont.ImageFont],
+) -> None:
+    body = _draw_zoomed_panel_shell(d, fonts, "governance / pending review")
+    bx0, by0, bx1, by1 = body
+
+    # Caption above the rows
+    cap_p = ease_out_cubic(min(1.0, f / 4))
+    draw_text_anchored(
+        d, "Every remember() with approval_required=true stages here.",
+        bx0 + 28, by0 + 36,
+        fonts["caption_xl"], fill=_blend(BG, FG, cap_p), anchor="lt",
+    )
+
+    row_rects = _layout_approval_rows(body)
+    rows = [PENDING_ROW_1, PENDING_ROW_2]
+    for i, (rect, row) in enumerate(zip(row_rects, rows)):
+        appear = max(0.0, min(1.0, (f - i * 3) / 5))
+        if appear <= 0.0:
+            continue
+        # Slide up a bit as it fades in.
+        offset = int((1 - appear) * 18)
+        ax0, ay0, ax1, ay1 = rect
+        _draw_approval_row_zoomed(
+            d, fonts, (ax0, ay0 + offset, ax1, ay1 + offset),
+            tag=row["tag"], confidence=row["confidence"], content=row["content"],
+            agent_id=row["agent_id"], source=row["source"],
+            show_diff_handle=True,
+            diff_text="diff vs current (5 changes)" if i == 0 else "diff vs current (2 changes)",
+            fade=appear,
+        )
+
+    # Footer hint
+    draw_text_anchored(
+        d, "2 pending  -  reviewer: ui-operator",
+        bx0 + 28, by1 - 36,
+        fonts["mono_sm"], fill=DIM, anchor="lt",
+    )
+
+
+# ---------------------------------------------------------------------------
+# Beat 9: diff revealed under top row
+# ---------------------------------------------------------------------------
+
+DIFF_LINES = [
+    ("confidence", "0.99", "0.88", "mod"),
+    ("type", "semantic", "episodic", "mod"),
+    ("source", "chat-session-4420", "chat-session-4421", "mod"),
+    ("entity_name", "alice", "alice@acme.com", "mod"),
+    ("tag", None, "billing", "add"),
+]
+
+
+def _draw_beat9(
+    d: ImageDraw.ImageDraw,
+    f: int,
+    fonts: dict[str, ImageFont.ImageFont],
+) -> None:
+    body = _draw_zoomed_panel_shell(d, fonts, "governance / pending review")
+    bx0, by0, bx1, by1 = body
+
+    # Caption above
+    draw_text_anchored(
+        d, "Structured diff against current state. A reviewer sees exactly what changes.",
+        bx0 + 28, by0 + 36,
+        fonts["caption_xl"], fill=FG, anchor="lt",
+    )
+
+    row_rects = _layout_approval_rows(body)
+    # Compress the top row vertically a little to make room for the diff,
+    # but render its core (pill, content, meta) still visible.
+    top_rect = row_rects[0]
+    bottom_rect = row_rects[1]
+
+    # Top row: keep it but make the diff handle text active.
+    _draw_approval_row_zoomed(
+        d, fonts, top_rect,
+        tag=PENDING_ROW_1["tag"], confidence=PENDING_ROW_1["confidence"],
+        content=PENDING_ROW_1["content"],
+        agent_id=PENDING_ROW_1["agent_id"], source=PENDING_ROW_1["source"],
+        show_diff_handle=True,
+        diff_text="v diff vs current (5 changes)   [expanded]",
+        fade=1.0,
+    )
+
+    # Diff panel expands between top row and bottom row.
+    # Move the bottom row down to make room (or hide it; we hide for clarity).
+    p = ease_out_cubic(min(1.0, f / max(1, BEAT_FRAMES[8] - 3)))
+    diff_top = top_rect[3] + 12
+    diff_max_h = (bottom_rect[3] - diff_top) - 16   # leave gap to footer
+    diff_h = int(diff_max_h * max(0.05, p))
+    diff_rect = (top_rect[0], diff_top, top_rect[2], diff_top + diff_h)
+    rounded_rect(
+        d, diff_rect, radius=12,
+        fill=(252, 250, 244), outline=SOFT, width=1,
+    )
+
+    # Header inside the diff panel
+    if p > 0.15:
+        header_y = diff_top + 18
+        draw_text_anchored(
+            d, "diff vs current state:",
+            diff_rect[0] + 20, header_y,
+            fonts["mono_sm"], fill=DIM, anchor="lt",
+        )
+
+    # Render diff rows progressively
+    if p > 0.25:
+        line_h = 34
+        col_field_x = diff_rect[0] + 32
+        col_before_x = diff_rect[0] + 280
+        col_after_x = diff_rect[0] + 560
+        # How many lines to reveal based on p
+        # p in [0.25..1.0] -> reveal up to 5 lines
+        rev = max(0.0, min(1.0, (p - 0.25) / 0.65))
+        n_shown = int(round(rev * len(DIFF_LINES)))
+        for i in range(n_shown):
+            field, before, after, kind = DIFF_LINES[i]
+            ly = diff_top + 50 + i * line_h
+            if ly + line_h > diff_rect[3] - 6:
+                break
+            # Field name
+            draw_text_anchored(
+                d, field, col_field_x, ly + line_h // 2,
+                fonts["mono_md"], fill=FG, anchor="lm",
+            )
+            if kind == "add":
+                # "+ tag       billing" with green pill background
+                badge_text = f"+ {after}"
+                bb = d.textbbox((0, 0), badge_text, font=fonts["mono_md"])
+                bw = bb[2] - bb[0]
+                bh = bb[3] - bb[1]
+                bx0 = col_before_x - 6
+                by0r = ly + line_h // 2 - bh // 2 - 4
+                rounded_rect(
+                    d, (bx0, by0r, bx0 + bw + 16, by0r + bh + 8),
+                    radius=6, fill=ADD_BG,
+                )
+                draw_text_anchored(
+                    d, badge_text, bx0 + 8, by0r + (bh + 8) // 2,
+                    fonts["mono_md"], fill=GREEN, anchor="lm",
+                )
+            else:
+                # before (red strikethrough background) -> after (green underline background)
+                # Before chip
+                bb = d.textbbox((0, 0), before, font=fonts["mono_md"])
+                bw = bb[2] - bb[0]
+                bh = bb[3] - bb[1]
+                bx0 = col_before_x - 6
+                by0r = ly + line_h // 2 - bh // 2 - 4
+                rounded_rect(
+                    d, (bx0, by0r, bx0 + bw + 16, by0r + bh + 8),
+                    radius=6, fill=DEL_BG,
+                )
+                draw_text_anchored(
+                    d, before, bx0 + 8, by0r + (bh + 8) // 2,
+                    fonts["mono_md"], fill=STRIKE, anchor="lm",
+                )
+                # Strike line through "before"
+                strike_y = by0r + (bh + 8) // 2 + 1
+                d.line(
+                    (bx0 + 8, strike_y, bx0 + 8 + bw, strike_y),
+                    fill=STRIKE, width=2,
+                )
+                # Arrow
+                arrow_x0 = bx0 + bw + 20
+                arrow_x1 = col_after_x - 12
+                arrow_y = ly + line_h // 2
+                d.line((arrow_x0, arrow_y, arrow_x1, arrow_y), fill=DIM, width=2)
+                d.polygon(
+                    [
+                        (arrow_x1, arrow_y),
+                        (arrow_x1 - 8, arrow_y - 5),
+                        (arrow_x1 - 8, arrow_y + 5),
+                    ],
+                    fill=DIM,
+                )
+                # After chip
+                bb2 = d.textbbox((0, 0), after, font=fonts["mono_md"])
+                bw2 = bb2[2] - bb2[0]
+                bh2 = bb2[3] - bb2[1]
+                cx0 = col_after_x
+                cy0 = ly + line_h // 2 - bh2 // 2 - 4
+                rounded_rect(
+                    d, (cx0, cy0, cx0 + bw2 + 16, cy0 + bh2 + 8),
+                    radius=6, fill=ADD_BG,
+                )
+                draw_text_anchored(
+                    d, after, cx0 + 8, cy0 + (bh2 + 8) // 2,
+                    fonts["mono_md"], fill=GREEN, anchor="lm",
+                )
+                # Underline
+                under_y = cy0 + bh2 + 4
+                d.line(
+                    (cx0 + 8, under_y, cx0 + 8 + bw2, under_y),
+                    fill=GREEN, width=2,
+                )
+
+    # Footer hint
+    draw_text_anchored(
+        d, "Reviewers can approve, reject, or edit before commit.",
+        bx0 + 28, by1 - 36,
+        fonts["mono_sm"], fill=DIM, anchor="lt",
+    )
+
+
+# ---------------------------------------------------------------------------
+# Beat 10: approve action with toast
+# ---------------------------------------------------------------------------
+
+def _draw_beat10(
+    d: ImageDraw.ImageDraw,
+    f: int,
+    fonts: dict[str, ImageFont.ImageFont],
+) -> None:
+    body = _draw_zoomed_panel_shell(d, fonts, "governance / pending review")
+    bx0, by0, bx1, by1 = body
+
+    draw_text_anchored(
+        d, "Reviewer approves -- a single click, fully audited.",
+        bx0 + 28, by0 + 36,
+        fonts["caption_xl"], fill=FG, anchor="lt",
+    )
+
+    row_rects = _layout_approval_rows(body)
+    top_rect, bottom_rect = row_rects[0], row_rects[1]
+
+    # Phase 1 (0..0.45): pulse approve button on top row.
+    # Phase 2 (0.45..0.75): top row fades / slides up.
+    # Phase 3 (0.6..1.0): toast slides up from bottom.
+    total = max(1, BEAT_FRAMES[9])
+    t = f / total
+
+    # Top row fade & slide
+    if t < 0.5:
+        top_fade = 1.0
+        top_offset = 0
+    else:
+        # ease out: from 1 -> 0
+        phase = min(1.0, (t - 0.5) / 0.4)
+        top_fade = 1.0 - ease_out_cubic(phase)
+        top_offset = int(-ease_out_cubic(phase) * 60)
+
+    # Pulse: triangular 0->1->0 over first ~0.5 of beat
+    if t < 0.5:
+        pulse = 1.0 - abs(2 * (t / 0.5) - 1.0)
+        button_highlight = "approve"
+    else:
+        pulse = 0.0
+        button_highlight = None
+
+    if top_fade > 0.02:
+        ax0, ay0, ax1, ay1 = top_rect
+        _draw_approval_row_zoomed(
+            d, fonts, (ax0, ay0 + top_offset, ax1, ay1 + top_offset),
+            tag=PENDING_ROW_1["tag"], confidence=PENDING_ROW_1["confidence"],
+            content=PENDING_ROW_1["content"],
+            agent_id=PENDING_ROW_1["agent_id"], source=PENDING_ROW_1["source"],
+            show_diff_handle=True,
+            diff_text="diff vs current (5 changes)",
+            button_highlight=button_highlight,
+            button_pulse=pulse,
+            fade=top_fade,
+        )
+
+    # Bottom row slides up to fill the gap after top row leaves.
+    bottom_slide = 0
+    if t > 0.6:
+        slide_p = min(1.0, (t - 0.6) / 0.4)
+        bottom_slide = -int(ease_out_cubic(slide_p) * (top_rect[3] - top_rect[1] + 20))
+    bx0r, by0r, bx1r, by1r = bottom_rect
+    _draw_approval_row_zoomed(
+        d, fonts, (bx0r, by0r + bottom_slide, bx1r, by1r + bottom_slide),
+        tag=PENDING_ROW_2["tag"], confidence=PENDING_ROW_2["confidence"],
+        content=PENDING_ROW_2["content"],
+        agent_id=PENDING_ROW_2["agent_id"], source=PENDING_ROW_2["source"],
+        show_diff_handle=True,
+        diff_text="diff vs current (2 changes)",
+        fade=1.0,
+    )
+
+    # Toast slides up from bottom of panel
+    if t > 0.45:
+        toast_p = ease_out_cubic(min(1.0, (t - 0.45) / 0.45))
+        toast_w = 540
+        toast_h = 60
+        toast_final_y = by1 - 90
+        toast_start_y = by1 + 20
+        ty = int(toast_start_y + (toast_final_y - toast_start_y) * toast_p)
+        tx0 = bx0 + (bx1 - bx0 - toast_w) // 2
+        tx1 = tx0 + toast_w
+        rounded_rect(
+            d, (tx0, ty, tx1, ty + toast_h),
+            radius=14, fill=GREEN_LIGHT, outline=GREEN, width=2,
+        )
+        # Check glyph
+        cy = ty + toast_h // 2
+        d.ellipse((tx0 + 16, cy - 14, tx0 + 44, cy + 14), fill=GREEN)
+        d.line((tx0 + 22, cy + 2, tx0 + 28, cy + 8), fill=(255, 255, 255), width=3)
+        d.line((tx0 + 28, cy + 8, tx0 + 40, cy - 6), fill=(255, 255, 255), width=3)
+        draw_text_anchored(
+            d, "approved by ui-operator -- audit log updated.",
+            tx0 + 58, cy,
+            fonts["toast"], fill=GREEN, anchor="lm",
+        )
+
+
+# ---------------------------------------------------------------------------
+# Beat 11: audit log + final close caption
+# ---------------------------------------------------------------------------
+
+AUDIT_ROWS = [
+    ("2026-05-31 12:42", "remember", "customer-bot", "ui-operator",    '{approve}'),
+    ("2026-05-31 12:41", "remember", "customer-bot", "crm-sync",       '{auto}'),
+    ("2026-05-31 11:33", "forget",   "customer-bot", "compliance-eng", '{gdpr}'),
+]
+
+
+def _draw_beat11(
+    d: ImageDraw.ImageDraw,
+    f: int,
+    fonts: dict[str, ImageFont.ImageFont],
+) -> None:
+    body = _draw_zoomed_panel_shell(d, fonts, "governance / audit log")
+    bx0, by0, bx1, by1 = body
+
+    caption_color = FG
+    draw_text_anchored(
+        d, "Every approve, reject, and write is logged. Auditable forever.",
+        bx0 + 28, by0 + 36,
+        fonts["caption_xl"], fill=caption_color, anchor="lt",
+    )
+
+    # Table header
+    header_y = by0 + 100
+    col_x = [bx0 + 40, bx0 + 280, bx0 + 440, bx0 + 620, bx0 + 800]
+    headers = ["ts", "operation", "agent", "approver", "payload"]
+    for x, h in zip(col_x, headers):
+        draw_text_anchored(
+            d, h, x, header_y, fonts["mono_sm"], fill=DIM, anchor="lt",
+        )
+    # Header underline
+    d.line(
+        (bx0 + 32, header_y + 28, bx1 - 32, header_y + 28),
+        fill=SOFT, width=1,
+    )
+
+    # Rows appear progressively, top row highlighted as "new"
+    row_h = 60
+    rows_top = header_y + 44
+    for i, (ts, op, agent, approver, payload) in enumerate(AUDIT_ROWS):
+        # Top row pops in first with a soft green highlight to mark "just added"
+        appear = max(0.0, min(1.0, (f - i * 3) / 4))
+        if appear <= 0.0:
+            continue
+        ry = rows_top + i * row_h
+        ts_offset = 0
+        if i == 0:
+            # "Just added" green strip
+            highlight = ease_out_cubic(appear)
+            hi_fill = _blend(BG, GREEN_LIGHT, 0.6 * highlight)
+            rounded_rect(
+                d, (bx0 + 28, ry - 6, bx1 - 28, ry + row_h - 12),
+                radius=8, fill=hi_fill,
+            )
+            # "new" badge -- nudge to far right past the payload text.
+            badge_text = "new"
+            badge_x0 = bx1 - 70
+            badge_y0 = ry - 2
+            rounded_rect(
+                d, (badge_x0, badge_y0, badge_x0 + 42, badge_y0 + 22),
+                radius=8, fill=GREEN,
+            )
+            draw_text_centered(
+                d, badge_text, badge_x0 + 21, badge_y0 + 11,
+                fonts["mono_xs"], fill=(255, 255, 255),
+            )
+        cells = [ts, op, agent, approver, payload]
+        fade_color = _blend(BG, FG, appear)
+        for x, txt in zip(col_x, cells):
+            font = fonts["mono_sm"]
+            draw_text_anchored(
+                d, txt, x, ry + 14, font, fill=fade_color, anchor="lt",
+            )
+
+    # Final closing caption near bottom of the panel
+    close_p = max(0.0, min(1.0, (f - 8) / 8))
+    if close_p > 0.0:
+        close_color = _blend(BG, FG, close_p)
+        draw_text_centered(
+            d,
+            "memorywire -- a vendor-neutral wire format for agent memory. Apache-2.0.",
+            (bx0 + bx1) // 2, by1 - 36,
+            fonts["body_bold"], fill=close_color,
+        )
+
+
+# ---------------------------------------------------------------------------
 # Color blending
 # ---------------------------------------------------------------------------
 
@@ -1037,9 +1717,18 @@ def _build_fonts() -> dict[str, ImageFont.ImageFont]:
         "amp_title": _load_font(FONT_CANDIDATES_BOLD, 30),
         "mono_md": _load_font(FONT_CANDIDATES_MONO, 20),
         "mono_sm": _load_font(FONT_CANDIDATES_MONO, 16),
+        "mono_xs": _load_font(FONT_CANDIDATES_MONO, 14),
+        "mono_lg": _load_font(FONT_CANDIDATES_MONO, 22),
         "panel_title": _load_font(FONT_CANDIDATES_BOLD, 18),
+        "panel_title_lg": _load_font(FONT_CANDIDATES_BOLD, 26),
         "btn": _load_font(FONT_CANDIDATES_BOLD, 18),
+        "btn_lg": _load_font(FONT_CANDIDATES_BOLD, 22),
         "cta": _load_font(FONT_CANDIDATES_BOLD, 22),
+        "section": _load_font(FONT_CANDIDATES_BOLD, 30),
+        "caption_xl": _load_font(FONT_CANDIDATES_REGULAR, 26),
+        "body": _load_font(FONT_CANDIDATES_REGULAR, 18),
+        "body_bold": _load_font(FONT_CANDIDATES_BOLD, 18),
+        "toast": _load_font(FONT_CANDIDATES_BOLD, 22),
     }
 
 
@@ -1057,8 +1746,22 @@ def render() -> Path:
         for i in range(n):
             beat_index.append((beat, i))
 
+    # Beats 7, 8, 11 (zoom transition, queue intro, audit log) are slow holds
+    # so we render them at half the temporal resolution by reusing the prior
+    # render on odd frames. The dedup pass at the end then collapses them,
+    # cutting the stored-frame count while keeping the logical 12 fps cadence.
+    # Beats 9 (diff reveal) and 10 (approve+toast) keep full fps because they
+    # animate continuously and look choppy at 6 fps.
+    # Only the slow-hold finale needs frame-doubling; the others can run at
+    # full 12 fps now that disposal=1 delta encoding keeps file size in check.
+    HALF_FPS_BEATS = {10}
+    cached_imgs: dict[tuple[int, int], Image.Image] = {}
     for global_idx, (beat, local) in enumerate(beat_index):
-        img = render_frame(global_idx, beat, local, fonts)
+        if beat in HALF_FPS_BEATS and local % 2 == 1 and (beat, local - 1) in cached_imgs:
+            img = cached_imgs[(beat, local - 1)]
+        else:
+            img = render_frame(global_idx, beat, local, fonts)
+            cached_imgs[(beat, local)] = img
         frames.append(img)
         durations.append(FRAME_MS)
 
@@ -1075,6 +1778,11 @@ def render() -> Path:
         sum(BEAT_FRAMES[:3]) + 8,    # beat 4 late
         sum(BEAT_FRAMES[:4]) + 8,    # beat 5 late
         sum(BEAT_FRAMES[:5]) + 4,    # beat 6
+        sum(BEAT_FRAMES[:6]) + 14,   # beat 7 zoom near end
+        sum(BEAT_FRAMES[:7]) + 12,   # beat 8 pending rows
+        sum(BEAT_FRAMES[:8]) + 14,   # beat 9 diff revealed
+        sum(BEAT_FRAMES[:9]) + 14,   # beat 10 approve + toast
+        sum(BEAT_FRAMES[:10]) + 18,  # beat 11 audit log
     ]
     # Build a horizontal strip from the sampled frames to inform the palette.
     strip = Image.new("RGB", (WIDTH, HEIGHT * len(sample_indices)), BG)
@@ -1105,6 +1813,9 @@ def render() -> Path:
         merged_durations.append(dur)
         prev_bytes = cur_bytes
 
+    # disposal=1 ("do not dispose") lets Pillow's GIF encoder write only the
+    # changed sub-rectangle for each subsequent frame -- much smaller than
+    # disposal=2's full-frame redraws when most pixels stay put.
     merged_frames[0].save(
         out_path,
         save_all=True,
@@ -1112,7 +1823,7 @@ def render() -> Path:
         duration=merged_durations,
         loop=0,
         optimize=True,
-        disposal=2,
+        disposal=1,
     )
     size = out_path.stat().st_size
     total_ms = sum(merged_durations)
