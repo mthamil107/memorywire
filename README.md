@@ -23,6 +23,10 @@
 
 ---
 
+<p align="center">
+  <img alt="AMP in 6 seconds: islanded frameworks → AMP layer → governance UI" src="docs/demos/amp-explainer.gif" width="560">
+</p>
+
 Every agent memory framework today &mdash; mem0, Letta, Cognee, Zep, MemoryOS &mdash; stores memories in its own format. There is no common protocol. AMP is the layer above them: a small, stable wire format so any memory client can talk to any memory backend, and any agent can carry its memory across runtimes.
 
 This repository contains the spec, a reference Python implementation, **five day-1 backend adapters** (sqlite-vec, mem0, Letta, Cognee, pgvector), and a governance UI for diff-and-approve workflows on what agents remember.
