@@ -6,7 +6,7 @@ from typing import Any
 
 import httpx
 import pytest
-from memwire_ui import services
+from memorywire_ui import services
 
 
 def _seed_consistent_approvals(seeded_db: Any, n: int) -> list[str]:

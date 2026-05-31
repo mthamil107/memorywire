@@ -28,12 +28,12 @@ import sys
 import time
 from pathlib import Path
 
-# Make `src/memwire` importable when invoked directly via `python docs/demos/...`.
+# Make `src/memorywire` importable when invoked directly via `python docs/demos/...`.
 REPO_ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(REPO_ROOT / "src"))
 
-from memwire.models import MemoryType, RememberRequest  # noqa: E402
-from memwire.store.sqlite_vec import SqliteVecStore  # noqa: E402
+from memorywire.models import MemoryType, RememberRequest  # noqa: E402
+from memorywire.store.sqlite_vec import SqliteVecStore  # noqa: E402
 
 DB_PATH = REPO_ROOT / "docs" / "demos" / "demo-ui.db"
 AGENT_ID = "customer-bot"

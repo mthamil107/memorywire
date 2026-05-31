@@ -35,7 +35,7 @@ _REPO_ROOT = Path(__file__).resolve().parent.parent
 if str(_REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(_REPO_ROOT))
 
-from memwire import Memory, MemoryType  # noqa: E402
+from memorywire import Memory, MemoryType  # noqa: E402
 from scripts.run_locomo import _load_locomo_from_disk  # noqa: E402
 from scripts.run_longmemeval import _load_longmemeval_from_disk  # noqa: E402
 

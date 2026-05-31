@@ -1,4 +1,4 @@
-﻿"""Tests for :mod:`memwire.models`.
+﻿"""Tests for :mod:`memorywire.models`.
 
 These tests prove that:
 
@@ -22,7 +22,7 @@ import pytest
 from jsonschema import Draft202012Validator
 from pydantic import BaseModel, ValidationError
 
-from memwire.models import (
+from memorywire.models import (
     ExpireRequest,
     ExpireResponse,
     ForgetRequest,
@@ -42,12 +42,12 @@ from memwire.models import (
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 EXAMPLES_ROOT = REPO_ROOT / "docs" / "spec" / "examples"
-SCHEMAS_ROOT = REPO_ROOT / "src" / "memwire" / "schemas"
+SCHEMAS_ROOT = REPO_ROOT / "src" / "memorywire" / "schemas"
 
 # Maps the example directory name to (RequestModel, ResponseModel | None).
 # ResponseModel is set for every operation: the three with authored schemas
 # (remember/recall/forget) plus merge/expire whose response shapes are defined
-# in the spec Editor's notes and modelled in ``memwire.models``.
+# in the spec Editor's notes and modelled in ``memorywire.models``.
 _OP_MODELS: dict[str, tuple[type[BaseModel], type[BaseModel] | None]] = {
     "remember": (RememberRequest, RememberResponse),
     "recall": (RecallRequest, RecallResponse),
@@ -133,7 +133,7 @@ def test_example_request_roundtrip(operation: str, example_path: Path) -> None:
 def test_example_response_roundtrip(operation: str, example_path: Path) -> None:
     """Every example's ``response`` must parse and round-trip too.
 
-    All five operations have response models in :mod:`memwire.models` (the three
+    All five operations have response models in :mod:`memorywire.models` (the three
     with authored JSON Schemas plus merge/expire's Editor's-note shapes).
     """
     payload = _load_json(example_path)

@@ -1,7 +1,7 @@
-﻿# memwire Threat Model
+﻿# memorywire Threat Model
 
 > Version: v0 (draft) Ã¢â‚¬â€ 2026-05-27
-> Scope: the memwire protocol, reference implementation in `src/memwire/`,
+> Scope: the memorywire protocol, reference implementation in `src/memorywire/`,
 > and governance UI in `ui/`.
 > Out of scope: third-party backend security (mem0, Letta, Cognee,
 > Postgres) Ã¢â‚¬â€ those have their own threat models.
@@ -17,8 +17,8 @@ honest about residual risk. It is descriptive, not prescriptive Ã¢â‚¬â€
 
 ```
 agent process (trusted)
-  Ã¢â€â€Ã¢â€â‚¬ in-process Ã¢â€ â€™ memwire SDK (Memory facade)
-        Ã¢â€â€Ã¢â€â‚¬ in-process Ã¢â€ â€™ router (src/memwire/router.py)
+  Ã¢â€â€Ã¢â€â‚¬ in-process Ã¢â€ â€™ memorywire SDK (Memory facade)
+        Ã¢â€â€Ã¢â€â‚¬ in-process Ã¢â€ â€™ router (src/memorywire/router.py)
               Ã¢â€â€Ã¢â€â‚¬ per-adapter (may cross network) Ã¢â€ â€™ sqlite-vec | mem0 |
                                                    Letta | Cognee | pgvector
                                                           Ã¢â€â€š
@@ -26,7 +26,7 @@ agent process (trusted)
                                     Ã¢â€â€š
                                     Ã¢â€“Â¼
                            governance UI (ui/, separate process)
-                             - BearerAuthMiddleware (opt-in MEMWIRE_UI_TOKEN)
+                             - BearerAuthMiddleware (opt-in MEMORYWIRE_UI_TOKEN)
                              - CSRFMiddleware (double-submit, HMAC-SHA256)
 ```
 
@@ -38,14 +38,14 @@ Trust assumptions:
 - **Router: in-process.** No network between SDK and router; the
   network boundary, if any, lives in individual adapters.
 - **Backends: partially trusted.** Per-store failures cannot crash the
-  router (`return_exceptions=True` fan-out at `src/memwire/router.py:261-264,
+  router (`return_exceptions=True` fan-out at `src/memorywire/router.py:261-264,
   353-356`), but a malicious backend *can* influence fused recall (Ã‚Â§2.3).
 - **Governance UI: separate trust zone** with opt-in bearer auth +
-  CSRF. Without `MEMWIRE_UI_TOKEN` it is unauthenticated Ã¢â‚¬â€ fine for a
+  CSRF. Without `MEMORYWIRE_UI_TOKEN` it is unauthenticated Ã¢â‚¬â€ fine for a
   single operator on localhost, not for a public bind.
 - **Audit log: append-only by convention.** Schema in
   `docs/kickoff/ARCHITECTURE.md Ã‚Â§3`; sole writer is
-  `SqliteVecStore._audit` (`src/memwire/store/sqlite_vec.py:401-424`).
+  `SqliteVecStore._audit` (`src/memorywire/store/sqlite_vec.py:401-424`).
 
 In v0 only the UI surface is authenticated (opt-in bearer + CSRF,
 commit `c828d76`). Per-`agent_id` SDK calls, inter-store integrity, and
@@ -67,7 +67,7 @@ A09 (Logging & Monitoring Failures); CWEs are noted inline.
 **Motivation:** plant adversarial "facts" that subsequent `recall()`
 surfaces Ã¢â‚¬â€ the memory analogue of prompt injection (OWASP LLM-01,
 CWE-20). **Preconditions:** can influence any string the agent passes
-through `remember()`. memwire cannot tell a real fact from a planted one.
+through `remember()`. memorywire cannot tell a real fact from a planted one.
 
 ### 2.2 Recall exfiltration
 
@@ -93,7 +93,7 @@ or fabricated `id`s not seen in other stores.
 SQL against `audit_log`. **Motivation:** hide a previous `forget()` /
 `merge()` / `approve()` or fabricate one to frame an operator
 (CWE-117 / CWE-778, OWASP A09). **Preconditions:** filesystem access to
-the memwire DB.
+the memorywire DB.
 
 ### 2.5 Cross-tenant leakage / IDOR
 
@@ -125,14 +125,14 @@ JSON with `before` / `after` / `prepare` callback strings.
 **Current mitigation:** `approval_required=true` on `RememberRequest`
 (`docs/spec/v0.md Ã‚Â§3.1`) stages the row behind the
 `PENDING_APPROVAL_DELETED_AT = -1` sentinel in `memories.deleted_at`
-(`src/memwire/store/sqlite_vec.py:88-98, 440`, commit `c828d76`). All recall
+(`src/memorywire/store/sqlite_vec.py:88-98, 440`, commit `c828d76`). All recall
 paths filter on `deleted_at IS NULL`, so pending rows cannot influence
 retrieval until a human approves in the UI. `confidence` is a first-class
 spec field; every `remember()` is journaled with the inserted `memory_id`
-(`src/memwire/store/sqlite_vec.py:505-512`), so a poisoned memory is traceable
+(`src/memorywire/store/sqlite_vec.py:505-512`), so a poisoned memory is traceable
 to the call that planted it.
 
-**Residual risk:** default `approval_required` is false; memwire cannot tell
+**Residual risk:** default `approval_required` is false; memorywire cannot tell
 a real fact from a planted one Ã¢â‚¬â€ it only guarantees that what the agent
 wrote is what the agent reads back. Prompt-injected calls from a trusted
 agent are out of scope (Ã‚Â§5).
@@ -165,14 +165,14 @@ labelled rows.
 ### 3.3 Poisoned backend in RRF fusion
 
 **Current mitigation:** RRF is **score-independent** by construction Ã¢â‚¬â€
-`_fusion_contribution` uses `1 / (rrf_k + rank)` (`src/memwire/router.py:428-429`),
+`_fusion_contribution` uses `1 / (rrf_k + rank)` (`src/memorywire/router.py:428-429`),
 so a malicious backend cannot dominate by inflating `score`; it can only
 return an item at rank 0. RRF sums across stores, so a single rogue store
 contributes at most `1/60 Ã¢â€°Ë† 0.0167` per item, while a two-store consensus
 item scores `Ã¢â€°Â¥ 1/60 + 1/61 Ã¢â€°Ë† 0.0330`. `MAX` and `WEIGHTED` fusion *are*
 score-sensitive Ã¢â‚¬â€ operators picking them accept more backend trust
-(documented at `src/memwire/router.py:415-444`). Per-store failures are logged
-but do not abort the operation (`src/memwire/router.py:361-368`).
+(documented at `src/memorywire/router.py:415-444`). Per-store failures are logged
+but do not abort the operation (`src/memorywire/router.py:361-368`).
 
 **Residual risk:** with `fusion="max"` or `"weighted"`, one malicious
 backend can dominate. Even with RRF, a backend that fabricates an
@@ -210,9 +210,9 @@ machine-readable output (`docs/adversarial-results.{rrf,max,weighted}.json`).
 
 **Current mitigation:** the audit log is append-only by code convention.
 `SqliteVecStore._audit` is the only writer in the OSS adapter
-(`src/memwire/store/sqlite_vec.py:401-424`); it only performs `INSERT INTO
+(`src/memorywire/store/sqlite_vec.py:401-424`); it only performs `INSERT INTO
 audit_log(...)`. No UPDATE or DELETE against `audit_log` exists anywhere
-in `src/memwire/` or `ui/src/amp_ui/`. Every governance action emits a
+in `src/memorywire/` or `ui/src/amp_ui/`. Every governance action emits a
 dedicated audit row with the reviewer's identity Ã¢â‚¬â€ `approve()`,
 `reject()`, `apply_co_memorize()`, and `accept_pattern()` all hit
 `audit_log` (`ui/src/amp_ui/services.py:512-529, 560-577, 913-930,
@@ -221,7 +221,7 @@ response as JSON, so a `forget` that bypasses the audit path leaves a
 structurally detectable gap.
 
 **Residual risk:** SQLite is a single file with filesystem semantics Ã¢â‚¬â€
-anyone with write access can `DELETE FROM audit_log` or mutate rows. memwire
+anyone with write access can `DELETE FROM audit_log` or mutate rows. memorywire
 enforces append-only at the code layer, not the DB layer. No hash chain,
 no external timestamping, no row signatures.
 
@@ -253,7 +253,7 @@ to `(agent_id, memory_id, sentinel)`:
   not leak which condition fired (`ui/src/amp_ui/services.py:902-911`).
 
 The pending sentinel is a shared public constant
-(`PENDING_APPROVAL_DELETED_AT`, `src/memwire/store/sqlite_vec.py:91`) which
+(`PENDING_APPROVAL_DELETED_AT`, `src/memorywire/store/sqlite_vec.py:91`) which
 the UI imports (`ui/src/amp_ui/services.py:36, 46`); a future schema
 bump cannot desync.
 
@@ -271,9 +271,9 @@ per-operator allowed-`agent_id` ACL.
 ### 3.6 Approval bypass
 
 **Current mitigation (a) UI no-auth:** `BearerAuthMiddleware` gates
-every request behind a bearer token when `MEMWIRE_UI_TOKEN` is set
+every request behind a bearer token when `MEMORYWIRE_UI_TOKEN` is set
 (`ui/src/amp_ui/middleware.py:74-103`), accepting either an
-`Authorization: Bearer` header or an `memwire_ui_session` cookie, with
+`Authorization: Bearer` header or an `memorywire_ui_session` cookie, with
 `hmac.compare_digest` for constant-time comparison
 (`ui/src/amp_ui/middleware.py:112, 116`). `CSRFMiddleware` enforces a
 double-submit-cookie pattern signed with HMAC-SHA256 over `nonce.ts`
@@ -285,16 +285,16 @@ All landed in commit `c828d76`.
 **Current mitigation (b) procedural-memory RCE:**
 `validate_procedure_dict` allow-lists transition keys to exactly
 `{trigger, source, dest, conditions, unless}`
-(`src/memwire/procedural.py:57-59`), explicitly rejecting `before`, `after`,
+(`src/memorywire/procedural.py:57-59`), explicitly rejecting `before`, `after`,
 and `prepare` Ã¢â‚¬â€ the three pytransitions keys that resolve dotted-string
 callbacks via `__import__` and would otherwise let
 `{"before": "os.system"}` execute arbitrary code at trigger time
-(`src/memwire/procedural.py:44-56`). `conditions` and `unless` strings are
+(`src/memorywire/procedural.py:44-56`). `conditions` and `unless` strings are
 restricted to bare identifiers (no `.`) so they resolve only to
 attributes on our private `_ProcedureModel`, never to imported modules
-(`src/memwire/procedural.py:122-136`). `ProcedureRunner._expand_transitions`
+(`src/memorywire/procedural.py:122-136`). `ProcedureRunner._expand_transitions`
 strips disallowed keys *at construction time* even if a caller bypasses
-`from_dict` (`src/memwire/procedural.py:283-312`). Both layers shipped in
+`from_dict` (`src/memorywire/procedural.py:283-312`). Both layers shipped in
 `c828d76`.
 
 **Residual risk:** the bearer is a single shared secret with manual
@@ -305,7 +305,7 @@ purely static allow-listing; if a future `transitions` release adds a
 new code-execution sink under a key we currently allow, validation will
 silently miss it.
 
-**v0.2 hardening:** `MEMWIRE_UI_CSRF_SECRET` pinning (spec-gap in `c828d76`);
+**v0.2 hardening:** `MEMORYWIRE_UI_CSRF_SECRET` pinning (spec-gap in `c828d76`);
 per-operator tokens with rotation; Secure cookie flag for HTTPS; a CI
 snapshot of the `transitions` callback-key surface so a library upgrade
 that adds a new sink fails the test rather than the sandbox.
@@ -314,7 +314,7 @@ that adds a new sink fails the test rather than the sandbox.
 
 ## 4. Not mitigated in v0
 
-Real threats memwire v0 does **not** address, by design:
+Real threats memorywire v0 does **not** address, by design:
 
 - **Insider attacks on the audit DB** Ã¢â‚¬â€ anyone with filesystem write
   access can rewrite history (see Ã‚Â§3.4 residual). Mitigated only by
@@ -323,34 +323,34 @@ Real threats memwire v0 does **not** address, by design:
   fusion mode, and per-store result counts; a patient attacker can in
   principle distinguish "agent has memory matching X" from "no match"
   by observing latency.
-- **Prompt injection in the calling agent** Ã¢â‚¬â€ memwire is downstream of the
+- **Prompt injection in the calling agent** Ã¢â‚¬â€ memorywire is downstream of the
   LLM. If the agent is fooled into `remember("Alice is in the
-  building", confidence=1.0)`, memwire faithfully stores and recalls it
+  building", confidence=1.0)`, memorywire faithfully stores and recalls it
   (see Ã‚Â§5).
 - **Supply-chain attacks on the wheel** Ã¢â‚¬â€ PyPI publishing uses OIDC
   trusted publishing per `docs/kickoff/ARCHITECTURE.md Ã‚Â§1` but there
   is no in-band signature verification at SDK load. Mitigated by
   `pip`'s standard hash-pinning.
 - **Backend transport security** Ã¢â‚¬â€ `mem0` / `Letta` / `pgvector`
-  adapters delegate TLS and auth to their upstream SDKs. memwire does not
+  adapters delegate TLS and auth to their upstream SDKs. memorywire does not
   enforce HTTPS at the router boundary.
 
 ---
 
 ## 5. Threats the protocol cannot mitigate
 
-Threats inherent to the agent / LLM, not to memwire. memwire makes them
+Threats inherent to the agent / LLM, not to memorywire. memorywire makes them
 **auditable**, not preventable:
 
 - An LLM hallucinates a `forget()` and deletes a real memory. The audit
   row captures the call exactly; recovery means inspecting
   `audit_log.payload` and restoring from backup.
 - An LLM issues `recall()` with an over-broad query and leaks results
-  into a user-visible response. memwire returned the hits correctly; the
+  into a user-visible response. memorywire returned the hits correctly; the
   agent leaked them.
 - An LLM stores content it should not (e.g. a card number) via
-  `remember()`. memwire's `metadata` is opaque; there is no PII detector.
-- An LLM picks the wrong `MemoryType`. memwire enforces type at write time
+  `remember()`. memorywire's `metadata` is opaque; there is no PII detector.
+- An LLM picks the wrong `MemoryType`. memorywire enforces type at write time
   but cannot infer the *correct* type from `content`.
 
 For all of these, the audit log gives the operator a complete post-hoc
@@ -376,7 +376,7 @@ that bullet moves into Ã‚Â§3.4's "Current mitigation".
 Suspected vulnerabilities should be reported privately Ã¢â‚¬â€ see
 [`SECURITY.md`](../SECURITY.md) at the repo root. Use the GitHub
 Security tab's "Report a vulnerability" feature on the
-[memwire repository](https://github.com/mthamil107/memwire).
+[memorywire repository](https://github.com/mthamil107/memorywire).
 We aim to acknowledge within 72 hours and provide an initial assessment
 within seven days, per `SECURITY.md`.
 

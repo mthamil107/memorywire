@@ -4,7 +4,7 @@ This version is post-AI-feedback (May 31 review). The earlier draft
 implied research novelty on the adversarial-fusion experiment;
 Byzantine-robust aggregation is a real, well-developed field
 (Lamport/Pease/Shostak 1982, Blanchard et al. 2017's Krum,
-Yin et al. 2018, Pillutla et al. 2022) that memwire's Â§5.2 measures
+Yin et al. 2018, Pillutla et al. 2022) that memorywire's Â§5.2 measures
 *within* rather than discovers. So this post leads with the
 engineering / tool framing â€” "tool I needed and couldn't find" â€”
 and saves the protocol-as-published-artifact claim for the closing
@@ -22,17 +22,17 @@ Click "Start a post" on the LinkedIn home feed.
 Click the image-attach icon and upload:
 
 ```
-D:/Repo/agent-memory/docs/demos/memwire-explainer.gif
+D:/Repo/agent-memory/docs/demos/memorywire-explainer.gif
 ```
 
 The GIF (~1 MB, 1080x1080, ~6 seconds, loops) shows the islanded-
-frameworks-then-memwire-layer-then-governance-UI storyboard in plain
+frameworks-then-memorywire-layer-then-governance-UI storyboard in plain
 visual terms.
 
 ## Step 3 â€” Paste this verbatim into the text field
 
 ```
-Just open-sourced memwire â€” a vendor-neutral wire format for agent memory operations.
+Just open-sourced memorywire â€” a vendor-neutral wire format for agent memory operations.
 
 Every framework I tried to use across multiple agent projects â€” mem0, Letta, Cognee, Zep, MemoryOS â€” ships its own SDK, its own storage layout, and its own operational vocabulary. There is no shared wire format. Every migration rebuilds memory from scratch. And none of them ship a governance surface where a human can review what the agent is about to remember BEFORE it enters long-term storage.
 
@@ -51,11 +51,11 @@ A 9,760-word arXiv preprint covers all of it. The public arXiv ID lands Monday U
 This is a companion to my earlier arXiv:2604.18248 (Prompt Injection Detection) â€” same threat-class lens applied to memory-side injection.
 
 Code (Apache-2.0 for the protocol; FSL for the governance UI):
-https://github.com/mthamil107/memwire
+https://github.com/mthamil107/memorywire
 
-Naming note: there is a prior project called AMP at github.com/akshayaggarwal99/amp (an MCP-native memory server with visualizations). This is a different shape â€” a vendor-neutral wire format and spec + 5 backend adapters. Renamed to memwire before launch to avoid confusion. See docs/PRIOR-WORK.md for the long version.
+Naming note: there is a prior project called AMP at github.com/akshayaggarwal99/amp (an MCP-native memory server with visualizations). This is a different shape â€” a vendor-neutral wire format and spec + 5 backend adapters. Renamed to memorywire before launch to avoid confusion. See docs/PRIOR-WORK.md for the long version.
 
-Curious what folks at memory-framework teams and the MCP working group make of it. memwire is designed to compose with what you ship, not against it.
+Curious what folks at memory-framework teams and the MCP working group make of it. memorywire is designed to compose with what you ship, not against it.
 
 #AI #AgentMemory #OpenSource #Protocols #Security
 ```
@@ -75,7 +75,7 @@ past five.
 | Adds "It is not a novel-research claim. It is a tool I needed for a real project and could not find. So I built it." as the second paragraph | Disarms the reviewer reflex; reframes contribution as engineering / OSS, not research; sells better on LinkedIn anyway |
 | Removes the "Adversarial-fusion experiment showing RRF holds" bullet | The implicit research framing on Â§5.2 is gone; the result still lives in the paper but doesn't need to lead on LinkedIn |
 | Keeps the Conformance / Threat-model / Microbench bullets | These are honest engineering deliverables; the conformance suite IS genuinely useful as protocol-validation evidence |
-| Closing line emphasises "compose with, not against" | Honest positioning on memwire-vs-MCP and memwire-vs-frameworks; consistent with docs/MCP-RELATIONSHIP.md |
+| Closing line emphasises "compose with, not against" | Honest positioning on memorywire-vs-MCP and memorywire-vs-frameworks; consistent with docs/MCP-RELATIONSHIP.md |
 
 ## Optional follow-up comment
 
@@ -88,9 +88,9 @@ For folks who want the technical deep-dive:
 
 - docs/spec/v0.md in the repo is the full JSON Schema specification
 - docs/THREATS.md is the threat model with line-level mitigation citations
-- docs/MCP-RELATIONSHIP.md is the memwire-vs-MCP positioning if you want the answer to "why not just an MCP extension?" before clicking through
+- docs/MCP-RELATIONSHIP.md is the memorywire-vs-MCP positioning if you want the answer to "why not just an MCP extension?" before clicking through
 
-The memwire-MCP relationship doc and the threat model are the two artifacts I'd point a reviewer at first.
+The memorywire-MCP relationship doc and the threat model are the two artifacts I'd point a reviewer at first.
 ```
 
 ## Best posting time

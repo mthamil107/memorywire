@@ -30,11 +30,11 @@ strongest validation signal in week 1-4.
 - Handle: `@charlespacker` (X), `cpacker` (GitHub)
 - Why: founder of Letta; MemGPT was the architecture that
   made hierarchical agent memory a category. Letta is the
-  21.7kâ˜… framework in the memwire comparison table.
+  21.7kâ˜… framework in the memorywire comparison table.
 - Opener hook: cite the MemGPT paper or a recent Letta
   release note.
-- Ask: would you look at `src/memwire/store/letta_adapter.py`
-  and tell me if the tag-encoded memwire metadata pattern is
+- Ask: would you look at `src/memorywire/store/letta_adapter.py`
+  and tell me if the tag-encoded memorywire metadata pattern is
   the right shape, or if Letta v2 has a free-form metadata
   field I should use instead.
 
@@ -44,7 +44,7 @@ strongest validation signal in week 1-4.
   framework in the abstract.
 - Opener hook: the mem0 architecture writeup
   (arXiv:2504.19413) or a recent Slack/Discord launch.
-- Ask: feedback on whether memwire's `MemoryStore` Protocol
+- Ask: feedback on whether memorywire's `MemoryStore` Protocol
   can be implemented as a thin layer ON TOP of the mem0
   Python SDK without forking â€” the current adapter wraps
   the client; v0.2 could go deeper.
@@ -52,7 +52,7 @@ strongest validation signal in week 1-4.
 ### 3. Vasilije Markovic â€” Cognee
 - Handle: `@vasilije1990` (X), `Vasilije1990` (GitHub)
 - Why: founder of Cognee ($7.5M seed). Cognee is the only
-  graph-first system in memwire's adapter set; the SKIP cells
+  graph-first system in memorywire's adapter set; the SKIP cells
   in the conformance suite all flag Cognee's data_id surface.
 - Opener hook: the Cognee 1.1 release or a graph-completion
   blog post.
@@ -63,11 +63,11 @@ strongest validation signal in week 1-4.
 
 ### 4. Daniel Chalef â€” Zep / Graphiti
 - Handle: `@danielchalef` (X)
-- Why: founder of Zep + Graphiti. memwire's RRF k=60 fusion is
+- Why: founder of Zep + Graphiti. memorywire's RRF k=60 fusion is
   the same recipe Graphiti uses.
 - Opener hook: Graphiti's temporal-knowledge-graph paper
   or a recent Zep release.
-- Ask: would you accept a `memwire.store.zep_adapter` PR for
+- Ask: would you accept a `memorywire.store.zep_adapter` PR for
   v0.2 â€” the conformance suite would gain a 6th column.
 
 ---
@@ -83,14 +83,14 @@ path doesn't convert. Per `docs/kickoff/FUTURE.md`.
 - Handle: usually findable via Anthropic's "Meet the team"
   page or recent blog post bylines.
 - Opener hook: a specific Anthropic blog post on memory.
-- Ask: feedback on memwire's positioning relative to MCP, since
-  Anthropic is the MCP author. memwire is downstream / extension.
+- Ask: feedback on memorywire's positioning relative to MCP, since
+  Anthropic is the MCP author. memorywire is downstream / extension.
 
 ### 6. OpenAI â€” Memory team
 - Same shape as #5. Find the engineer behind ChatGPT's
   cross-session memory feature.
 - Opener hook: a specific OpenAI release note or X thread.
-- Ask: is memwire's 4-type taxonomy compatible with whatever
+- Ask: is memorywire's 4-type taxonomy compatible with whatever
   ChatGPT memory's internal type system looks like, and
   would a public-facing protocol be useful.
 
@@ -98,7 +98,7 @@ path doesn't convert. Per `docs/kickoff/FUTURE.md`.
 - Microsoft has shipped enterprise governance for memory in
   Azure AI Foundry. The PM or eng-lead is the right target.
 - Opener hook: a specific Foundry release.
-- Ask: feedback on memwire's governance UI as a model for
+- Ask: feedback on memorywire's governance UI as a model for
   what an enterprise-tier memory audit surface should
   look like.
 
@@ -123,11 +123,11 @@ three bodies. These three contacts are the highest leverage.
 - Opener hook: the MCP spec section on resources /
   prompts (the closest existing surface to memory).
 - Ask: would the MCP-WG accept a memory-extension proposal
-  citing memwire as the reference impl, or is there a different
+  citing memorywire as the reference impl, or is there a different
   shape they'd prefer.
 
 ### 10. IETF â€” applicable working group
-- memwire's intended IETF home is either
+- memorywire's intended IETF home is either
   `httpapi` (REST-shaped JSON-Schema APIs) or `core` (constrained
   applications). Find the WG chair via the IETF datatracker.
 - Opener hook: nothing â€” IETF DMs are usually cold and
@@ -135,7 +135,7 @@ three bodies. These three contacts are the highest leverage.
   Web-Bot-Auth Internet-Draft (draft-meunier-web-bot-auth-
   architecture-05) as the precedent for a startup-shipped
   protocol going through IETF.
-- Ask: would memwire's v0.5 spec be in scope for an Internet-
+- Ask: would memorywire's v0.5 spec be in scope for an Internet-
   Draft submission to your WG.
 
 ### 11. W3C â€” Community Group sponsor
@@ -144,7 +144,7 @@ three bodies. These three contacts are the highest leverage.
   AI / agents is the right contact.
 - Opener hook: a recent W3C announcement on AI / agents.
 - Ask: would you sponsor an "Agent Memory" Community
-  Group with memwire as the founding submission.
+  Group with memorywire as the founding submission.
 
 ---
 
@@ -156,7 +156,7 @@ These are LOW-LIKELIHOOD targets but the bar is also lower
 ### 12. HuggingFace â€” community OSS team
 - Acquires OSS tools that fit the Hub.
 - Opener hook: a recent HF release.
-- Ask: would memwire fit as a `pip install huggingface-memwire`
+- Ask: would memorywire fit as a `pip install huggingface-memorywire`
   shim or as a Spaces template.
 
 ### 13. Mistral
@@ -188,11 +188,11 @@ context.
 - LLM systems writer; has covered agent infra in the past.
 
 ### 18. Jeremy Howard â€” `@jeremyphoward`
-- fast.ai founder; pragmatic-systems sensibility matches memwire.
+- fast.ai founder; pragmatic-systems sensibility matches memorywire.
 
 ### 19. Simon Willison â€” `@simonw`
 - LLM bloggerati; writes detailed posts on the agent
-  ecosystem. memwire fits his beat exactly.
+  ecosystem. memorywire fits his beat exactly.
 
 ### 20. Latent Space podcast (`@swyx`, `@alessiofanelli`)
 - The agent-infra podcast. A mention on Latent Space is
@@ -207,12 +207,12 @@ Hi <NAME>,
 
 Saw <specific reference to their published work â€” paper / blog / tweet from last 4 weeks>.
 
-I just released an arXiv preprint that intersects with what you're shipping: memwire, a vendor-neutral wire format for agent memory operations. The reference implementation includes <ONE OF: a Letta adapter / a mem0 adapter / a Cognee adapter / a Zep adapter / nothing yet for your work but should â€” drop in the specific surface to their work here>.
+I just released an arXiv preprint that intersects with what you're shipping: memorywire, a vendor-neutral wire format for agent memory operations. The reference implementation includes <ONE OF: a Letta adapter / a mem0 adapter / a Cognee adapter / a Zep adapter / nothing yet for your work but should â€” drop in the specific surface to their work here>.
 
 The contribution is a protocol + reference impl + governance UI; the framing is "the cross-vendor layer above storage", positioned to compose with MCP. Honest framing on novelty â€” not an algorithmic contribution, packaging + standards positioning.
 
 arXiv: https://arxiv.org/abs/<ARXIV_ID>
-Code: https://github.com/mthamil107/memwire
+Code: https://github.com/mthamil107/memorywire
 
 Would value your feedback on <ONE SPECIFIC TECHNICAL QUESTION related to their work>. No rush; if it's not in your queue right now, fine.
 

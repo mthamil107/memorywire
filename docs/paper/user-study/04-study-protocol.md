@@ -16,7 +16,7 @@
    `docs/demos/demo-ui.db` with 2 approved memories + 2 pending memories
    under `agent_id=customer-bot`, plus one historical audit-log row.
 2. Start the governance UI pointed at that DB:
-   `MEMWIRE_UI_DB_PATH=docs/demos/demo-ui.db .venv/Scripts/python.exe -m amp_ui`.
+   `MEMORYWIRE_UI_DB_PATH=docs/demos/demo-ui.db .venv/Scripts/python.exe -m amp_ui`.
 3. Open the UI in a fresh browser window. Confirm `/`, `/audit`,
    `/co-memorize`, `/patterns`, and `/health-dashboard` all render.
 4. Open the pre-study survey response for this participant; have
@@ -77,7 +77,7 @@ done.*
 > Let me give you a quick tour of the interface before we start the
 > tasks. *Share the UI screen.*
 >
-> This is the memwire governance UI. The context is: there's an AI agent
+> This is the memorywire governance UI. The context is: there's an AI agent
 > running somewhere â€” let's call it a customer-support bot â€” and
 > every time it wants to write something to its memory store, the
 > write can be flagged as "needs human approval." When that happens,

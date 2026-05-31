@@ -58,7 +58,7 @@ coverage.xml
 # Local smoke-test artifacts
 test-ui.log
 test-ui.err
-memwire-cli.db
+memorywire-cli.db
 amp-cli.db
 
 # Eval harness per-question SQLite workspace + diag scratch.

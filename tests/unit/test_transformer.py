@@ -1,8 +1,8 @@
-"""Tests for :mod:`memwire.transformer` â€” the STMâ†”LTM consolidator (Phase 5).
+"""Tests for :mod:`memorywire.transformer` â€” the STMâ†”LTM consolidator (Phase 5).
 
 The transformer is an always-on async background task that promotes
 high-value short-term memory entries to long-term storage via a
-:class:`memwire.store.MemoryStore`-shaped target. These tests exercise:
+:class:`memorywire.store.MemoryStore`-shaped target. These tests exercise:
 
 * the in-buffer ``push`` / ``record_recall`` shapes;
 * the consolidation algorithm in :meth:`STMToLTMTransformer.tick`;
@@ -22,7 +22,7 @@ from typing import Any
 
 import pytest
 
-from memwire.models import (
+from memorywire.models import (
     ExpireRequest,
     ExpireResponse,
     ForgetRequest,
@@ -35,8 +35,8 @@ from memwire.models import (
     RememberRequest,
     RememberResponse,
 )
-from memwire.store import Capability
-from memwire.transformer import STMItem, STMToLTMTransformer
+from memorywire.store import Capability
+from memorywire.transformer import STMItem, STMToLTMTransformer
 
 # ---------------------------------------------------------------------------
 # Test helpers

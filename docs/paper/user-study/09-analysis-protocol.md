@@ -136,7 +136,7 @@ agreement. Kappa is recomputed and reported transparently in Â§5.5.4.
 ### 3.4 Coder selection
 
 - **Coder 1:** the PI.
-- **Coder 2:** `[NAME OR ROLE â€” e.g., a colleague external to the memwire
+- **Coder 2:** `[NAME OR ROLE â€” e.g., a colleague external to the memorywire
   project, recruited specifically for this study to mitigate the PI's
   COI]`.
 - **Coder 3 (only if needed):** `[NAME OR ROLE]`.

@@ -1,6 +1,6 @@
 # Benchmarks
 
-memwire v0 ships with a **microbenchmark** â€” not LongMemEval, LoCoMo, or BEAM,
+memorywire v0 ships with a **microbenchmark** â€” not LongMemEval, LoCoMo, or BEAM,
 which are deferred to v0.2. The point is to show concrete shape: real
 embedder, real sqlite-vec backend, hand-authored corpus, honest numbers.
 
@@ -56,7 +56,7 @@ so precision@5 is upper-bounded at 0.2 by construction.
 - **Not a semantic-similarity benchmark.** 100 hand-authored facts is
   small enough that FTS5 keyword matching alone would surface many gold
   ids â€” the dataset rewards systems that combine semantic embeddings
-  with keyword recall, which is exactly what memwire's intra-store RRF does.
+  with keyword recall, which is exactly what memorywire's intra-store RRF does.
   At 100 facts the ANN path is doing brute-force vec0 scan, not a real
   HNSW workload.
 - **Not a long-context test.** LongMemEval and LoCoMo measure recall
@@ -261,7 +261,7 @@ the full run extrapolates to 10-15 hours â€” out of scope for v1).
 - Categories 1 + 3 (multi-hop date / temporal): mean = 0.00
 
 **What the numbers say honestly.** The per-question DB isolation
-fix recovers memwire's ability to find topically-relevant turns: the
+fix recovers memorywire's ability to find topically-relevant turns: the
 prior-run candidates were dominated by `"(no relevant memories
 surfaced)"`, and after the fix every candidate contains real
 context from the question's haystack. The remaining gap â€” strong
@@ -271,7 +271,7 @@ on the harder LongMemEval tiers, not a harness bug. Swapping the
 embedder for a larger model (`gte-large`, `bge-m3`, or OpenAI
 `text-embedding-3-large`) is the v0.2 path; the protocol itself is
 embedder-agnostic, so this measurement is about the reference
-embedder's recall ceiling, not memwire's wire format.
+embedder's recall ceiling, not memorywire's wire format.
 
 Compared to the pre-fix run (LongMemEval 0.286, LoCoMo 0.018 with
 `(no relevant memories surfaced)` dominating), the post-fix

@@ -2,7 +2,7 @@
 
 This is the experiment promised by ``docs/THREATS.md`` Â§3.3:
 how much does a single malicious child store pollute the fused
-top-k that :class:`memwire.router.MemoryRouter` returns? Where does
+top-k that :class:`memorywire.router.MemoryRouter` returns? Where does
 the RRF defense break down?
 
 Methodology
@@ -11,7 +11,7 @@ Methodology
 * Hand-build ``Q`` queries; each query's "gold set" is a small, fixed
   subset of memory ids that a correctly behaving store should return.
 * Wire ``N`` :class:`StubStore` children into a real
-  :class:`memwire.router.MemoryRouter`. ``N - n_adversarial`` of them are
+  :class:`memorywire.router.MemoryRouter`. ``N - n_adversarial`` of them are
   *benign* â€” they return the gold rows for each query in their correct
   order, with some random noise tail to fill out per-store k. One (or
   more, configurable) backend is *adversarial* â€” it injects ``K``
@@ -32,7 +32,7 @@ Limitations / honest framing
 * Synthetic: uniform-difficulty queries, no LLM grader, no real
   embedder. The benign backends are *perfect* â€” they always return
   the gold set in the right order. Real-world per-store recall is
-  noisier; this number is therefore an *upper bound* on memwire's
+  noisier; this number is therefore an *upper bound* on memorywire's
   resilience under one specific attack shape.
 * Adversary has full knowledge: it knows the per-store ``k * 4``
   over-fetch and can fill exactly that many top slots.
@@ -87,7 +87,7 @@ _REPO_ROOT = Path(__file__).resolve().parent.parent
 if str(_REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(_REPO_ROOT))
 
-from memwire.models import (  # noqa: E402
+from memorywire.models import (  # noqa: E402
     ExpireAction,
     ExpireRequest,
     ExpireResponse,
@@ -105,8 +105,8 @@ from memwire.models import (  # noqa: E402
     RememberRequest,
     RememberResponse,
 )
-from memwire.router import MemoryRouter  # noqa: E402
-from memwire.store.base import Capability  # noqa: E402
+from memorywire.router import MemoryRouter  # noqa: E402
+from memorywire.store.base import Capability  # noqa: E402
 
 # ---------------------------------------------------------------------------
 # Stub stores â€” benign and adversarial. Both satisfy the :class:`MemoryStore`
@@ -606,7 +606,7 @@ async def _sweep_k(
 def _format_text(result: AdversarialResult) -> str:
     """Pretty human-readable report."""
     lines: list[str] = []
-    lines.append("memwire adversarial-fusion experiment")
+    lines.append("memorywire adversarial-fusion experiment")
     lines.append("=" * 72)
     lines.append(f"  fusion             : {result.fusion}")
     lines.append(f"  backends           : {result.n_backends} ({result.n_adversarial} adversarial)")
@@ -662,7 +662,7 @@ def _try_plot(result: AdversarialResult, plot_path: Path) -> str | None:
         ax.set_ylabel("rate")
         ax.set_ylim(-0.02, 1.02)
         ax.set_title(
-            f"memwire adversarial fusion ({result.fusion}, "
+            f"memorywire adversarial fusion ({result.fusion}, "
             f"{result.n_adversarial}/{result.n_backends} malicious)"
         )
         ax.grid(True, alpha=0.3)
@@ -685,7 +685,7 @@ def _build_parser() -> argparse.ArgumentParser:
     """Construct the argparse parser; factored out so tests can introspect it."""
     p = argparse.ArgumentParser(
         prog="run_adversarial",
-        description="Adversarial-fusion experiment for memwire's MemoryRouter (THREATS Â§3.3).",
+        description="Adversarial-fusion experiment for memorywire's MemoryRouter (THREATS Â§3.3).",
     )
     p.add_argument("--n-backends", type=int, default=3, help="Total stores (default: 3).")
     p.add_argument(

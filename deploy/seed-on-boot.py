@@ -3,12 +3,12 @@
 
 Responsibilities
 ----------------
-1. Resolve the target DB path from ``MEMWIRE_UI_DB_PATH``.
+1. Resolve the target DB path from ``MEMORYWIRE_UI_DB_PATH``.
 2. If the file is missing OR the ``memories`` table has no rows for the
    demo agent, seed it with 2 pending approvals + 2 approved memories
    + an audit-log row, mirroring the recipe in
    ``docs/demos/seed_demo_db.py``.
-3. ``exec`` into ``python -m memwire_ui`` so PID 1 becomes uvicorn and Fly.io's
+3. ``exec`` into ``python -m memorywire_ui`` so PID 1 becomes uvicorn and Fly.io's
    SIGTERM propagates cleanly to it.
 
 This script is wired in as the Dockerfile ``CMD`` rather than the real
@@ -29,12 +29,12 @@ import sys
 import time
 from pathlib import Path
 
-# The memwire_ui package is installed in the venv; the protocol package is
+# The memorywire_ui package is installed in the venv; the protocol package is
 # too. No sys.path munging needed in the container.
-from memwire.models import MemoryType, RememberRequest
-from memwire.store.sqlite_vec import SqliteVecStore
+from memorywire.models import MemoryType, RememberRequest
+from memorywire.store.sqlite_vec import SqliteVecStore
 
-AGENT_ID = os.environ.get("MEMWIRE_UI_AGENT_ID", "demo-agent")
+AGENT_ID = os.environ.get("MEMORYWIRE_UI_AGENT_ID", "demo-agent")
 USER_ID = "alice@acme.com"
 
 
@@ -270,9 +270,9 @@ def _backfill_audit_rows(db_path: Path) -> None:
 
 
 def main() -> None:
-    raw_path = os.environ.get("MEMWIRE_UI_DB_PATH")
+    raw_path = os.environ.get("MEMORYWIRE_UI_DB_PATH")
     if not raw_path:
-        _log("fatal", reason="MEMWIRE_UI_DB_PATH not set")
+        _log("fatal", reason="MEMORYWIRE_UI_DB_PATH not set")
         sys.exit(1)
     db_path = Path(raw_path)
 
@@ -294,8 +294,8 @@ def main() -> None:
 
     # Hand off to the real entrypoint. execvp replaces this process so
     # uvicorn becomes PID 1 and receives Fly's SIGTERM directly.
-    _log("exec", argv="python -m memwire_ui")
-    os.execvp(sys.executable, [sys.executable, "-m", "memwire_ui"])
+    _log("exec", argv="python -m memorywire_ui")
+    os.execvp(sys.executable, [sys.executable, "-m", "memorywire_ui"])
 
 
 if __name__ == "__main__":

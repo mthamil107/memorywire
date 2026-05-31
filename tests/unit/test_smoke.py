@@ -6,30 +6,30 @@ import subprocess
 import sys
 
 
-def test_import_memwire() -> None:
-    import memwire
+def test_import_memorywire() -> None:
+    import memorywire
 
-    assert isinstance(memwire.__version__, str)
-    assert memwire.__version__
+    assert isinstance(memorywire.__version__, str)
+    assert memorywire.__version__
 
 
 def test_cli_help_exits_zero() -> None:
     result = subprocess.run(
-        [sys.executable, "-m", "memwire.cli", "--help"],
+        [sys.executable, "-m", "memorywire.cli", "--help"],
         capture_output=True,
         text=True,
         check=False,
     )
     assert result.returncode == 0
-    assert "memwire" in result.stdout.lower()
+    assert "memorywire" in result.stdout.lower()
 
 
 def test_cli_version_exits_zero() -> None:
     result = subprocess.run(
-        [sys.executable, "-m", "memwire.cli", "--version"],
+        [sys.executable, "-m", "memorywire.cli", "--version"],
         capture_output=True,
         text=True,
         check=False,
     )
     assert result.returncode == 0
-    assert "memwire" in result.stdout.lower()
+    assert "memorywire" in result.stdout.lower()

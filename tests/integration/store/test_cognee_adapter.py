@@ -1,4 +1,4 @@
-"""Integration test for :class:`memwire.store.cognee_adapter.CogneeStore`.
+"""Integration test for :class:`memorywire.store.cognee_adapter.CogneeStore`.
 
 This test exercises the **real** Cognee SDK end-to-end:
 
@@ -29,7 +29,7 @@ import time
 
 import pytest
 
-from memwire.models import MemoryType, RecallRequest, RememberRequest
+from memorywire.models import MemoryType, RecallRequest, RememberRequest
 
 
 def _cognee_env_ready() -> bool:
@@ -47,7 +47,7 @@ def _cognee_env_ready() -> bool:
 async def test_remember_then_recall_against_real_cognee() -> None:
     """Round-trip one fact through a real ``CogneeStore``."""
     # Imported inside the test so collection works without cognee installed.
-    from memwire.store.cognee_adapter import CogneeStore
+    from memorywire.store.cognee_adapter import CogneeStore
 
     # Use a unique dataset per test run to avoid cross-run interference.
     dataset = f"amp-itest-{int(time.time())}"

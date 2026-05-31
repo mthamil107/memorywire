@@ -1,4 +1,4 @@
-"""Unit tests for :class:`memwire.store.pgvector_adapter.PgVectorStore`.
+"""Unit tests for :class:`memorywire.store.pgvector_adapter.PgVectorStore`.
 
 These tests use :class:`unittest.mock.AsyncMock` to stand in for the
 ``asyncpg.Pool`` / connection that the adapter would otherwise reach. The
@@ -22,7 +22,7 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from memwire.models import (
+from memorywire.models import (
     ExpireAction,
     ExpirePolicy,
     ExpireRequest,
@@ -33,8 +33,8 @@ from memwire.models import (
     RecallRequest,
     RememberRequest,
 )
-from memwire.store import Capability, MemoryStore
-from memwire.store.pgvector_adapter import (
+from memorywire.store import Capability, MemoryStore
+from memorywire.store.pgvector_adapter import (
     BACKEND_NAME,
     DEFAULT_EMBEDDING_DIM,
     PENDING_APPROVAL_DELETED_AT,
@@ -209,8 +209,8 @@ async def test_ensure_schema_runs_create_statements_once() -> None:
     # Capture the SQL that was issued â€” must include extension/schema/table.
     sqls = "\n".join(str(call.args[0]) for call in conn.execute.call_args_list)
     assert "CREATE EXTENSION IF NOT EXISTS vector" in sqls
-    assert "CREATE SCHEMA IF NOT EXISTS memwire" in sqls
-    assert "CREATE TABLE IF NOT EXISTS memwire.memories" in sqls
+    assert "CREATE SCHEMA IF NOT EXISTS memorywire" in sqls
+    assert "CREATE TABLE IF NOT EXISTS memorywire.memories" in sqls
     assert "vector(384)" in sqls
     assert "ivfflat" in sqls
 
@@ -249,7 +249,7 @@ async def test_remember_issues_parameterised_insert() -> None:
 
     # First N execute calls are DDL; find the INSERT into memories.
     insert_call = next(
-        c for c in conn.execute.call_args_list if "INSERT INTO memwire.memories" in str(c.args[0])
+        c for c in conn.execute.call_args_list if "INSERT INTO memorywire.memories" in str(c.args[0])
     )
     sql = insert_call.args[0]
     params = insert_call.args[1:]
@@ -293,7 +293,7 @@ async def test_remember_with_approval_required_writes_pending_sentinel() -> None
         )
     )
     insert_call = next(
-        c for c in conn.execute.call_args_list if "INSERT INTO memwire.memories" in str(c.args[0])
+        c for c in conn.execute.call_args_list if "INSERT INTO memorywire.memories" in str(c.args[0])
     )
     params = insert_call.args[1:]
     assert params[12] == PENDING_APPROVAL_DELETED_AT  # deleted_at slot
@@ -316,7 +316,7 @@ async def test_remember_procedural_writes_procedures_row() -> None:
         )
     )
     proc_call = next(
-        c for c in conn.execute.call_args_list if "INSERT INTO memwire.procedures" in str(c.args[0])
+        c for c in conn.execute.call_args_list if "INSERT INTO memorywire.procedures" in str(c.args[0])
     )
     params = proc_call.args[1:]
     # name pulled from FSM, current too.
@@ -380,7 +380,7 @@ async def test_recall_types_filter_passed_as_text_array() -> None:
         )
     )
     select_call = next(
-        c for c in conn.fetch.call_args_list if "FROM memwire.memories" in str(c.args[0])
+        c for c in conn.fetch.call_args_list if "FROM memorywire.memories" in str(c.args[0])
     )
     sql = select_call.args[0]
     params = select_call.args[1:]
@@ -438,7 +438,7 @@ async def test_forget_by_ids_soft_deletes() -> None:
     update_call = next(
         c
         for c in conn.execute.call_args_list
-        if "SET deleted_at" in str(c.args[0]) and "memwire.memories" in str(c.args[0])
+        if "SET deleted_at" in str(c.args[0]) and "memorywire.memories" in str(c.args[0])
     )
     assert "deleted_at = $1" in update_call.args[0]
     assert update_call.args[2] == ["m1", "m2"]
@@ -455,7 +455,7 @@ async def test_forget_hard_delete_issues_delete() -> None:
     store = PgVectorStore(pool=pool, embedder=fake_embedder)
     await store.forget(ForgetRequest(agent_id="agent-a", ids=["m1"], hard_delete=True))
     delete_call = next(
-        c for c in conn.execute.call_args_list if "DELETE FROM memwire.memories" in str(c.args[0])
+        c for c in conn.execute.call_args_list if "DELETE FROM memorywire.memories" in str(c.args[0])
     )
     assert "DELETE" in delete_call.args[0]
     assert delete_call.args[1] == ["m1"]
@@ -693,7 +693,7 @@ async def test_health_returns_expected_shape() -> None:
     h = await store.health()
     assert h["status"] == "ok"
     assert h["backend"] == BACKEND_NAME
-    assert h["schema"] == "memwire"
+    assert h["schema"] == "memorywire"
     assert h["pg_version"] == "PostgreSQL 16.0"
     assert h["memory_count"] == 42
     assert "schema_version" in h

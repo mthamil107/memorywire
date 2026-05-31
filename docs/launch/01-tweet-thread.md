@@ -22,7 +22,7 @@ https://arxiv.org/abs/<ARXIV_ID>
 ## 2/6
 
 ```
-memwire is the layer above storage frameworks.
+memorywire is the layer above storage frameworks.
 
 5 operations (remember / recall / forget / merge / expire).
 4 memory types (semantic / episodic / procedural / emotional).
@@ -54,7 +54,7 @@ Full threat model in the paper Â§6 â€” 6 adversaries mapped to OWASP + CW
 ```
 This is a companion paper to my earlier arxiv:2604.18248 (Prompt Injection Detection).
 
-Same threat-class lens, different vector: prompt-side injection vs memory-side injection. memwire's THREATS.md Â§3.1 names malicious memory injection as adversary 1.
+Same threat-class lens, different vector: prompt-side injection vs memory-side injection. memorywire's THREATS.md Â§3.1 names malicious memory injection as adversary 1.
 
 Memory is where prompt injection becomes persistent.
 ```
@@ -64,11 +64,11 @@ Memory is where prompt injection becomes persistent.
 ```
 Code, datasets, conformance suite, threat model, deployment scaffold, paper source: 
 
-https://github.com/mthamil107/memwire
+https://github.com/mthamil107/memorywire
 
 Discussion on HN: <HN_URL>
 
-Curious what @charlespacker @taranjeetio @vasilije1990 think â€” memwire composes with your frameworks, not against them.
+Curious what @charlespacker @taranjeetio @vasilije1990 think â€” memorywire composes with your frameworks, not against them.
 ```
 
 ---
@@ -77,19 +77,19 @@ Curious what @charlespacker @taranjeetio @vasilije1990 think â€” memwire co
 
 ### 1/3
 ```
-New arXiv preprint: memwire â€” a vendor-neutral wire format for agent memory operations. 5 operations, 4 types, 5 backend adapters, a router, and a governance UI for diff-and-approve workflows on what agents remember.
+New arXiv preprint: memorywire â€” a vendor-neutral wire format for agent memory operations. 5 operations, 4 types, 5 backend adapters, a router, and a governance UI for diff-and-approve workflows on what agents remember.
 
 https://arxiv.org/abs/<ARXIV_ID>
 ```
 
 ### 2/3
 ```
-Headline: every agent-memory framework today stores memories in its own format, and none ship a human-review surface for memory writes. memwire fixes the protocol gap and ships a reference implementation with five adapters (sqlite-vec, mem0, Letta, Cognee, pgvector).
+Headline: every agent-memory framework today stores memories in its own format, and none ship a human-review surface for memory writes. memorywire fixes the protocol gap and ships a reference implementation with five adapters (sqlite-vec, mem0, Letta, Cognee, pgvector).
 ```
 
 ### 3/3
 ```
-Code + datasets + threat model + 16-scenario conformance suite: https://github.com/mthamil107/memwire
+Code + datasets + threat model + 16-scenario conformance suite: https://github.com/mthamil107/memorywire
 
 Show HN: <HN_URL>
 

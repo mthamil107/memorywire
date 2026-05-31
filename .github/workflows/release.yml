@@ -59,7 +59,7 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
 
   # --------------------------------------------------------------------------
-  # build: produces the memwire wheel + sdist, plus a separate UI wheel artifact.
+  # build: produces the memorywire wheel + sdist, plus a separate UI wheel artifact.
   # Runs on every v* tag push (and on workflow_dispatch for TestPyPI dry-runs).
   # --------------------------------------------------------------------------
   build:
@@ -83,7 +83,7 @@ jobs:
       - name: Set up Python
         run: uv python install 3.12
 
-      - name: Build memwire wheel + sdist
+      - name: Build memorywire wheel + sdist
         run: uv build --out-dir dist .
 
       - name: Build UI wheel (FSL-licensed; built but not auto-published)
@@ -91,21 +91,21 @@ jobs:
 
       - name: List built distributions
         run: |
-          echo "=== dist/ (memwire â€” published to PyPI) ==="
+          echo "=== dist/ (memorywire â€” published to PyPI) ==="
           ls -la dist/
           echo "=== dist-ui/ (UI â€” FSL, NOT published to PyPI) ==="
           ls -la dist-ui/
 
-      - name: Upload memwire distributions
+      - name: Upload memorywire distributions
         uses: actions/upload-artifact@v4
         with:
-          name: memwire-dist
+          name: memorywire-dist
           path: dist/
 
       - name: Upload UI distribution (artifact only)
         uses: actions/upload-artifact@v4
         with:
-          name: memwire-ui-dist
+          name: memorywire-ui-dist
           path: dist-ui/
 
   # --------------------------------------------------------------------------
@@ -123,15 +123,15 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: testpypi
-      url: https://test.pypi.org/p/memwire
+      url: https://test.pypi.org/p/memorywire
     permissions:
       id-token: write
       contents: read
     steps:
-      - name: Download memwire distributions
+      - name: Download memorywire distributions
         uses: actions/download-artifact@v4
         with:
-          name: memwire-dist
+          name: memorywire-dist
           path: dist/
 
       - name: Publish to TestPyPI (OIDC, no token)
@@ -154,15 +154,15 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: pypi
-      url: https://pypi.org/p/memwire
+      url: https://pypi.org/p/memorywire
     permissions:
       id-token: write
       contents: read
     steps:
-      - name: Download memwire distributions
+      - name: Download memorywire distributions
         uses: actions/download-artifact@v4
         with:
-          name: memwire-dist
+          name: memorywire-dist
           path: dist/
 
       - name: Publish to PyPI (OIDC, no token)
@@ -187,16 +187,16 @@ jobs:
         with:
           ref: ${{ github.event.release.tag_name || github.ref }}
 
-      - name: Download memwire distributions
+      - name: Download memorywire distributions
         uses: actions/download-artifact@v4
         with:
-          name: memwire-dist
+          name: memorywire-dist
           path: dist/
 
       - name: Download UI distribution
         uses: actions/download-artifact@v4
         with:
-          name: memwire-ui-dist
+          name: memorywire-ui-dist
           path: dist-ui/
 
       - name: Upload artifacts to GitHub release

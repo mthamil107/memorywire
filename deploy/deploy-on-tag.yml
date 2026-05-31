@@ -24,7 +24,7 @@ on:
 
 jobs:
   deploy:
-    name: Redeploy memwire-governance-demo
+    name: Redeploy memorywire-governance-demo
     runs-on: ubuntu-latest
     concurrency:
       group: fly-deploy

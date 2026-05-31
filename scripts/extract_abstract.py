@@ -1,11 +1,11 @@
-"""Extract the memwire paper abstract as plain text ready for the arXiv form."""
+"""Extract the memorywire paper abstract as plain text ready for the arXiv form."""
 
 from __future__ import annotations
 
 import re
 from pathlib import Path
 
-TEX = Path(__file__).resolve().parents[1] / "docs" / "paper" / "arxiv-submission" / "memwire-paper.tex"
+TEX = Path(__file__).resolve().parents[1] / "docs" / "paper" / "arxiv-submission" / "memorywire-paper.tex"
 
 tex = TEX.read_text(encoding="utf-8")
 m = re.search(r"\\begin\{abstract\}(.+?)\\end\{abstract\}", tex, re.DOTALL)

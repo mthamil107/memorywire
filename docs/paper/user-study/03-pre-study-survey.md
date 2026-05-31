@@ -85,7 +85,7 @@ Which of the following AI-memory frameworks or libraries have you used?
 - [ ] LangChain Memory
 - [ ] LlamaIndex memory modules
 - [ ] MemoryOS
-- [ ] memwire
+- [ ] memorywire
 - [ ] Other: ______
 - [ ] None of the above
 

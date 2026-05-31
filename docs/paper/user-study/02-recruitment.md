@@ -17,7 +17,7 @@ memory governance UI (USD 15)
 >
 > I'm `[PI NAME]` at `[INSTITUTION]`. I'm running a short remote
 > usability study for an open-source governance interface I built for
-> AI-agent memory writes â€” the memwire governance
+> AI-agent memory writes â€” the memorywire governance
 > UI. I'm looking for 15 software engineers or ML practitioners who
 > have experience reviewing or writing code that touches AI agents or
 > vector databases.
@@ -72,8 +72,8 @@ Applied to responses on the screening questionnaire. A candidate
 1. Under 18.
 2. Currently a direct report of the PI or otherwise in a reporting
    relationship that could create perceived coercion.
-3. Has previously contributed to the memwire repository
-   (`github.com/mthamil107/memwire`). This is checked by
+3. Has previously contributed to the memorywire repository
+   (`github.com/mthamil107/memorywire`). This is checked by
    asking the candidate directly on the screening form and by spot-
    checking GitHub usernames against the commit log.
 4. Already participated in a prior pilot session of this study.

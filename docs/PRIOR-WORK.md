@@ -10,11 +10,11 @@ plug-and-play with Claude Desktop / Cursor / VS Code Copilot,
 with visualizations (Galaxy view, Force view, semantic query) and
 a three-layer working-memory / long-term / graph design.
 
-This project (memwire) is a different shape: a vendor-neutral wire
+This project (memorywire) is a different shape: a vendor-neutral wire
 format for agent memory operations + a reference implementation with
 five backend adapters (sqlite-vec, mem0, Letta, Cognee, pgvector) +
 a governance UI for diff-and-approve workflows on memory writes.
 
-To disambiguate, we renamed this project to `memwire` before launch.
+To disambiguate, we renamed this project to `memorywire` before launch.
 Both projects are open source under permissive licenses and address
 overlapping problem spaces from different angles.

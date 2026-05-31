@@ -15,8 +15,8 @@ from pathlib import Path
 
 import pytest
 
-from memwire.models import MemoryType, RememberRequest
-from memwire.store.sqlite_vec import DEFAULT_EMBEDDING_DIM, SqliteVecStore
+from memorywire.models import MemoryType, RememberRequest
+from memorywire.store.sqlite_vec import DEFAULT_EMBEDDING_DIM, SqliteVecStore
 
 _REPO_ROOT = Path(__file__).resolve().parent.parent.parent
 _SEED_PATH = _REPO_ROOT / "deploy" / "seed-on-boot.py"

@@ -34,7 +34,7 @@ examples/
 *.db-journal
 *.db-wal
 *.db-shm
-memwire-cli.db
+memorywire-cli.db
 amp-cli.db
 demo-ui.db
 

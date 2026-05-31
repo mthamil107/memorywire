@@ -1,6 +1,6 @@
-"""Tests for :class:`memwire.router.MemoryRouter` (Phase 4).
+"""Tests for :class:`memorywire.router.MemoryRouter` (Phase 4).
 
-The router is the centrepiece of memwire's "any-backend" promise (spec Â§5).
+The router is the centrepiece of memorywire's "any-backend" promise (spec Â§5).
 These tests use a small in-test ``FakeStore`` helper to inject prepared
 :class:`RecallResponse` rows and capability sets so we can assert fusion
 math and per-operation routing without spinning up a real adapter.
@@ -14,7 +14,7 @@ from typing import Any
 
 import pytest
 
-from memwire.models import (
+from memorywire.models import (
     ExpireAction,
     ExpirePolicy,
     ExpireRequest,
@@ -33,8 +33,8 @@ from memwire.models import (
     RememberRequest,
     RememberResponse,
 )
-from memwire.router import MemoryRouter, Neighborable
-from memwire.store import Capability, MemoryStore
+from memorywire.router import MemoryRouter, Neighborable
+from memorywire.store import Capability, MemoryStore
 
 # ---------------------------------------------------------------------------
 # Test helpers

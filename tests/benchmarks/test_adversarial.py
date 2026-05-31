@@ -35,7 +35,7 @@ _REPO_ROOT = Path(__file__).resolve().parent.parent.parent
 if str(_REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(_REPO_ROOT))
 
-# The runner imports amp.* â€” skip cleanly if the memwire package isn't installed
+# The runner imports amp.* â€” skip cleanly if the memorywire package isn't installed
 # in this environment.
 _HAS_AMP = importlib.util.find_spec("amp") is not None
 
@@ -58,7 +58,7 @@ async def test_adversarial_pipeline_max_collapses() -> None:
     a real regression in the router's fusion math without making the
     test fragile to harmless seed changes.
     """
-    from memwire.models import FusionAlgorithm
+    from memorywire.models import FusionAlgorithm
     from scripts.run_adversarial import _sweep_k
 
     result = await _sweep_k(
@@ -112,7 +112,7 @@ async def test_adversarial_pipeline_rrf_robust() -> None:
     item's own score into ``_fusion_contribution``), this test will
     catch it because recall@5 will drop below the floor.
     """
-    from memwire.models import FusionAlgorithm
+    from memorywire.models import FusionAlgorithm
     from scripts.run_adversarial import _sweep_k
 
     result = await _sweep_k(

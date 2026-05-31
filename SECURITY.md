@@ -2,7 +2,7 @@
 
 ## Supported Versions
 
-memwire is in early v0 development. Only the most recent published version on PyPI
+memorywire is in early v0 development. Only the most recent published version on PyPI
 receives security fixes. Breaking changes may land between minor versions until
 v1.0; consult `CHANGELOG.md` for migration guidance.
 
@@ -23,13 +23,13 @@ When reporting, please include:
 
 - A clear description of the issue and its potential impact.
 - Steps to reproduce, ideally a minimal proof of concept.
-- The affected memwire version(s) and backend adapter(s) if known.
+- The affected memorywire version(s) and backend adapter(s) if known.
 
 ## Scope
 
 In scope:
 
-- The memwire reference implementation in `src/memwire/`.
+- The memorywire reference implementation in `src/memorywire/`.
 - The governance UI in `ui/`.
 - Backend adapters shipped in this repository.
 
@@ -38,4 +38,4 @@ Out of scope (report directly to the upstream project):
 - Vulnerabilities in third-party backends (mem0, Letta, Cognee, sqlite-vec,
   Postgres+pgvector) themselves.
 - Vulnerabilities in the surrounding application's authentication or transport
-  security Ã¢â‚¬â€ memwire delegates these to the host application by design.
+  security Ã¢â‚¬â€ memorywire delegates these to the host application by design.

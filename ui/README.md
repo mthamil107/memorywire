@@ -1,8 +1,8 @@
-﻿# memwire-governance-ui
+﻿# memorywire-governance-ui
 
-The **Governance UI** for [memwire](https://github.com/mthamil107/memwire).
+The **Governance UI** for [memorywire](https://github.com/mthamil107/memorywire).
 A server-rendered Starlette + HTMX + Tailwind app that gives operators a
-human-in-the-loop view over memories produced by memwire-conformant stores.
+human-in-the-loop view over memories produced by memorywire-conformant stores.
 
 ## Screens
 
@@ -20,19 +20,19 @@ human-in-the-loop view over memories produced by memwire-conformant stores.
 ## Run
 
 ```
-python -m memwire_ui
+python -m memorywire_ui
 ```
 
 Environment variables:
 
-* `MEMWIRE_UI_DB_PATH` Ã¢â‚¬â€ path to the sqlite-vec database (default: `./memwire-cli.db`).
-* `MEMWIRE_UI_AGENT_ID` Ã¢â‚¬â€ agent scope (default: `default`).
-* `MEMWIRE_UI_HOST` Ã¢â‚¬â€ bind host (default: `127.0.0.1`).
-* `MEMWIRE_UI_PORT` Ã¢â‚¬â€ bind port (default: `8765`).
-* `MEMWIRE_UI_TOKEN` Ã¢â‚¬â€ optional bearer token. When set, every request must carry
-  `Authorization: Bearer <token>` or the `memwire_ui_session=<token>` cookie.
-  **Required** for any non-loopback bind: if `MEMWIRE_UI_HOST` is anything other
-  than `127.0.0.1` / `localhost` / `::1` and `MEMWIRE_UI_TOKEN` is empty, the
+* `MEMORYWIRE_UI_DB_PATH` Ã¢â‚¬â€ path to the sqlite-vec database (default: `./memorywire-cli.db`).
+* `MEMORYWIRE_UI_AGENT_ID` Ã¢â‚¬â€ agent scope (default: `default`).
+* `MEMORYWIRE_UI_HOST` Ã¢â‚¬â€ bind host (default: `127.0.0.1`).
+* `MEMORYWIRE_UI_PORT` Ã¢â‚¬â€ bind port (default: `8765`).
+* `MEMORYWIRE_UI_TOKEN` Ã¢â‚¬â€ optional bearer token. When set, every request must carry
+  `Authorization: Bearer <token>` or the `memorywire_ui_session=<token>` cookie.
+  **Required** for any non-loopback bind: if `MEMORYWIRE_UI_HOST` is anything other
+  than `127.0.0.1` / `localhost` / `::1` and `MEMORYWIRE_UI_TOKEN` is empty, the
   process refuses to start (exit code 1) so an unauthenticated governance UI
   can't be accidentally exposed to the public internet. Generate one with:
 
@@ -40,11 +40,11 @@ Environment variables:
   python -c "import secrets; print(secrets.token_urlsafe(32))"
   ```
 
-* `MEMWIRE_UI_ALLOW_UNAUTHENTICATED_PUBLIC` Ã¢â‚¬â€ set to `1` to opt out of the
+* `MEMORYWIRE_UI_ALLOW_UNAUTHENTICATED_PUBLIC` Ã¢â‚¬â€ set to `1` to opt out of the
   public-bind safety check above. Use only when the UI sits behind another
   auth layer (e.g. a reverse proxy with mTLS, or a demo deployment that
   intentionally has no auth and is segregated to throwaway data).
-* `MEMWIRE_UI_CSRF_SECRET` Ã¢â‚¬â€ base64-encoded HMAC secret (must decode to at least
+* `MEMORYWIRE_UI_CSRF_SECRET` Ã¢â‚¬â€ base64-encoded HMAC secret (must decode to at least
   16 raw bytes) used to sign CSRF tokens. When unset, a fresh random secret
   is generated per-process, which invalidates every browser session across
   restarts. **Pin this in production** so cookies survive restarts; rotating
@@ -57,7 +57,7 @@ Environment variables:
   Then export it before launching the UI:
 
   ```
-  export MEMWIRE_UI_CSRF_SECRET=<that-value>
+  export MEMORYWIRE_UI_CSRF_SECRET=<that-value>
   ```
 
   If the variable is set but not valid base64, or decodes to fewer than 16

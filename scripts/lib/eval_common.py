@@ -109,7 +109,7 @@ def paired_bootstrap_ci(
     ----------
     a, b:
         Equal-length sequences of per-item scores from two conditions
-        (e.g. memwire vs single-backend baseline) evaluated on the *same*
+        (e.g. memorywire vs single-backend baseline) evaluated on the *same*
         items. Pairing is positional: ``a[i]`` and ``b[i]`` must be the
         same question / seed.
     n_resamples:

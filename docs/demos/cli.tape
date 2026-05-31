@@ -15,7 +15,7 @@
 #   - amp installed in $PATH (or activate the project venv first)
 #   - HF_HUB_OFFLINE=1 + the sentence-transformers model pre-cached
 #     (otherwise each `amp recall` call blocks for 10-25s on cold load)
-#   - rm -f ./memwire-cli.db    # clean state
+#   - rm -f ./memorywire-cli.db    # clean state
 
 Output docs/demos/cli.gif
 

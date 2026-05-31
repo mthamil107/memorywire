@@ -12,13 +12,13 @@
 > you what we were actually testing and what happens with your data.
 >
 > The research question is whether a software engineer or ML
-> practitioner can use the memwire governance UI for the first time and
+> practitioner can use the memorywire governance UI for the first time and
 > make correct approve / reject decisions without high cognitive
 > workload. We're measuring three things: the standard NASA-TLX score
 > you just filled out, per-task success and time, and your think-aloud
 > commentary about what was clear and what was confusing.
 >
-> The data goes into Section 5.5 of the memwire paper, which I'm aiming
+> The data goes into Section 5.5 of the memorywire paper, which I'm aiming
 > to submit to a peer-reviewed venue in the next few months. Your
 > participant code â€” `P##` â€” will be used in the analysis; your real
 > name will not appear anywhere. Quoted excerpts from your think-aloud
@@ -54,7 +54,7 @@ answers:*
 - **"Can I see my recording?"** Yes â€” you have a right to access
   your own data. I'll email you a copy if you want one, but please
   treat it as personal to you.
-- **"Can I cite the memwire project at work?"** Absolutely â€” the
+- **"Can I cite the memorywire project at work?"** Absolutely â€” the
   repository is `[GITHUB URL]`, Apache-2.0 licensed for the protocol
   and reference implementation.
 - **"How did I do?"** I genuinely cannot tell you in a way that's

@@ -167,7 +167,7 @@ NASA-TLX administrations:
 - 80-100: very high.
 
 Software-interface evaluations typically land in the 30-50 range. Our
-target for the memwire governance UI is **< 50** (medium), and ideally
+target for the memorywire governance UI is **< 50** (medium), and ideally
 **< 40**.
 
 ---

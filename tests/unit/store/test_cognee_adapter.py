@@ -1,9 +1,9 @@
-"""Unit tests for :class:`memwire.store.cognee_adapter.CogneeStore`.
+"""Unit tests for :class:`memorywire.store.cognee_adapter.CogneeStore`.
 
 These tests use :class:`unittest.mock.AsyncMock` / :class:`MagicMock` to
 stand in for the real ``cognee`` module â€” the Cognee SDK is never
-touched. The goal is to prove the adapter translates memwire requests into
-the right Cognee calls and maps the mocked responses back into the memwire
+touched. The goal is to prove the adapter translates memorywire requests into
+the right Cognee calls and maps the mocked responses back into the memorywire
 response models.
 
 Integration tests that exercise the real SDK live under
@@ -20,7 +20,7 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from memwire.models import (
+from memorywire.models import (
     ExpireAction,
     ExpirePolicy,
     ExpireRequest,
@@ -31,8 +31,8 @@ from memwire.models import (
     RecallRequest,
     RememberRequest,
 )
-from memwire.store import Capability, MemoryStore
-from memwire.store.cognee_adapter import (
+from memorywire.store import Capability, MemoryStore
+from memorywire.store.cognee_adapter import (
     CogneeStore,
     _unwrap_content,
     _wrap_content,
@@ -101,11 +101,11 @@ def test_cogneestore_is_a_memory_store() -> None:
     assert isinstance(store, MemoryStore)
 
 
-def test_from_url_default_resolves_to_memwire_dataset() -> None:
-    """``cognee://default`` resolves to dataset='memwire'."""
+def test_from_url_default_resolves_to_memorywire_dataset() -> None:
+    """``cognee://default`` resolves to dataset='memorywire'."""
     store = CogneeStore.from_url("cognee://default", client=_make_module())
     assert isinstance(store, CogneeStore)
-    assert store.dataset == "memwire"
+    assert store.dataset == "memorywire"
 
 
 def test_from_url_custom_dataset() -> None:
@@ -142,7 +142,7 @@ def test_backend_name_constant() -> None:
 
 
 def test_wrap_and_unwrap_round_trip() -> None:
-    """An memwire-wrapped blob decodes back into its original overlay + content."""
+    """An memorywire-wrapped blob decodes back into its original overlay + content."""
     payload = {
         "id": "cog:abc",
         "agent_id": "agent-a",
@@ -169,7 +169,7 @@ def test_unwrap_passes_through_unmarked_blob() -> None:
 
 
 async def test_remember_calls_module_remember_with_wrapped_content() -> None:
-    """``remember`` prepends the memwire header and dispatches to module.remember."""
+    """``remember`` prepends the memorywire header and dispatches to module.remember."""
     module = _make_module()
     store = CogneeStore(client=module, dataset="amp")
 
@@ -200,7 +200,7 @@ async def test_remember_calls_module_remember_with_wrapped_content() -> None:
     assert overlay["metadata"] == {"channel": "support"}
     assert rest == "Alice prefers email over phone"
 
-    # Adapter-synthesised id is stable and memwire-prefixed.
+    # Adapter-synthesised id is stable and memorywire-prefixed.
     assert response.id.startswith("cog:")
     assert response.stores == ["cognee"]
     assert response.pending_approval is False

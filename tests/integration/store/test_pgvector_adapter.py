@@ -1,4 +1,4 @@
-"""Integration test for :class:`memwire.store.pgvector_adapter.PgVectorStore`.
+"""Integration test for :class:`memorywire.store.pgvector_adapter.PgVectorStore`.
 
 This test exercises the **real** Postgres + ``pgvector`` stack end-to-end:
 
@@ -29,13 +29,13 @@ import os
 
 import pytest
 
-from memwire.models import (
+from memorywire.models import (
     ForgetRequest,
     MemoryType,
     RecallRequest,
     RememberRequest,
 )
-from memwire.store.pgvector_adapter import DEFAULT_EMBEDDING_DIM, PgVectorStore
+from memorywire.store.pgvector_adapter import DEFAULT_EMBEDDING_DIM, PgVectorStore
 
 
 def _fake_embedder(text: str) -> list[float]:

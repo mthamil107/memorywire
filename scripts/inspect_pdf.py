@@ -48,7 +48,7 @@ print("=" * 76)
 print(" KEY-STRING SCAN")
 print("=" * 76)
 checks = [
-    ("Title: memwire wire format",          "Vendor-Neutral Wire Format"),
+    ("Title: memorywire wire format",          "Vendor-Neutral Wire Format"),
     ("Author: Thamilvendhan",            "Thamilvendhan"),
     ("Author: Munirathinam",             "Munirathinam"),
     ("Affiliation: Independent",         "Independent Researcher"),

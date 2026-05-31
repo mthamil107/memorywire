@@ -1,4 +1,4 @@
-"""Unit tests for :class:`memwire.store.sqlite_vec.SqliteVecStore`.
+"""Unit tests for :class:`memorywire.store.sqlite_vec.SqliteVecStore`.
 
 These tests use a deterministic fake embedder so they do not pull
 ``sentence-transformers`` at unit-test time. The integration test in
@@ -16,7 +16,7 @@ from typing import Any
 
 import pytest
 
-from memwire.models import (
+from memorywire.models import (
     ExpirePolicy,
     ExpireRequest,
     ForgetRequest,
@@ -26,8 +26,8 @@ from memwire.models import (
     RecallRequest,
     RememberRequest,
 )
-from memwire.store import Capability, MemoryStore
-from memwire.store.sqlite_vec import DEFAULT_EMBEDDING_DIM, SqliteVecStore
+from memorywire.store import Capability, MemoryStore
+from memorywire.store.sqlite_vec import DEFAULT_EMBEDDING_DIM, SqliteVecStore
 
 # ---------------------------------------------------------------------------
 # Fake embedder â€” deterministic, sha256-derived, 384-dim.
@@ -404,7 +404,7 @@ async def test_expire_demote_scales_confidence(store: SqliteVecStore) -> None:
             confidence=0.4,
         )
     )
-    from memwire.models import ExpireAction
+    from memorywire.models import ExpireAction
 
     await store.expire(
         ExpireRequest(
@@ -421,7 +421,7 @@ async def test_expire_demote_scales_confidence(store: SqliteVecStore) -> None:
 
 
 async def test_expire_archive_sets_metadata_and_soft_deletes(store: SqliteVecStore) -> None:
-    from memwire.models import ExpireAction
+    from memorywire.models import ExpireAction
 
     write = await store.remember(
         RememberRequest(

@@ -1,4 +1,4 @@
-"""Integration test for :class:`memwire.store.sqlite_vec.SqliteVecStore`.
+"""Integration test for :class:`memorywire.store.sqlite_vec.SqliteVecStore`.
 
 Exercises the real ``sentence-transformers/all-MiniLM-L6-v2`` model. Skipped
 in default unit-test runs (this module is marked ``integration``) and skipped
@@ -13,7 +13,7 @@ from collections.abc import Iterator
 
 import pytest
 
-from memwire.models import MemoryType, RecallRequest, RememberRequest
+from memorywire.models import MemoryType, RecallRequest, RememberRequest
 
 pytestmark = pytest.mark.integration
 
@@ -27,7 +27,7 @@ def real_store() -> Iterator[object]:
     except ImportError:
         pytest.skip("sentence-transformers not installed; skipping real-model integration test")
 
-    from memwire.store.sqlite_vec import SqliteVecStore
+    from memorywire.store.sqlite_vec import SqliteVecStore
 
     s = SqliteVecStore(":memory:")
     try:

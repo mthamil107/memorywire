@@ -4,9 +4,9 @@
   "packages": {
     ".": {
       "release-type": "python",
-      "package-name": "memwire",
+      "package-name": "memorywire",
       "extra-files": [
-        "src/memwire/__init__.py",
+        "src/memorywire/__init__.py",
         "CITATION.cff"
       ]
     }

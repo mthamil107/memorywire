@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1.7
 #
-# Multi-stage build for the memwire Governance UI hosted demo.
+# Multi-stage build for the memorywire Governance UI hosted demo.
 #
 # Stage 1 (builder): pulls the protocol + UI sources, resolves the locked
 # dependency tree with uv, and builds both wheels.
@@ -9,7 +9,7 @@
 #
 # Built from the repository root:
 #
-#     docker build -f deploy/Dockerfile -t memwire-ui:test .
+#     docker build -f deploy/Dockerfile -t memorywire-ui:test .
 #
 # Target image size: <250 MB. Achieved by using python:3.13-slim, skipping
 # dev deps (no pytest / ruff / mypy), and avoiding sentence-transformers
@@ -71,18 +71,18 @@ FROM python:3.13-slim AS runtime
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PATH="/opt/venv/bin:${PATH}" \
-    MEMWIRE_UI_HOST=0.0.0.0 \
-    MEMWIRE_UI_PORT=8765 \
-    MEMWIRE_UI_AGENT_ID=demo-agent \
-    MEMWIRE_UI_DB_PATH=/app/data/demo.db
+    MEMORYWIRE_UI_HOST=0.0.0.0 \
+    MEMORYWIRE_UI_PORT=8765 \
+    MEMORYWIRE_UI_AGENT_ID=demo-agent \
+    MEMORYWIRE_UI_DB_PATH=/app/data/demo.db
 
 # Install only the OS-level runtime essentials. curl is kept for the
 # Docker HEALTHCHECK probe.
 RUN apt-get update \
     && apt-get install -y --no-install-recommends curl ca-certificates \
     && rm -rf /var/lib/apt/lists/* \
-    && groupadd --system --gid 1001 memwire \
-    && useradd  --system --uid 1001 --gid 1001 --home /app --shell /usr/sbin/nologin memwire \
+    && groupadd --system --gid 1001 memorywire \
+    && useradd  --system --uid 1001 --gid 1001 --home /app --shell /usr/sbin/nologin memorywire \
     && mkdir -p /app/data \
     && chown -R 1001:1001 /app
 
@@ -107,10 +107,10 @@ EXPOSE 8765
 # CSRF middleware, and renders a template.
 HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \
     CMD curl --fail --silent --show-error --max-time 4 \
-        "http://127.0.0.1:${MEMWIRE_UI_PORT}/" > /dev/null || exit 1
+        "http://127.0.0.1:${MEMORYWIRE_UI_PORT}/" > /dev/null || exit 1
 
 # seed-on-boot.py ensures /app/data/demo.db exists with the seeded fixture
-# content, then execs `python -m memwire_ui` to hand control over to the real
+# content, then execs `python -m memorywire_ui` to hand control over to the real
 # entrypoint. Running it as PID 1 means signals (SIGTERM from Fly.io's
 # rolling deploy) reach uvicorn directly after exec().
 CMD ["python", "/app/deploy/seed-on-boot.py"]

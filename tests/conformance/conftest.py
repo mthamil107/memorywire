@@ -1,7 +1,7 @@
 """Adapter fixtures and parametrize plumbing for the conformance suite.
 
 Each ``build_store_for(adapter_id)`` helper returns a ready-to-use
-:class:`memwire.store.MemoryStore` instance. For the real adapter
+:class:`memorywire.store.MemoryStore` instance. For the real adapter
 (sqlite-vec) the store talks to an in-memory SQLite DB with a fake
 sha256-based embedder. For the four mocked adapters the helper builds
 a backend-shaped mock whose method side-effects keep the conformance
@@ -13,7 +13,7 @@ predicates honest:
 * ``letta`` â€” same shape, mock surface
   ``client.agents.passages.{create,search,delete,list}``.
 * ``cognee`` â€” :class:`AsyncMock` for the module-level coroutines plus
-  a side_effect ``search`` that returns memwire-wrapped blobs from an
+  a side_effect ``search`` that returns memorywire-wrapped blobs from an
   in-memory dict.
 * ``pgvector`` â€” :class:`AsyncMock` for the asyncpg pool/connection,
   with ``fetch`` driven by an in-memory rowset.
@@ -34,12 +34,12 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from memwire.models import RememberRequest
-from memwire.store.cognee_adapter import CogneeStore
-from memwire.store.letta_adapter import LettaStore
-from memwire.store.mem0_adapter import Mem0Store
-from memwire.store.pgvector_adapter import DEFAULT_EMBEDDING_DIM, PgVectorStore
-from memwire.store.sqlite_vec import SqliteVecStore
+from memorywire.models import RememberRequest
+from memorywire.store.cognee_adapter import CogneeStore
+from memorywire.store.letta_adapter import LettaStore
+from memorywire.store.mem0_adapter import Mem0Store
+from memorywire.store.pgvector_adapter import DEFAULT_EMBEDDING_DIM, PgVectorStore
+from memorywire.store.sqlite_vec import SqliteVecStore
 
 ADAPTER_IDS = ["sqlite-vec", "mem0", "letta", "cognee", "pgvector"]
 
@@ -316,7 +316,7 @@ def _build_cognee() -> CogneeStore:
 
     async def search(query: str, **_kwargs: Any) -> list[dict[str, Any]]:
         # Score by token overlap on the *content* portion (after the
-        # memwire header), then surface as ResponseGraphEntry-shaped dicts.
+        # memorywire header), then surface as ResponseGraphEntry-shaped dicts.
         qtokens = {t for t in str(query).lower().split() if t}
         scored: list[tuple[float, dict[str, Any]]] = []
         for blob in blobs:
@@ -378,14 +378,14 @@ def _build_pgvector() -> PgVectorStore:
 
     The mock parses each SQL statement just enough to dispatch
     INSERT/SELECT/UPDATE/DELETE against an in-memory list-of-dicts. It
-    does NOT speak full Postgres â€” just the memwire adapter's queries.
+    does NOT speak full Postgres â€” just the memorywire adapter's queries.
     """
 
     table: list[dict[str, Any]] = []
 
     async def execute(sql: str, *args: Any) -> str:
         sql = sql.strip()
-        # We watch for the memwire adapter's known DDL/DML patterns.
+        # We watch for the memorywire adapter's known DDL/DML patterns.
         if sql.upper().startswith("CREATE "):
             return "CREATE"
         if sql.upper().startswith("INSERT INTO ") and "memories(" in sql.lower():
@@ -704,12 +704,12 @@ SKIP_OVERRIDES: dict[str, dict[str, str]] = {
     },
     "letta": {
         # Letta scopes data by Letta agent_id only â€” it has no separate
-        # user_id namespace. memwire's user_id distinction is lost on the
-        # backend, so two memwire users targeting the same Letta agent share
+        # user_id namespace. memorywire's user_id distinction is lost on the
+        # backend, so two memorywire users targeting the same Letta agent share
         # passages. Documented spec-gap; the adapter's module docstring
         # already calls this out.
         "remember_recall_by_user_filter": (
-            "letta scopes data by agent_id only; memwire user_id is not honoured "
+            "letta scopes data by agent_id only; memorywire user_id is not honoured "
             "as a separate dimension â€” see LettaStore module docstring"
         ),
         "expire_empty_policy_raises": (
@@ -738,9 +738,9 @@ SKIP_OVERRIDES: dict[str, dict[str, str]] = {
             "requires data_id UUIDs; adapter-synthetic ids are no-op deletes"
         ),
         # Cognee, like Letta, has no user_id namespace separate from
-        # dataset; memwire's user_id distinction is lost on the backend.
+        # dataset; memorywire's user_id distinction is lost on the backend.
         "remember_recall_by_user_filter": (
-            "cognee scopes data by dataset only; memwire user_id is not honoured "
+            "cognee scopes data by dataset only; memorywire user_id is not honoured "
             "as a separate dimension â€” see CogneeStore module docstring"
         ),
         "expire_empty_policy_raises": (

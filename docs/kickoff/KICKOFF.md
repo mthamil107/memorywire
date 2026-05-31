@@ -1,6 +1,6 @@
 # Agent Memory Protocol (AMP) — Project Kickoff
 
-> **Note: this kickoff document was written before the rename to `memwire`. References to "AMP" throughout describe the same project. See `../PRIOR-WORK.md` for context.**
+> **Note: this kickoff document was written before the rename to `memorywire`. References to "AMP" throughout describe the same project. See `../PRIOR-WORK.md` for context.**
 
 > **How to use this file:** open a new Claude Code session in an empty directory. Copy this entire `agent-memory-kickoff/` folder into that directory. Paste the contents of this file as the first message. Claude will read the supporting files in order and start building.
 

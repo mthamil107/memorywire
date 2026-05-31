@@ -7,18 +7,18 @@
 Once published to PyPI:
 
 ```bash
-pip install memwire
+pip install memorywire
 # with sqlite-vec backend
-pip install "memwire[sqlite-vec]"
+pip install "memorywire[sqlite-vec]"
 # with everything
-pip install "memwire[all]"
+pip install "memorywire[all]"
 ```
 
 From source (until first release):
 
 ```bash
-git clone https://github.com/mthamil107/memwire.git
-cd memwire
+git clone https://github.com/mthamil107/memorywire.git
+cd memorywire
 uv venv
 uv pip install -e ".[sqlite-vec]"
 ```
@@ -27,7 +27,7 @@ uv pip install -e ".[sqlite-vec]"
 
 ```python
 import asyncio
-from memwire import Memory, MemoryType
+from memorywire import Memory, MemoryType
 
 async def main() -> None:
     mem = Memory(

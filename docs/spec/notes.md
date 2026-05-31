@@ -1,17 +1,17 @@
-﻿# memwire v0 Ã¢â‚¬â€ Schema authoring notes
+﻿# memorywire v0 Ã¢â‚¬â€ Schema authoring notes
 
 This file records the judgment calls made while transcribing
-`docs/kickoff/memwire-SPEC-v0.md` into JSON Schema files under
-`src/memwire/schemas/`. It is intended for the spec maintainers; it is not
+`docs/kickoff/memorywire-SPEC-v0.md` into JSON Schema files under
+`src/memorywire/schemas/`. It is intended for the spec maintainers; it is not
 itself normative.
 
 ## Conventions
 
 - All schemas declare Draft 2020-12 via `$schema`.
-- `$id` follows the pattern `https://memwire.dev/schemas/v0/<directory>/<name>`
+- `$id` follows the pattern `https://memorywire.dev/schemas/v0/<directory>/<name>`
   where `<directory>` is `operations` or `types`, e.g.
-  `https://memwire.dev/schemas/v0/operations/remember` or
-  `https://memwire.dev/schemas/v0/types/episodic`. Response schemas use the
+  `https://memorywire.dev/schemas/v0/operations/remember` or
+  `https://memorywire.dev/schemas/v0/types/episodic`. Response schemas use the
   same convention with a `.response` suffix in the trailing path segment
   (e.g. `operations/remember.response`).
 - Field names are transcribed verbatim from the spec doc. Where the spec
@@ -102,7 +102,7 @@ The deliverable lists response schemas only for `remember`, `recall`,
 guess. Adapters returning per-store result aggregates will conform once
 v0.x adds them.
 
-## Spec ambiguities / bugs noticed in `docs/kickoff/memwire-SPEC-v0.md`
+## Spec ambiguities / bugs noticed in `docs/kickoff/memorywire-SPEC-v0.md`
 
 These were not modified (the kickoff doc is read-only for this phase);
 flagging only.
@@ -119,7 +119,7 @@ flagging only.
    instead of `k + rank_i`.** Minor Ã¢â‚¬â€ the constant equals k Ã¢â‚¬â€ but the
    variable name would aid reading.
 3. **Governance schema in section 6 references the request via
-   `"$ref": "https://memwire.dev/schemas/v0/remember"`** but the operation
+   `"$ref": "https://memorywire.dev/schemas/v0/remember"`** but the operation
    field is an enum including `forget` and `merge`. The `$ref` should
    probably be conditional on `operation` (oneOf / if-then-else) rather
    than hard-coded to `remember`.

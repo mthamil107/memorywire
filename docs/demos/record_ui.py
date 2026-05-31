@@ -1,4 +1,4 @@
-"""Record an animated GIF of the memwire Governance UI diff-and-approve flow.
+"""Record an animated GIF of the memorywire Governance UI diff-and-approve flow.
 
 Boots ``amp_ui`` against the seeded ``demo-ui.db`` under uvicorn, drives
 the browser with Playwright at 1280x800, captures PNG frames at ~7 fps,
@@ -70,15 +70,15 @@ def _wait_for_http(url: str, *, timeout_s: float = 20.0) -> None:
 
 def _start_ui(port: int) -> subprocess.Popen[bytes]:
     env = os.environ.copy()
-    env["MEMWIRE_UI_DB_PATH"] = str(DB_PATH)
-    env["MEMWIRE_UI_AGENT_ID"] = AGENT_ID
-    env["MEMWIRE_UI_HOST"] = "127.0.0.1"
-    env["MEMWIRE_UI_PORT"] = str(port)
+    env["MEMORYWIRE_UI_DB_PATH"] = str(DB_PATH)
+    env["MEMORYWIRE_UI_AGENT_ID"] = AGENT_ID
+    env["MEMORYWIRE_UI_HOST"] = "127.0.0.1"
+    env["MEMORYWIRE_UI_PORT"] = str(port)
     # Pin the CSRF secret so the per-process random secret doesn't
     # change between subprocesses (it doesn't matter for the demo, but
     # makes the recorder deterministic if reused across sessions).
     env.setdefault(
-        "MEMWIRE_UI_CSRF_SECRET",
+        "MEMORYWIRE_UI_CSRF_SECRET",
         "ZGVtby1jc3JmLXNlY3JldC1zaG91bGQtYmUtMzItYnl0ZXMtbG9uZw==",
     )
     return subprocess.Popen(

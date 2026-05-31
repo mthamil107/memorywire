@@ -1,13 +1,13 @@
-# memwire — arXiv submission bundle
+# memorywire — arXiv submission bundle
 
-This directory contains everything arXiv needs to compile the memwire paper PDF server-side. No local LaTeX install required — arXiv builds the PDF for you from this source.
+This directory contains everything arXiv needs to compile the memorywire paper PDF server-side. No local LaTeX install required — arXiv builds the PDF for you from this source.
 
 ## Files
 
 | File | Purpose |
 |---|---|
-| `memwire-paper.tex` | Main paper source (USENIX-template-shaped, article-class fallback) |
-| `memwire.bib` | BibTeX bibliography (13 entries; 8 pinned to real refs, 1 BEAM marked as TBD) |
+| `memorywire-paper.tex` | Main paper source (USENIX-template-shaped, article-class fallback) |
+| `memorywire.bib` | BibTeX bibliography (13 entries; 8 pinned to real refs, 1 BEAM marked as TBD) |
 | `architecture.png` | Figure 1 (1200×675, 50 KB) |
 
 ## How to submit (~10 min on the arXiv side)
@@ -17,7 +17,7 @@ This directory contains everything arXiv needs to compile the memwire paper PDF 
 3. **License:** Recommend `CC BY 4.0` (matches the Apache-2.0 + FSL split of the codebase ethos; allows derivative works with attribution).
 4. **Archive:** `cs` (Computing Research Repository).
 5. **Primary category:** `cs.CR` (Cryptography and Security) — recommended when
-   the submitter is already endorsed there. memwire's threat-model section (§6)
+   the submitter is already endorsed there. memorywire's threat-model section (§6)
    and the governance / HITL approval surface are genuinely cs.CR-shaped, and
    Thamilvendhan Munirathinam's prior arXiv paper (`arXiv:2604.18248`, "Beyond Pattern
    Matching: Seven Cross-Domain Techniques for Prompt Injection Detection")
@@ -33,8 +33,8 @@ This directory contains everything arXiv needs to compile the memwire paper PDF 
    - Everything in one flat tarball
    - Total under 50 MB (we're at ~127 KB, well under).
 8. **Compile:** arXiv runs `pdflatex` + `bibtex` + `pdflatex` × 2 server-side. Check the auto-generated PDF preview.
-9. **Title:** `memwire: A Vendor-Neutral Wire Format for Agent Memory Operations`.
-10. **Abstract:** Copy from the `\begin{abstract} ... \end{abstract}` block of `memwire-paper.tex` (lines ~60-83). arXiv has a 1920-char limit; the polished abstract fits.
+9. **Title:** `memorywire: A Vendor-Neutral Wire Format for Agent Memory Operations`.
+10. **Abstract:** Copy from the `\begin{abstract} ... \end{abstract}` block of `memorywire-paper.tex` (lines ~60-83). arXiv has a 1920-char limit; the polished abstract fits.
 11. **Authors:** `Thamilvendhan Munirathinam` · email `mthamil107@gmail.com` · affiliation `Independent Researcher`.
 12. **Submit.** arXiv announces new papers Mon-Thu evenings (Eastern Time). Submission today (Thursday) → public announcement typically same evening or Monday morning.
 
@@ -42,24 +42,24 @@ This directory contains everything arXiv needs to compile the memwire paper PDF 
 
 ```bash
 # If you have LaTeX installed locally, smoke-compile:
-pdflatex memwire-paper && bibtex memwire-paper && pdflatex memwire-paper && pdflatex memwire-paper
+pdflatex memorywire-paper && bibtex memorywire-paper && pdflatex memorywire-paper && pdflatex memorywire-paper
 
 # Check the figure path resolves
-grep -c "includegraphics" memwire-paper.tex   # should be 1
+grep -c "includegraphics" memorywire-paper.tex   # should be 1
 
 # Check the .bib is reachable
-grep -c "@" memwire.bib                       # should be 13
+grep -c "@" memorywire.bib                       # should be 13
 ```
 
 If you don't have a LaTeX install, **skip the local smoke** — arXiv will compile and surface any issues in the preview step before you click "Submit".
 
 ## What's not in this bundle (and why that's OK for a preprint)
 
-- **BEAM benchmark citation** is marked `% TODO verify` in `memwire.bib`. arXiv accepts preprints with TBD citations; you can replace this with a v2 of the preprint later. For a journal/conference submission, pin BEAM before the version-of-record.
+- **BEAM benchmark citation** is marked `% TODO verify` in `memorywire.bib`. arXiv accepts preprints with TBD citations; you can replace this with a v2 of the preprint later. For a journal/conference submission, pin BEAM before the version-of-record.
 - **USENIX `usenix2019_v3.sty`** is not vendored. The paper uses portable `article` class + standard packages (`amsmath`, `booktabs`, `tabularx`, `listings`, `hyperref`, `cleveref`); arXiv compiles this without issue. For an ATC submission later, swap in the official `.sty` from <https://www.usenix.org/conferences/author-resources/paper-templates>.
 
 ## After submission
 
 - Once arXiv assigns an ID (e.g. `arXiv:2605.XXXXX`), update `CITATION.cff` with the real arXiv ID.
-- Update the memwire repo README with a "Cite this paper" line linking to the arXiv abstract page.
+- Update the memorywire repo README with a "Cite this paper" line linking to the arXiv abstract page.
 - Replace the `[CITATION NEEDED]` macros in your bib's `software-self-cite` entry with the real arXiv ID.

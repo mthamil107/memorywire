@@ -1,4 +1,4 @@
-"""Tests for :mod:`memwire.procedural` â€” Procedure / ProcedureRunner / validation.
+"""Tests for :mod:`memorywire.procedural` â€” Procedure / ProcedureRunner / validation.
 
 These tests cover the Phase-5 FSM procedural-memory backend:
 
@@ -22,14 +22,14 @@ import pytest
 import transitions
 from jsonschema import Draft202012Validator
 
-from memwire.procedural import Procedure, ProcedureRunner, validate_procedure_dict
+from memorywire.procedural import Procedure, ProcedureRunner, validate_procedure_dict
 
 # ---------------------------------------------------------------------------
 # Fixtures
 # ---------------------------------------------------------------------------
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
-PROCEDURAL_SCHEMA_PATH = REPO_ROOT / "src" / "memwire" / "schemas" / "types" / "procedural.json"
+PROCEDURAL_SCHEMA_PATH = REPO_ROOT / "src" / "memorywire" / "schemas" / "types" / "procedural.json"
 
 
 def _book_flight() -> Procedure:

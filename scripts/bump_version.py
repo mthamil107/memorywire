@@ -2,7 +2,7 @@
 
 This script is **read-only by default**. It prints the version currently
 recorded in the repo's release-please manifest, in ``CITATION.cff``, and in
-``src/memwire/__init__.py``'s fallback string, then validates that those three
+``src/memorywire/__init__.py``'s fallback string, then validates that those three
 agree and that any provided ``--target`` version is strictly greater than the
 manifest version.
 
@@ -85,13 +85,13 @@ def main() -> int:
     print("Current version state")
     print("---------------------")
     print(f"  .github/.release-please-manifest.json : {manifest_v}")
-    print(f"  src/memwire/__init__.py (fallback)        : {init_v}")
+    print(f"  src/memorywire/__init__.py (fallback)        : {init_v}")
     print(f"  CITATION.cff                          : {cff_v}")
     print()
 
     print("On the next release-please merge, the following files will be rewritten:")
     print("  - .github/.release-please-manifest.json")
-    print("  - src/memwire/__init__.py        (extra-files in release-please-config.json)")
+    print("  - src/memorywire/__init__.py        (extra-files in release-please-config.json)")
     print("  - CITATION.cff               (extra-files in release-please-config.json)")
     print("  - CHANGELOG.md")
     print()

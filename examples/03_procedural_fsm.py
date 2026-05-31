@@ -1,6 +1,6 @@
 """Author, drive, serialize, and reload a procedural FSM (spec section 7).
 
-Runnable demo of the Phase-5 :mod:`memwire.procedural` backend:
+Runnable demo of the Phase-5 :mod:`memorywire.procedural` backend:
 
 1. Build the canonical ``book-flight`` procedure from spec Â§7.
 2. Statically validate the procedure.
@@ -20,7 +20,7 @@ from __future__ import annotations
 
 import json
 
-from memwire.procedural import Procedure, ProcedureRunner
+from memorywire.procedural import Procedure, ProcedureRunner
 
 
 def build_book_flight() -> Procedure:

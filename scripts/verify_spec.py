@@ -4,7 +4,7 @@ Each example file is a JSON object of the shape::
 
     {
       "description": "...",
-      "_schema": "operations/remember",   # path under src/memwire/schemas/, no .json
+      "_schema": "operations/remember",   # path under src/memorywire/schemas/, no .json
       "request":  { ... },                # the payload to validate
       "response": { ... }                 # optional, ignored here
     }
@@ -34,7 +34,7 @@ from jsonschema import Draft202012Validator  # type: ignore[import-untyped]
 from jsonschema.exceptions import ValidationError  # type: ignore[import-untyped]
 
 REPO_ROOT: Path = Path(__file__).resolve().parent.parent
-SCHEMAS_ROOT: Path = REPO_ROOT / "src" / "memwire" / "schemas"
+SCHEMAS_ROOT: Path = REPO_ROOT / "src" / "memorywire" / "schemas"
 DEFAULT_EXAMPLES_ROOT: Path = REPO_ROOT / "docs" / "spec" / "examples"
 
 # ANSI color codes; disabled automatically when stdout is not a TTY.
@@ -244,8 +244,8 @@ def _build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="verify_spec",
         description=(
-            "Validate memwire worked examples under docs/spec/examples against the "
-            "JSON Schemas in src/memwire/schemas."
+            "Validate memorywire worked examples under docs/spec/examples against the "
+            "JSON Schemas in src/memorywire/schemas."
         ),
     )
     parser.add_argument(

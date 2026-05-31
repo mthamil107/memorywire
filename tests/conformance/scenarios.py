@@ -1,6 +1,6 @@
-"""Protocol-conformance scenarios for every :class:`memwire.store.MemoryStore` adapter.
+"""Protocol-conformance scenarios for every :class:`memorywire.store.MemoryStore` adapter.
 
-A :class:`ProtocolScenario` is a self-contained description of one memwire
+A :class:`ProtocolScenario` is a self-contained description of one memorywire
 wire-format invariant: a setup of :class:`RememberRequest` writes, an
 ``action`` callable that exercises the store, and a ``predicate`` that
 takes the action's result and returns ``True`` on conformance.
@@ -28,13 +28,13 @@ from collections.abc import Awaitable, Callable
 from dataclasses import dataclass, field
 from typing import Any
 
-from memwire.models import (
+from memorywire.models import (
     MemoryType,
     RecallResponse,
     RememberRequest,
     RememberResponse,
 )
-from memwire.store.base import Capability
+from memorywire.store.base import Capability
 
 # ---------------------------------------------------------------------------
 # Scenario dataclass
@@ -125,7 +125,7 @@ def _req(
 # Concrete scenario actions
 # ---------------------------------------------------------------------------
 
-from memwire.models import (  # noqa: E402 â€” imports placed here to keep helpers above
+from memorywire.models import (  # noqa: E402 â€” imports placed here to keep helpers above
     ExpirePolicy,
     ExpireRequest,
     ForgetRequest,
@@ -391,7 +391,7 @@ def _pred_health(payload: Any) -> bool:
 
 
 async def _action_isinstance(store: Any) -> bool:
-    from memwire.store import MemoryStore
+    from memorywire.store import MemoryStore
 
     return isinstance(store, MemoryStore)
 

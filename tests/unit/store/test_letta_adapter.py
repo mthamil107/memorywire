@@ -1,9 +1,9 @@
-"""Unit tests for :class:`memwire.store.letta_adapter.LettaStore`.
+"""Unit tests for :class:`memorywire.store.letta_adapter.LettaStore`.
 
 These tests use :class:`unittest.mock.MagicMock` to stand in for the real
 ``letta_client.Letta`` client â€” the Letta SDK is never touched. The goal
-is to prove the adapter translates memwire requests into the right Letta
-calls and maps the mocked responses back into the memwire response models.
+is to prove the adapter translates memorywire requests into the right Letta
+calls and maps the mocked responses back into the memorywire response models.
 
 Integration tests that exercise the real SDK live under
 ``tests/integration/store/test_letta_adapter.py`` and are gated by
@@ -20,7 +20,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from memwire.models import (
+from memorywire.models import (
     ExpireAction,
     ExpirePolicy,
     ExpireRequest,
@@ -31,8 +31,8 @@ from memwire.models import (
     RecallRequest,
     RememberRequest,
 )
-from memwire.store import Capability, MemoryStore
-from memwire.store.letta_adapter import LettaStore
+from memorywire.store import Capability, MemoryStore
+from memorywire.store.letta_adapter import LettaStore
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -119,7 +119,7 @@ def test_capabilities_set_matches_spec() -> None:
 
 
 async def test_remember_calls_passages_create_with_encoded_tags() -> None:
-    """``remember`` encodes memwire overlay fields onto Letta's tag list."""
+    """``remember`` encodes memorywire overlay fields onto Letta's tag list."""
     client = _make_client()
     client.agents.passages.create.return_value = [
         {"id": "p-1", "text": "Alice prefers email", "tags": []}

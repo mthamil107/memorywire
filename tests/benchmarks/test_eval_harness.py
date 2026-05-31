@@ -11,7 +11,7 @@ What this covers
 * :func:`scripts.lib.eval_common.holm_bonferroni` on a textbook input
   â€” verifies the rejection mask matches the algorithm definition.
 * The ``run_longmemeval.py --dry-run`` CLI on a tiny synthetic subset
-  â€” verifies the full pipeline (dataset â†’ memwire â†’ grader â†’ stats) wires
+  â€” verifies the full pipeline (dataset â†’ memorywire â†’ grader â†’ stats) wires
   end-to-end and the script exits 0.
 * The :class:`LLMGrader` cache path â€” uses a mock OpenAI client so the
   test runs without an API key. Verifies the grader scores correctly

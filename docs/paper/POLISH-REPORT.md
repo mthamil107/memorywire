@@ -1,4 +1,4 @@
-﻿# memwire Paper Polish Report
+﻿# memorywire Paper Polish Report
 
 **Date:** 2026-05-28
 **Source file:** `docs/paper/amp-paper.md`
@@ -7,19 +7,19 @@
 
 ## Factual corrections made
 
-1. **`src/memwire/store/sqlite_vec.py` capabilities.** The Ã‚Â§4.2 table previously
+1. **`src/memorywire/store/sqlite_vec.py` capabilities.** The Ã‚Â§4.2 table previously
    listed `{semantic, episodic, vector, fts, procedural}`. Code returns
    `{SEMANTIC, EPISODIC, PROCEDURAL, EMOTIONAL, VECTOR, FTS, RECALL_TRACKING}`.
    Table updated.
-2. **`src/memwire/store/cognee_adapter.py` capabilities.** Previously listed as
+2. **`src/memorywire/store/cognee_adapter.py` capabilities.** Previously listed as
    `{semantic, graph}`. Actual code returns
    `{SEMANTIC, EPISODIC, VECTOR, GRAPH}`. Table updated.
-3. **`src/memwire/store/pgvector_adapter.py` capabilities.** Previously listed
+3. **`src/memorywire/store/pgvector_adapter.py` capabilities.** Previously listed
    `{semantic, episodic, vector, fts}`. Actual code returns
    `{SEMANTIC, EPISODIC, PROCEDURAL, EMOTIONAL, VECTOR, RECALL_TRACKING,
    GOVERNANCE}` Ã¢â‚¬â€ and pgvector docstring explicitly says FTS is absent.
    Table updated.
-4. **`src/memwire/router.py` graph-boost line range.** Paper cited lines 486-503;
+4. **`src/memorywire/router.py` graph-boost line range.** Paper cited lines 486-503;
    the actual loop is at lines 482-501. Updated.
 5. **Code volume estimate.** Ã‚Â§4 previously said "roughly 14k lines of
    Python." Actual non-test source is ~15k lines (8.4k `src/`, 2.4k
@@ -48,7 +48,7 @@ All other empirical numbers verified against source-of-truth files:
   LLM contribution" / "not a stabilization paper") merged into a single
   ~140-word paragraph that preserves all three claims and the citations.
 - **Ã‚Â§9 conclusion.** Three paragraphs collapsed to two; second paragraph
-  merges the "honest bet" framing with the "memwire is to memory what MCP is
+  merges the "honest bet" framing with the "memorywire is to memory what MCP is
   to tool-use" pull quote.
 - **Abstract.** Tightened the K-sweep claim phrasing to match Ã‚Â§5.2
   verbatim ($K \in \{0,5,\dots,50\}$ / $K \geq 5$) and the headline
@@ -103,7 +103,7 @@ no new contributions introduced.
 - **Figure.** `architecture.png` embedded via `\includegraphics[width=\columnwidth]{../architecture.png}`
   (path is relative to the `.tex` file location at `docs/paper/`).
 - **Code.** Python protocol block uses `\begin{lstlisting}[language=Python]`.
-- **Bibliography.** `\bibliographystyle{plain}` + `\bibliography{memwire}`.
+- **Bibliography.** `\bibliographystyle{plain}` + `\bibliography{memorywire}`.
 - **`\citeneeded`.** A red-text macro is defined for any future un-pinned
   citations; not currently used because all body citations are pinned.
 

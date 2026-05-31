@@ -1,4 +1,4 @@
-"""Analysis script for the memwire governance-UI user study (paper Â§5.5).
+"""Analysis script for the memorywire governance-UI user study (paper Â§5.5).
 
 Reads a CSV of per-participant responses and emits:
 
@@ -289,7 +289,7 @@ def summarise(rows: list[ParticipantRow]) -> Summary:
 
 def render_summary_markdown(s: Summary) -> str:
     out: list[str] = []
-    out.append("# memwire Governance UI â€” Analysis Summary\n")
+    out.append("# memorywire Governance UI â€” Analysis Summary\n")
     out.append(f"n = {s.n} participants\n")
 
     out.append("## NASA-TLX overall (lower is better)\n")

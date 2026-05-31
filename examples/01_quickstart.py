@@ -1,4 +1,4 @@
-"""memwire quickstart â€” end-to-end demo using the :class:`memwire.Memory` facade.
+"""memorywire quickstart â€” end-to-end demo using the :class:`memorywire.Memory` facade.
 
 This script ingests 50 short facts, runs a few recalls, deletes one user's
 records by filter, and prints final aggregate stats. It exists primarily
@@ -7,7 +7,7 @@ public operations.
 
 Embedding note
 --------------
-The default :class:`memwire.store.sqlite_vec.SqliteVecStore` lazy-loads
+The default :class:`memorywire.store.sqlite_vec.SqliteVecStore` lazy-loads
 ``sentence-transformers/all-MiniLM-L6-v2`` on first embed call. To keep
 this example runnable anywhere â€” CI, a fresh laptop, a Docker image
 without ML wheels â€” we inject a tiny deterministic fake embedder
@@ -28,8 +28,8 @@ import hashlib
 import os
 import tempfile
 
-from memwire import Memory, MemoryType
-from memwire.store.sqlite_vec import SqliteVecStore
+from memorywire import Memory, MemoryType
+from memorywire.store.sqlite_vec import SqliteVecStore
 
 # ---------------------------------------------------------------------------
 # Fake embedder â€” sha256-derived 384-d deterministic vector

@@ -24,7 +24,7 @@ from typing import Any
 
 import pytest
 
-from memwire.store import MemoryStore
+from memorywire.store import MemoryStore
 from tests.conformance.scenarios import SCENARIOS, ProtocolScenario
 
 from .conftest import SKIP_OVERRIDES

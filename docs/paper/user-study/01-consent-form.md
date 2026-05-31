@@ -1,4 +1,4 @@
-# Informed Consent â€” memwire Governance UI Usability Study
+# Informed Consent â€” memorywire Governance UI Usability Study
 
 > Version: v0 â€” last updated 2026-05-28.
 > Read this form before agreeing to participate. The researcher will
@@ -8,7 +8,7 @@
 
 ## Study title
 
-Usability evaluation of the memwire Governance UI: a diff-and-approve
+Usability evaluation of the memorywire Governance UI: a diff-and-approve
 interface for AI-agent memory writes.
 
 ## Investigator
@@ -62,7 +62,7 @@ reason, without penalty. If you withdraw before completing the
 session, you will still receive the full compensation if you wish, and
 all recordings collected up to that point will be deleted within 7
 days. Withdrawal will not affect any current or future relationship
-with the researcher, the institution, or the memwire open-source project.
+with the researcher, the institution, or the memorywire open-source project.
 
 ## Risks
 
@@ -113,7 +113,7 @@ practitioners use HITL governance interfaces for AI agents.
 
 ## Conflict-of-interest disclosure
 
-The researcher is the author and primary maintainer of the memwire
+The researcher is the author and primary maintainer of the memorywire
 open-source project that includes the interface being evaluated. You
 should know this so you can factor it into your participation. The
 researcher is genuinely interested in negative feedback â€” please be

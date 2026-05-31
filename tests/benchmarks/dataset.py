@@ -1,4 +1,4 @@
-"""Hand-authored corpus for the memwire recall microbenchmark.
+"""Hand-authored corpus for the memorywire recall microbenchmark.
 
 This dataset is the source-of-truth corpus for ``scripts/run_microbench.py``
 and ``tests/benchmarks/test_recall_benchmark.py``. It is deliberately small,
@@ -11,7 +11,7 @@ Shape
 * :data:`FACTS` â€” 100 entries. Each is a ``dict`` with ``id`` (stable
   string id used as gold-label), ``user_id`` (~10 distinct users so we
   exercise the per-user recall scope), ``type`` (mix of all four
-  :class:`memwire.MemoryType` values), and ``content`` (the natural-language
+  :class:`memorywire.MemoryType` values), and ``content`` (the natural-language
   text the embedder sees).
 * :data:`QUERIES` â€” 50 entries. Each is a ``dict`` with ``query`` (the
   natural-language search string), ``gold_ids`` (the set of fact ids that

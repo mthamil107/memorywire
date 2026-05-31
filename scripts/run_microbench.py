@@ -1,4 +1,4 @@
-"""memwire v0 recall microbenchmark â€” one honest number for the launch blog post.
+"""memorywire v0 recall microbenchmark â€” one honest number for the launch blog post.
 
 This script ingests a hand-authored 100-fact corpus and runs a 50-query
 recall pass, measuring per-call latency and labelled recall@k. It is the
@@ -10,14 +10,14 @@ Why a microbenchmark and not LongMemEval?
 
 * LongMemEval requires a gated dataset plus a paid GPT-4 grader.
 * LoCoMo similarly requires a grader and hours of model time.
-* For a "shape" number â€” "memwire recalls 50k memories in <N>ms at recall@5
+* For a "shape" number â€” "memorywire recalls 50k memories in <N>ms at recall@5
   = <X>" â€” a hand-authored corpus is honest and reproducible on a
   laptop. v0.2 wires LongMemEval properly with a grader budget.
 
 What this exercises
 
-* The real :class:`memwire.api.Memory` facade over the real
-  :class:`memwire.store.sqlite_vec.SqliteVecStore` adapter (sqlite-vec ANN
+* The real :class:`memorywire.api.Memory` facade over the real
+  :class:`memorywire.store.sqlite_vec.SqliteVecStore` adapter (sqlite-vec ANN
   fused with FTS5 keyword via intra-store RRF, per spec Â§5).
 * By default the real ``sentence-transformers/all-MiniLM-L6-v2`` embedder.
   If sentence-transformers isn't installed (or the model can't load),
@@ -35,7 +35,7 @@ CLI surface
 * ``--json`` â€” emit structured JSON instead of human-readable text.
 * ``--target {single,fusion}`` â€” ``single`` (default) uses one
   sqlite-vec store; ``fusion`` uses two stores so the router exercises
-  inter-store RRF (helps the "memwire improves recall with fusion" story).
+  inter-store RRF (helps the "memorywire improves recall with fusion" story).
 
 Exit codes
 
@@ -72,8 +72,8 @@ _REPO_ROOT = Path(__file__).resolve().parent.parent
 if str(_REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(_REPO_ROOT))
 
-from memwire import Memory, MemoryType  # noqa: E402
-from memwire.store.sqlite_vec import SqliteVecStore  # noqa: E402
+from memorywire import Memory, MemoryType  # noqa: E402
+from memorywire.store.sqlite_vec import SqliteVecStore  # noqa: E402
 from tests.benchmarks.dataset import FACTS, QUERIES  # noqa: E402
 
 EmbedderFn = Callable[[str], list[float]]
@@ -334,7 +334,7 @@ async def _run(args: argparse.Namespace) -> BenchmarkResult:
 def _format_text(result: BenchmarkResult) -> str:
     """Pretty human-readable report. Each section maps to a blog-post line."""
     lines: list[str] = []
-    lines.append("memwire v0 recall microbenchmark")
+    lines.append("memorywire v0 recall microbenchmark")
     lines.append("=" * 70)
     lines.append(f"  embedder           : {result.embedder}")
     if result.fallback_reason:
@@ -398,7 +398,7 @@ def _build_parser() -> argparse.ArgumentParser:
     """Construct the argparse parser; factored out so tests can introspect it."""
     p = argparse.ArgumentParser(
         prog="run_microbench",
-        description="memwire v0 recall microbenchmark.",
+        description="memorywire v0 recall microbenchmark.",
     )
     p.add_argument(
         "--queries",

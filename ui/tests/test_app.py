@@ -8,9 +8,9 @@ from typing import Any
 
 import httpx
 import pytest
-from memwire_ui.__main__ import _assert_safe_public_config, _load_csrf_secret_from_env
-from memwire_ui.app import create_app
-from memwire_ui.middleware import CSRF_COOKIE_NAME, CSRF_HEADER_NAME
+from memorywire_ui.__main__ import _assert_safe_public_config, _load_csrf_secret_from_env
+from memorywire_ui.app import create_app
+from memorywire_ui.middleware import CSRF_COOKIE_NAME, CSRF_HEADER_NAME
 
 
 @pytest.mark.anyio
@@ -33,7 +33,7 @@ async def test_boot_against_empty_db(tmp_path: Path) -> None:
     Before the fix, ``ensure_schema`` only created ``approval_patterns``;
     the OSS schema (``memories``, ``audit_log``, ...) was missing on a
     DB that the OSS adapter had not yet written to, so every page 500'd
-    against the default ``./memwire-cli.db`` on first boot.
+    against the default ``./memorywire-cli.db`` on first boot.
     """
     db_path = tmp_path / "empty.db"
     app = create_app(db_path=str(db_path), agent_id="empty")
@@ -187,7 +187,7 @@ async def test_csrf_token_exposed_to_template(
 
 
 # ---------------------------------------------------------------------------
-# MEMWIRE_UI_CSRF_SECRET env-var handling
+# MEMORYWIRE_UI_CSRF_SECRET env-var handling
 # ---------------------------------------------------------------------------
 
 
@@ -295,7 +295,7 @@ def test_assert_safe_public_config_public_with_token_passes() -> None:
 
 
 def test_assert_safe_public_config_explicit_opt_out_passes() -> None:
-    """``MEMWIRE_UI_ALLOW_UNAUTHENTICATED_PUBLIC=1`` must bypass the check."""
+    """``MEMORYWIRE_UI_ALLOW_UNAUTHENTICATED_PUBLIC=1`` must bypass the check."""
     # No exception even with a public host and no token, because the
     # operator explicitly accepted the risk.
     _assert_safe_public_config("0.0.0.0", None, True)

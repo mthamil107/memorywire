@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to memwire are documented here. The format follows
+All notable changes to memorywire are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project adheres
 to [Semantic Versioning](https://semver.org/spec/v2.0.0.html). Until v1.0, breaking
 changes may land between minor versions per the spec evolution policy in
@@ -11,7 +11,7 @@ changes may land between minor versions per the spec evolution policy in
 ## [0.1.0] - 2026-06-10
 
 ### Added
-- Initial public release of the memwire.
+- Initial public release of the memorywire.
 - JSON Schema 2020-12 specification covering 5 operations
   (`remember`, `recall`, `forget`, `merge`, `expire`) over 4 memory types
   (semantic, episodic, procedural, emotional).
@@ -28,5 +28,5 @@ changes may land between minor versions per the spec evolution policy in
   16-scenario cross-adapter conformance suite.
 - 290+ tests passing by default; `ruff` and `mypy --strict` clean.
 
-[Unreleased]: https://github.com/mthamil107/memwire/compare/v0.1.0...HEAD
-[0.1.0]: https://github.com/mthamil107/memwire/releases/tag/v0.1.0
+[Unreleased]: https://github.com/mthamil107/memorywire/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/mthamil107/memorywire/releases/tag/v0.1.0

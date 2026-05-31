@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from memwire_ui.diff import diff_memories
+from memorywire_ui.diff import diff_memories
 
 
 def test_no_current_means_everything_added() -> None:

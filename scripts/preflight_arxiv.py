@@ -10,7 +10,7 @@ just before file upload. Catches the issues that slow down announcement:
      (TODO, FIXME, XXX, DRAFT, internal notes, real names that
      shouldn't be in source).
   5. No stray binary files in the bundle (only .tex/.bib/.png/.md).
-  6. memwire.bib parses cleanly + every \\cite resolves.
+  6. memorywire.bib parses cleanly + every \\cite resolves.
 
 Run from repo root:
     .venv/Scripts/python.exe scripts/preflight_arxiv.py
@@ -25,8 +25,8 @@ from pathlib import Path
 sys.stdout.reconfigure(encoding="utf-8")
 
 ROOT = Path(__file__).resolve().parents[1] / "docs" / "paper" / "arxiv-submission"
-TEX = ROOT / "memwire-paper.tex"
-BIB = ROOT / "memwire.bib"
+TEX = ROOT / "memorywire-paper.tex"
+BIB = ROOT / "memorywire.bib"
 
 tex = TEX.read_text(encoding="utf-8")
 bib = BIB.read_text(encoding="utf-8")
@@ -42,8 +42,8 @@ print("=" * 76)
 print("\n[1] TeX source upload (not PDF-only)")
 files = sorted(p.name for p in ROOT.iterdir() if p.is_file())
 print(f"    files in bundle: {files}")
-if "memwire-paper.tex" not in files:
-    failures.append("memwire-paper.tex missing from bundle")
+if "memorywire-paper.tex" not in files:
+    failures.append("memorywire-paper.tex missing from bundle")
 else:
     print("    OK -- .tex present; arXiv compiles server-side.")
 
@@ -127,10 +127,10 @@ for m in cite_re.finditer(tex):
 bib_keys = set(re.findall(r"@\w+\{([^,]+),", bib))
 missing = cited - bib_keys
 if missing:
-    failures.append(f"\\cite keys missing from memwire.bib: {sorted(missing)}")
+    failures.append(f"\\cite keys missing from memorywire.bib: {sorted(missing)}")
     print(f"    FAIL -- missing keys: {sorted(missing)}")
 else:
-    print(f"    OK -- all {len(cited)} cite keys resolve in memwire.bib ({len(bib_keys)} entries)")
+    print(f"    OK -- all {len(cited)} cite keys resolve in memorywire.bib ({len(bib_keys)} entries)")
 
 # Verdict
 print()

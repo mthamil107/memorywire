@@ -5,7 +5,7 @@ canonical path is ``charmbracelet/vhs`` (see ``cli.tape``), but VHS depends
 on ``ttyd``'s PTY behavior, which is unreliable on Windows. Rather than
 ship a flaky GIF, this script renders a fully deterministic terminal
 demo from a small storyboard. It is intentionally read-only: it never
-touches ``src/memwire/`` or ``tests/`` and the lines it "types" are real CLI
+touches ``src/memorywire/`` or ``tests/`` and the lines it "types" are real CLI
 output captured by hand (see ``# captured`` markers below).
 
 Output: ``docs/demos/cli.gif`` (~20s, ~900x560 @ 14fps).
@@ -216,7 +216,7 @@ def storyboard() -> list[tuple[str, object, int]]:
     s.append(("blank", None, 1))
 
     # ---- Section 2: import works ------------------------------------------
-    s.append(("type", styled_command(PS, 'python -c "from memwire import Memory, MemoryType; print(Memory)"'), ms(400)))
+    s.append(("type", styled_command(PS, 'python -c "from memorywire import Memory, MemoryType; print(Memory)"'), ms(400)))
     s.append(("instant", styled_plain("<class 'amp.memory.Memory'>", FG), ms(900)))
     s.append(("blank", None, 1))
 

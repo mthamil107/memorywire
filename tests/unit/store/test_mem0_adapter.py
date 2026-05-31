@@ -1,9 +1,9 @@
-"""Unit tests for :class:`memwire.store.mem0_adapter.Mem0Store`.
+"""Unit tests for :class:`memorywire.store.mem0_adapter.Mem0Store`.
 
 These tests use :class:`unittest.mock.MagicMock` to stand in for the real
 ``mem0.Memory`` client â€” the mem0 SDK is never touched. The goal is to
-prove the adapter translates memwire requests into the right mem0 calls and
-maps the mocked responses back into the memwire response models correctly.
+prove the adapter translates memorywire requests into the right mem0 calls and
+maps the mocked responses back into the memorywire response models correctly.
 
 Integration tests that exercise the real SDK live under
 ``tests/integration/store/test_mem0_adapter.py`` and are gated by
@@ -17,7 +17,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from memwire.models import (
+from memorywire.models import (
     ExpireAction,
     ExpirePolicy,
     ExpireRequest,
@@ -28,8 +28,8 @@ from memwire.models import (
     RecallRequest,
     RememberRequest,
 )
-from memwire.store import Capability, MemoryStore
-from memwire.store.mem0_adapter import Mem0Store
+from memorywire.store import Capability, MemoryStore
+from memorywire.store.mem0_adapter import Mem0Store
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -97,7 +97,7 @@ def test_capabilities_set_matches_spec() -> None:
 
 
 async def test_remember_calls_client_add_with_expected_kwargs() -> None:
-    """``remember`` flattens memwire fields into mem0 metadata and forwards them."""
+    """``remember`` flattens memorywire fields into mem0 metadata and forwards them."""
     client = _make_client()
     client.add.return_value = {"results": [{"id": "mem-1", "memory": "hi", "event": "ADD"}]}
     store = Mem0Store(client=client)
@@ -114,7 +114,7 @@ async def test_remember_calls_client_add_with_expected_kwargs() -> None:
         )
     )
 
-    # One call into mem0, with the content positional and the memwire-overlay
+    # One call into mem0, with the content positional and the memorywire-overlay
     # keys flattened into metadata.
     client.add.assert_called_once()
     args, kwargs = client.add.call_args

@@ -1,4 +1,4 @@
-# IRB Application â€” memwire Governance UI Usability Study
+# IRB Application â€” memorywire Governance UI Usability Study
 
 > Template targeting **minimum-risk / expedited review** classification.
 > Fill every `[BRACKETED]` field before submission. The investigator is
@@ -16,7 +16,7 @@
 - **Phone:** `[PI PHONE]`
 - **Faculty advisor (if PI is a student):** `[ADVISOR NAME AND EMAIL]`
 - **IRB protocol number:** `[ASSIGNED BY IRB AFTER INITIAL REVIEW]`
-- **Study title:** Usability evaluation of the memwire Governance UI: a
+- **Study title:** Usability evaluation of the memorywire Governance UI: a
   diff-and-approve interface for AI-agent memory writes.
 - **Anticipated start date:** `[YYYY-MM-DD]`
 - **Anticipated end date:** `[YYYY-MM-DD]` (estimate 8 weeks after start)
@@ -33,8 +33,8 @@ Signature: ______________________________  Date: ______________
 
 ## 2. Project summary
 
-The memwire is an open-source wire format for
-agent-memory operations. Alongside the protocol memwire ships a
+The memorywire is an open-source wire format for
+agent-memory operations. Alongside the protocol memorywire ships a
 **governance UI** â€” a web interface where a human operator reviews
 pending memory writes that the agent has flagged as requiring approval.
 The reviewer sees a structured diff between the proposed memory and
@@ -48,7 +48,7 @@ The empirical question we want to answer: does the diff-and-approve
 flow give a software engineer or ML practitioner â€” somebody who has not
 previously used the UI â€” enough information to make correct approve /
 reject decisions with reasonable cognitive workload? The study will be
-reported as Â§5.5 of the memwire paper. There is no comparison condition;
+reported as Â§5.5 of the memorywire paper. There is no comparison condition;
 this is a within-subject single-arm exploratory evaluation.
 
 The methodology is a remote think-aloud usability study. Each
@@ -80,7 +80,7 @@ problems while remaining feasible for a single investigator on an
 
 1. The investigator's professional network on LinkedIn (one post + DMs
    to candidates who pass the screening criteria in Â§3.1).
-2. The memwire open-source project's GitHub Discussions board (one pinned
+2. The memorywire open-source project's GitHub Discussions board (one pinned
    post linking to the screening survey).
 3. Two or three relevant Slack / Discord communities for ML
    practitioners (one post each, posted only in channels that allow
@@ -107,7 +107,7 @@ students or direct reports.
 
 - Anyone employed by the same organization as the PI in a reporting
   relationship (eliminates coercion concern).
-- Anyone who has previously contributed to the memwire repository
+- Anyone who has previously contributed to the memorywire repository
   (eliminates familiarity-bias concern).
 - Anyone under 18.
 
@@ -201,7 +201,7 @@ geolocation, employer name, or any other directly identifying field.
 
 **Sharing:**
 
-- Aggregate statistics and de-identified quotations appear in the memwire
+- Aggregate statistics and de-identified quotations appear in the memorywire
   paper.
 - The fully de-identified quantitative CSV will be released as
   supplementary material on Zenodo with the paper.
@@ -249,7 +249,7 @@ Restated in protocol form for IRB reviewer convenience.
 - Under 18.
 - Reports to the PI or has any other coercion-creating relationship to
   the study team.
-- Previously contributed to the memwire open-source repository (commits,
+- Previously contributed to the memorywire open-source repository (commits,
   reviews, or substantive issue comments).
 - Cannot or will not share screen.
 
@@ -262,7 +262,7 @@ the protocol is not designed for those populations.
 
 ## 10. Conflicts of interest
 
-The PI is the author and primary maintainer of the memwire open-source
+The PI is the author and primary maintainer of the memorywire open-source
 project being evaluated. This is disclosed in the recruitment email
 (`02-recruitment.md`) and in the consent form (`01-consent-form.md`).
 The PI mitigates the conflict by (a) not personally analyzing the
@@ -281,7 +281,7 @@ across the 15 transcripts. Per Landis and Koch (1977), kappa â‰¥ 0.61
 ("substantial agreement") is the threshold for accepting the coding;
 disagreements below that threshold trigger a third coder and a
 consensus-coding pass. The second coder is `[NAME OR ROLE â€” e.g.
-a colleague external to the memwire project, recruited specifically for
+a colleague external to the memorywire project, recruited specifically for
 this study]`.
 
 ---

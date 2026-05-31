@@ -1,7 +1,7 @@
 ﻿# Eval protocol (paper Ã‚Â§5)
 
 This document is the canonical methodology reference cited from paper
-Ã‚Â§5. It explains *exactly* how memwire's LongMemEval / LoCoMo / BEAM numbers
+Ã‚Â§5. It explains *exactly* how memorywire's LongMemEval / LoCoMo / BEAM numbers
 are produced: which datasets, how many seeds, what grader, what
 statistical machinery, and what we deliberately don't claim. Reviewers
 should be able to reproduce every published number end-to-end from
@@ -9,7 +9,7 @@ this page alone, given an OpenAI API key.
 
 ## Datasets
 
-We evaluate memwire on three canonical agent-memory benchmarks:
+We evaluate memorywire on three canonical agent-memory benchmarks:
 
 1. **LongMemEval** (Wu et al., 2024) Ã¢â‚¬â€ five task types over long
    chat histories:
@@ -32,11 +32,11 @@ Datasets stage under `~/.cache/amp/<dataset>/` and are fetched with
 `--download` (HuggingFace Hub first, `git clone` fallback). Reruns are
 free: the harness detects the cache and skips fetching.
 
-## memwire configuration
+## memorywire configuration
 
 For every benchmark, the eval loop drives the public
-`memwire.api.Memory` facade Ã¢â‚¬â€ the same surface a downstream user gets
-from `pip install memwire`. Each session turn becomes
+`memorywire.api.Memory` facade Ã¢â‚¬â€ the same surface a downstream user gets
+from `pip install memorywire`. Each session turn becomes
 one `Memory.remember(...)` call (typed `EPISODIC` with `session_id`
 and `turn_ix` metadata); each test question becomes one
 `Memory.recall(query, k=5)` call. The retrieved hits form the grader
@@ -48,7 +48,7 @@ and removes generator-LLM variance from the headline number.
 
 Conditions are passed via `--stores STORE1,STORE2,...`. The first
 URL is the **baseline** (treated as the reference for all paired
-comparisons); subsequent URLs are memwire variants under test. Typical
+comparisons); subsequent URLs are memorywire variants under test. Typical
 configurations we report:
 
 | Condition | URL |
@@ -78,7 +78,7 @@ single-backend*.
   on the linear difference of paired observations Ã¢â‚¬â€ mathematically
   equivalent to resampling rows and recomputing the difference of
   means Ã¢â‚¬â€ so it composes cleanly with task-type slicing.
-* **Holm-Bonferroni correction.** Each memwire-variant-vs-baseline
+* **Holm-Bonferroni correction.** Each memorywire-variant-vs-baseline
   comparison generates a family of p-values: one overall plus one per
   task type (5 for LongMemEval, ~5 for LoCoMo categories). We correct
   the family with Holm's step-down procedure (Holm 1979) at ÃŽÂ± = 0.05.
@@ -139,7 +139,7 @@ Cached reruns are free.
 
 Wall-clock for a full run is dominated by the grader API roundtrips;
 expect 1-3 hours per dataset at `gpt-4-turbo` (rate-limit bound), or
-20-40 minutes at `gpt-4o-mini`. memwire's recall path itself runs at
+20-40 minutes at `gpt-4o-mini`. memorywire's recall path itself runs at
 40-100 ms p50 so the in-process side of the loop is negligible.
 
 ## Honest framing
@@ -159,10 +159,10 @@ expect 1-3 hours per dataset at `gpt-4-turbo` (rate-limit bound), or
   partially mitigates the small-n by enriching the difference
   distribution, but a reader who cares about microscopic effect
   sizes should run more seeds.
-* **No claim of LongMemEval / LoCoMo SoTA.** We claim memwire's
+* **No claim of LongMemEval / LoCoMo SoTA.** We claim memorywire's
   *protocol* and *router* are usable on these workloads and that
   fusion provides a measurable lift over single-backend baselines.
-  Where memwire is below SoTA on a sub-task we report that openly.
+  Where memorywire is below SoTA on a sub-task we report that openly.
 * **Cache reproducibility.** The grader cache is shipped with the
   paper's artifact. Running the harness against the cached
   prompts/responses reproduces every number in the paper without

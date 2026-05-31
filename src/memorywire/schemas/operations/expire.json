@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://memorywire.dev/schemas/v0/operations/expire",
+  "title": "AMP expire request",
+  "description": "Request payload for the expire operation that applies a TTL policy to a memory subset.",
+  "type": "object",
+  "required": ["agent_id"],
+  "properties": {
+    "agent_id":   { "type": "string" },
+    "policy": {
+      "type": "object",
+      "properties": {
+        "older_than_days":     { "type": "integer", "minimum": 1 },
+        "type":                { "enum": ["semantic", "episodic", "procedural", "emotional"] },
+        "confidence_below":    { "type": "number", "minimum": 0, "maximum": 1 },
+        "no_recall_in_days":   { "type": "integer", "minimum": 1 }
+      }
+    },
+    "action": { "enum": ["forget", "archive", "demote"], "default": "forget" }
+  }
+}

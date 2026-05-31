@@ -82,8 +82,8 @@ Add this row by running, from the repo root:
 ```python
 # Augmentation snippet for T2 â€” copy demo-ui.db first, then run
 import asyncio
-from memwire.models import MemoryType, RememberRequest
-from memwire.store.sqlite_vec import SqliteVecStore
+from memorywire.models import MemoryType, RememberRequest
+from memorywire.store.sqlite_vec import SqliteVecStore
 
 async def main():
     store = SqliteVecStore(db_path="docs/demos/demo-ui-T2.db",

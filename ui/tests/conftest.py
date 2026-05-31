@@ -1,6 +1,6 @@
-"""Shared pytest fixtures for the memwire Governance UI tests.
+"""Shared pytest fixtures for the memorywire Governance UI tests.
 
-Tests write into a *real* :class:`memwire.store.sqlite_vec.SqliteVecStore` so the
+Tests write into a *real* :class:`memorywire.store.sqlite_vec.SqliteVecStore` so the
 schema matches production. A deterministic fake embedder is injected to keep
 ``sentence-transformers`` out of the unit-test loop.
 
@@ -27,11 +27,11 @@ from typing import Any
 
 import httpx
 import pytest
-from memwire_ui.app import create_app
-from memwire_ui.middleware import CSRF_COOKIE_NAME, CSRF_HEADER_NAME
+from memorywire_ui.app import create_app
+from memorywire_ui.middleware import CSRF_COOKIE_NAME, CSRF_HEADER_NAME
 
-from memwire.models import MemoryType, RememberRequest
-from memwire.store.sqlite_vec import DEFAULT_EMBEDDING_DIM, SqliteVecStore
+from memorywire.models import MemoryType, RememberRequest
+from memorywire.store.sqlite_vec import DEFAULT_EMBEDDING_DIM, SqliteVecStore
 
 
 def _fake_embedder(text: str) -> list[float]:
@@ -140,7 +140,7 @@ def seeded_db(tmp_path: Path) -> Iterator[SeedHelper]:
     store = SqliteVecStore(db_path, embedder=_fake_embedder)
     # The UI-owned ``approval_patterns`` table is created by the app factory,
     # but tests that exercise services directly may not have built an app yet.
-    from memwire_ui import services as _services
+    from memorywire_ui import services as _services
 
     _services.ensure_schema(str(db_path))
     raw = sqlite3.connect(str(db_path), isolation_level=None, check_same_thread=False)

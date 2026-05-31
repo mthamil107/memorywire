@@ -1,6 +1,6 @@
-"""LoCoMo harness for memwire â€” paper Â§5 long-conversation numbers.
+"""LoCoMo harness for memorywire â€” paper Â§5 long-conversation numbers.
 
-This script runs memwire against LoCoMo (Maharana et al., 2024 â€”
+This script runs memorywire against LoCoMo (Maharana et al., 2024 â€”
 `github.com/snap-research/locomo`). LoCoMo measures long-term
 conversational memory: pairs of conversational episodes spanning many
 sessions, with a GPT-4 grader judging answer quality and a BLEU
@@ -9,7 +9,7 @@ overlap score for reference.
 Per-question isolation invariant
 --------------------------------
 For each (seed, episode_id, qid) tuple we construct a *fresh*
-:class:`memwire.api.Memory` with a unique ``agent_id`` of the form
+:class:`memorywire.api.Memory` with a unique ``agent_id`` of the form
 ``f"locomo-{condition}-{seed}-{episode_id}-{qid}"``. Question N's
 recall therefore never sees question N-1's ingested turns. The episode
 session history is re-ingested per question into the fresh
@@ -61,7 +61,7 @@ _REPO_ROOT = Path(__file__).resolve().parent.parent
 if str(_REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(_REPO_ROOT))
 
-from memwire import Memory, MemoryType  # noqa: E402
+from memorywire import Memory, MemoryType  # noqa: E402
 from scripts.lib.eval_common import (  # noqa: E402
     EvalConfig,
     GraderProtocol,
@@ -506,7 +506,7 @@ def _pair_scores(
 
 def _format_text(result: LoCoMoResult) -> str:
     lines: list[str] = []
-    lines.append("memwire LoCoMo harness")
+    lines.append("memorywire LoCoMo harness")
     lines.append("=" * 76)
     lines.append(f"  dataset            : {result.dataset}")
     lines.append(f"  episodes           : {result.n_episodes}")
@@ -570,7 +570,7 @@ def _try_plot(result: LoCoMoResult, plot_path: Path) -> str | None:
         ax.set_xticklabels(conditions, rotation=20, ha="right")
         ax.set_ylim(0, 1.05)
         ax.set_ylabel("score (mean)")
-        ax.set_title("memwire LoCoMo â€” overall means")
+        ax.set_title("memorywire LoCoMo â€” overall means")
         ax.grid(True, axis="y", alpha=0.3)
         ax.legend(loc="best")
         fig.tight_layout()
@@ -725,7 +725,7 @@ async def _run(args: argparse.Namespace) -> LoCoMoResult:
         summary["condition"] = cond_label
         per_condition.append(summary)
 
-    # Comparisons: memwire variant vs baseline (first store), on both metrics.
+    # Comparisons: memorywire variant vs baseline (first store), on both metrics.
     comparisons: list[dict[str, Any]] = []
     if len(per_condition) >= 2:
         baseline = per_condition[0]["condition"]
@@ -791,13 +791,13 @@ async def _run(args: argparse.Namespace) -> LoCoMoResult:
 def _build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(
         prog="run_locomo",
-        description="memwire LoCoMo harness (paper Â§5 long-conversation numbers).",
+        description="memorywire LoCoMo harness (paper Â§5 long-conversation numbers).",
     )
     p.add_argument(
         "--stores",
         type=str,
         default="sqlite-vec://./locomo.db",
-        help="Comma-separated memwire store URLs.",
+        help="Comma-separated memorywire store URLs.",
     )
     p.add_argument("--seeds", type=int, default=5, help="Number of seeds (default: 5).")
     p.add_argument(

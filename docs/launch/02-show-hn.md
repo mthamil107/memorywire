@@ -13,7 +13,7 @@ repo link in the first comment.
 ## Title (80-char limit)
 
 ```
-Show HN: memwire â€“ a vendor-neutral wire format for agent memory operations
+Show HN: memorywire â€“ a vendor-neutral wire format for agent memory operations
 ```
 
 (74 chars; fits.)
@@ -39,7 +39,7 @@ Hi HN â€” author here.
 The pitch in one line: every agent-memory framework today (mem0,
 Letta, Cognee, Zep, MemoryOS) stores memories in its own format,
 and none of them ship a governance surface that lets a human
-review writes before they enter long-term storage. memwire is the
+review writes before they enter long-term storage. memorywire is the
 layer above them â€” five operations (remember, recall, forget,
 merge, expire), four memory types (semantic, episodic,
 procedural, emotional), a memory router that fuses results
@@ -72,7 +72,7 @@ Injection Detection) â€” same threat-class lens, applied to
 memory-side injection rather than prompt-side.
 
 Repo (Apache-2.0 for the protocol, FSL for the governance UI):
-https://github.com/mthamil107/memwire
+https://github.com/mthamil107/memorywire
 
 Honest about what's not there: full 5-seed Ã— 200-question
 LongMemEval / LoCoMo runs are deferred to a v2 replacement on
@@ -84,13 +84,13 @@ hours wall time. The harness exists; the wall time doesn't.
 Happy to answer questions about the protocol design, the
 conformance suite results (especially the 12 SKIP cells which
 are v0.2 spec-tightening signals), the threat model, or how
-memwire composes with MCP.
+memorywire composes with MCP.
 
 Naming note: there is a prior project called AMP at
 github.com/akshayaggarwal99/amp (an MCP-native memory server
 with visualizations). This is a different shape â€” a
 vendor-neutral wire format and spec + 5 backend adapters.
-Renamed to `memwire` before launch to avoid confusion. See
+Renamed to `memorywire` before launch to avoid confusion. See
 docs/PRIOR-WORK.md for the long version.
 ```
 
