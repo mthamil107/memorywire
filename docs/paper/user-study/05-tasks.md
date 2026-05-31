@@ -1,4 +1,4 @@
-# Tasks — the five governance-UI scenarios
+# Tasks â€” the five governance-UI scenarios
 
 > All tasks run against the seeded demo database produced by
 > `docs/demos/seed_demo_db.py`. That seed creates:
@@ -6,7 +6,7 @@
 > - `agent_id = customer-bot`, `user_id = alice@acme.com`
 > - 2 **approved** semantic memories about Alice (order history,
 >   plan tier).
-> - 2 **pending** memories — one semantic (Alice prefers email over
+> - 2 **pending** memories â€” one semantic (Alice prefers email over
 >   phone), one episodic (Alice reported a billing issue with order
 >   #7821 on 2026-05-27).
 > - 1 historical audit-log row (a prior approval from 2 hours
@@ -24,7 +24,7 @@
 
 **Task ID:** T1
 **Time budget:** 3 min
-**Difficulty:** Low — designed as a warm-up so the participant gets
+**Difficulty:** Low â€” designed as a warm-up so the participant gets
 familiar with the screen mechanics before higher-stakes tasks.
 
 ### Setup
@@ -66,7 +66,7 @@ as "soft-success" with the reasoning verbatim in notes.)
 
 **Task ID:** T2
 **Time budget:** 3 min
-**Difficulty:** Medium — the diff must be **read carefully** for the
+**Difficulty:** Medium â€” the diff must be **read carefully** for the
 participant to notice the contradiction.
 
 ### Setup
@@ -80,10 +80,10 @@ content is: "Alice's plan tier is Free." Same `entity_name`,
 Add this row by running, from the repo root:
 
 ```python
-# Augmentation snippet for T2 — copy demo-ui.db first, then run
+# Augmentation snippet for T2 â€” copy demo-ui.db first, then run
 import asyncio
-from amp.models import MemoryType, RememberRequest
-from amp.store.sqlite_vec import SqliteVecStore
+from memwire.models import MemoryType, RememberRequest
+from memwire.store.sqlite_vec import SqliteVecStore
 
 async def main():
     store = SqliteVecStore(db_path="docs/demos/demo-ui-T2.db",
@@ -135,11 +135,11 @@ different row, counts as failure for this task.
 
 ---
 
-## T3. Bulk co-memorize — review 5 forget candidates
+## T3. Bulk co-memorize â€” review 5 forget candidates
 
 **Task ID:** T3
 **Time budget:** 3 min
-**Difficulty:** Medium-high — requires reading 5 rows and making
+**Difficulty:** Medium-high â€” requires reading 5 rows and making
 distinct decisions per row.
 
 ### Setup
@@ -149,7 +149,7 @@ After the base seed, insert 5 additional **approved** memories under
 and 180 days ago, that the co-memorize panel will flag as forget
 candidates. Specifically: 2 obviously stale ("Alice was traveling on
 2025-12-03"), 2 stale-but-borderline ("Alice's preferred timezone is
-PST" — still plausibly relevant), and 1 not actually stale ("Alice's
+PST" â€” still plausibly relevant), and 1 not actually stale ("Alice's
 account-tier upgrade date is 2026-04-12"). The co-memorize panel ranks
 these by staleness score; the task is to disagree with the panel on at
 least one row.
@@ -176,7 +176,7 @@ borderline ones.
 ### Success criterion
 
 Participant **makes a deliberate per-row decision for all 5 rows**
-within the time budget (action taken or explicit "keep" — not just
+within the time budget (action taken or explicit "keep" â€” not just
 scrolling past). The PI does not pre-define a "correct" answer for
 this task; the signal is decision quality, captured via think-aloud.
 
@@ -190,11 +190,11 @@ this task; the signal is decision quality, captured via think-aloud.
 
 ---
 
-## T4. Audit-log triage — find when a specific memory was last modified
+## T4. Audit-log triage â€” find when a specific memory was last modified
 
 **Task ID:** T4
 **Time budget:** 3 min
-**Difficulty:** Medium — tests the audit log's filtering / search
+**Difficulty:** Medium â€” tests the audit log's filtering / search
 discoverability.
 
 ### Setup
@@ -245,11 +245,11 @@ the 2-hours-ago approval row instead counts as partial success.
 
 ---
 
-## T5. Approval-pattern recommendation — accept or decline an auto-allow
+## T5. Approval-pattern recommendation â€” accept or decline an auto-allow
 
 **Task ID:** T5
 **Time budget:** 3 min
-**Difficulty:** High — requires understanding the implications of
+**Difficulty:** High â€” requires understanding the implications of
 delegating future approvals to an automated rule.
 
 ### Setup
@@ -296,8 +296,8 @@ auto-allow have a kill-switch? Then makes a decision.
 ### Success criterion
 
 Participant **makes a deliberate decision** (accept or decline) and
-articulates a reason that engages with the trade-off — sample size,
-revocability, future risk — within the time budget. Either decision
+articulates a reason that engages with the trade-off â€” sample size,
+revocability, future risk â€” within the time budget. Either decision
 is acceptable. Failure looks like clicking "accept" with no thought,
 or wandering away from the panel without deciding.
 
@@ -313,18 +313,18 @@ or wandering away from the panel without deciding.
 
 ## Task ordering
 
-The fixed order is **T1 → T2 → T3 → T4 → T5**, increasing in
-difficulty. We do not counterbalance — at n = 15 the statistical
+The fixed order is **T1 â†’ T2 â†’ T3 â†’ T4 â†’ T5**, increasing in
+difficulty. We do not counterbalance â€” at n = 15 the statistical
 benefit of counterbalancing is outweighed by the cost in researcher
 overhead and the loss of the "first impression on T1" warm-up signal.
-This is a limitation noted in §5.5.5 (threats to validity).
+This is a limitation noted in Â§5.5.5 (threats to validity).
 
 ---
 
-## What can be lifted directly into §5.5.1 of the paper
+## What can be lifted directly into Â§5.5.1 of the paper
 
 The "Setup", "Task statement", "Success criterion", and "Signal
 collected" subsections of each task are deliberately written in a
-form that can be lifted verbatim — minus the researcher's notes — into
+form that can be lifted verbatim â€” minus the researcher's notes â€” into
 the paper's method section. The total task copy is ~600 words,
 appropriate for a single subsection.

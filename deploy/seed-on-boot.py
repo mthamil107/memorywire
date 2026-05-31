@@ -3,12 +3,12 @@
 
 Responsibilities
 ----------------
-1. Resolve the target DB path from ``AMP_UI_DB_PATH``.
+1. Resolve the target DB path from ``MEMWIRE_UI_DB_PATH``.
 2. If the file is missing OR the ``memories`` table has no rows for the
    demo agent, seed it with 2 pending approvals + 2 approved memories
    + an audit-log row, mirroring the recipe in
    ``docs/demos/seed_demo_db.py``.
-3. ``exec`` into ``python -m amp_ui`` so PID 1 becomes uvicorn and Fly.io's
+3. ``exec`` into ``python -m memwire_ui`` so PID 1 becomes uvicorn and Fly.io's
    SIGTERM propagates cleanly to it.
 
 This script is wired in as the Dockerfile ``CMD`` rather than the real
@@ -29,12 +29,12 @@ import sys
 import time
 from pathlib import Path
 
-# The amp_ui package is installed in the venv; the protocol package is
+# The memwire_ui package is installed in the venv; the protocol package is
 # too. No sys.path munging needed in the container.
-from amp.models import MemoryType, RememberRequest
-from amp.store.sqlite_vec import SqliteVecStore
+from memwire.models import MemoryType, RememberRequest
+from memwire.store.sqlite_vec import SqliteVecStore
 
-AGENT_ID = os.environ.get("AMP_UI_AGENT_ID", "demo-agent")
+AGENT_ID = os.environ.get("MEMWIRE_UI_AGENT_ID", "demo-agent")
 USER_ID = "alice@acme.com"
 
 
@@ -63,8 +63,8 @@ def _fake_embedder(text: str) -> list[float]:
 
     sha256 yields 32 bytes; repeating it 12x gives 384 bytes; we
     truncate to exactly 384 and rescale to [0, 1]. The values aren't
-    semantically meaningful — the demo UI shows static seeded content
-    so no real recall scoring happens against these vectors — but the
+    semantically meaningful â€” the demo UI shows static seeded content
+    so no real recall scoring happens against these vectors â€” but the
     *dimensionality* is load-bearing.
     """
     import hashlib
@@ -77,7 +77,7 @@ def _fake_embedder(text: str) -> list[float]:
 def _already_seeded(db_path: Path) -> bool:
     """Return True if the demo agent already has memories in this DB.
 
-    We treat "any row for this agent_id" as the signal — fresh volumes
+    We treat "any row for this agent_id" as the signal â€” fresh volumes
     start empty, restarted volumes carry forward whatever the previous
     instance accumulated.
     """
@@ -95,7 +95,7 @@ def _already_seeded(db_path: Path) -> bool:
                 (AGENT_ID,),
             ).fetchone()
         except sqlite3.OperationalError:
-            # Table not created yet — ensure_schema() will run after we
+            # Table not created yet â€” ensure_schema() will run after we
             # construct the store below.
             return False
         return bool(row and int(row[0]) > 0)
@@ -107,7 +107,7 @@ async def _seed(db_path: Path) -> None:
     """Write the demo fixture into ``db_path``. Caller guarantees emptiness."""
     db_path.parent.mkdir(parents=True, exist_ok=True)
 
-    # Do NOT override `embedding_dim` — let it default to 384 so the
+    # Do NOT override `embedding_dim` â€” let it default to 384 so the
     # virtual table schema matches what the real UI (sentence-
     # transformers default) will later write. The fake embedder above
     # produces 384-d vectors so this seeder's writes succeed against
@@ -270,9 +270,9 @@ def _backfill_audit_rows(db_path: Path) -> None:
 
 
 def main() -> None:
-    raw_path = os.environ.get("AMP_UI_DB_PATH")
+    raw_path = os.environ.get("MEMWIRE_UI_DB_PATH")
     if not raw_path:
-        _log("fatal", reason="AMP_UI_DB_PATH not set")
+        _log("fatal", reason="MEMWIRE_UI_DB_PATH not set")
         sys.exit(1)
     db_path = Path(raw_path)
 
@@ -284,18 +284,18 @@ def main() -> None:
             asyncio.run(_seed(db_path))
         except Exception as exc:
             # Broad except is intentional: this is a boot shim and must
-            # not crash the container — fall through to the UI even if
+            # not crash the container â€” fall through to the UI even if
             # seeding hits a transient SQLite or sqlite-vec import error.
             _log("seed.error", error=str(exc))
-            # Fall through to the UI anyway — ensure_schema() will still
+            # Fall through to the UI anyway â€” ensure_schema() will still
             # create the OSS tables, the demo just won't have fixture rows.
         else:
             _log("seed.done", path=str(db_path), agent_id=AGENT_ID)
 
     # Hand off to the real entrypoint. execvp replaces this process so
     # uvicorn becomes PID 1 and receives Fly's SIGTERM directly.
-    _log("exec", argv="python -m amp_ui")
-    os.execvp(sys.executable, [sys.executable, "-m", "amp_ui"])
+    _log("exec", argv="python -m memwire_ui")
+    os.execvp(sys.executable, [sys.executable, "-m", "memwire_ui"])
 
 
 if __name__ == "__main__":

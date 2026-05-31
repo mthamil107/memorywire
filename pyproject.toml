@@ -3,17 +3,17 @@ requires = ["hatchling>=1.27", "hatch-vcs>=0.4"]
 build-backend = "hatchling.build"
 
 [project]
-name = "agent-memory-protocol"
-description = "Vendor-neutral protocol and reference implementation for agent memory operations"
+name = "memwire"
+description = "A vendor-neutral wire format for agent memory operations"
 readme = "README.md"
 license = "Apache-2.0"
 license-files = ["LICENSE", "NOTICE"]
 requires-python = ">=3.11"
 dynamic = ["version"]
 authors = [
-  { name = "AMP contributors" },
+  { name = "memwire contributors" },
 ]
-keywords = ["agent", "memory", "protocol", "llm", "mcp", "rag", "vector", "knowledge-graph"]
+keywords = ["agent", "memory", "wire-format", "llm", "mcp", "rag", "vector", "knowledge-graph"]
 classifiers = [
   "Development Status :: 3 - Alpha",
   "Intended Audience :: Developers",
@@ -43,25 +43,25 @@ cognee     = ["cognee>=1.1"]
 postgres   = ["asyncpg>=0.29", "pgvector>=0.3"]
 ui         = ["starlette>=0.37", "uvicorn>=0.30", "jinja2>=3.1", "python-multipart>=0.0.9"]
 all        = [
-  "agent-memory-protocol[sqlite-vec,mem0,letta,cognee,postgres,ui]",
+  "memwire[sqlite-vec,mem0,letta,cognee,postgres,ui]",
 ]
 
 [project.scripts]
-amp = "amp.cli:main"
+memwire = "memwire.cli:main"
 
 [project.urls]
-Homepage      = "https://github.com/mthamil107/agent-memory-protocol"
-Documentation = "https://github.com/mthamil107/agent-memory-protocol/tree/main/docs"
-Repository    = "https://github.com/mthamil107/agent-memory-protocol"
-Issues        = "https://github.com/mthamil107/agent-memory-protocol/issues"
-Changelog     = "https://github.com/mthamil107/agent-memory-protocol/blob/main/CHANGELOG.md"
+Homepage      = "https://github.com/mthamil107/memwire"
+Documentation = "https://github.com/mthamil107/memwire/tree/main/docs"
+Repository    = "https://github.com/mthamil107/memwire"
+Issues        = "https://github.com/mthamil107/memwire/issues"
+Changelog     = "https://github.com/mthamil107/memwire/blob/main/CHANGELOG.md"
 
 [tool.hatch.version]
 source = "vcs"
 fallback-version = "0.0.0.dev0"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/amp"]
+packages = ["src/memwire"]
 
 [tool.hatch.build.targets.sdist]
 include = [
@@ -132,7 +132,7 @@ module = ["sqlite_vec.*", "mem0.*", "letta_client.*", "transitions.*", "sentence
 ignore_missing_imports = true
 
 [tool.coverage.run]
-source = ["src/amp"]
+source = ["src/memwire"]
 branch = true
 
 [tool.coverage.report]

@@ -1,4 +1,4 @@
-# Study protocol — researcher session script
+# Study protocol â€” researcher session script
 
 > The researcher reads or paraphrases this script for every session.
 > Italicised text is direction for the researcher (do not read aloud);
@@ -16,7 +16,7 @@
    `docs/demos/demo-ui.db` with 2 approved memories + 2 pending memories
    under `agent_id=customer-bot`, plus one historical audit-log row.
 2. Start the governance UI pointed at that DB:
-   `AMP_UI_DB_PATH=docs/demos/demo-ui.db .venv/Scripts/python.exe -m amp_ui`.
+   `MEMWIRE_UI_DB_PATH=docs/demos/demo-ui.db .venv/Scripts/python.exe -m amp_ui`.
 3. Open the UI in a fresh browser window. Confirm `/`, `/audit`,
    `/co-memorize`, `/patterns`, and `/health-dashboard` all render.
 4. Open the pre-study survey response for this participant; have
@@ -33,7 +33,7 @@
 
 > Hi `[participant first name]`, thank you for joining. I'm
 > `[PI name]`, and as the recruitment email mentioned I'm the author
-> of the project we're going to be looking at — please don't hold
+> of the project we're going to be looking at â€” please don't hold
 > back on critical feedback, that's exactly what I'm here for.
 >
 > Today's session will take about 40 minutes. We'll start with a
@@ -51,17 +51,17 @@ questions after each.*
 
 > Do you consent to participate, and to being recorded?
 
-*If yes — start Zoom recording, ask participant to type "I consent"
+*If yes â€” start Zoom recording, ask participant to type "I consent"
 in the chat. Note the participant code and timestamp in your notes.*
 
-*If no to recording — proceed without recording; take written notes
+*If no to recording â€” proceed without recording; take written notes
 only.*
 
 ---
 
 ## 1. Pre-study survey verification (0:03 - 0:08, 5 min)
 
-> You filled out a short survey before the session — I want to make
+> You filled out a short survey before the session â€” I want to make
 > sure I have your answers right. `[Confirm key answers verbally;
 > ask Q7 (job role) and Q8 (years with LLMs/RAG) again if responses
 > were terse.]`
@@ -77,8 +77,8 @@ done.*
 > Let me give you a quick tour of the interface before we start the
 > tasks. *Share the UI screen.*
 >
-> This is the AMP governance UI. The context is: there's an AI agent
-> running somewhere — let's call it a customer-support bot — and
+> This is the memwire governance UI. The context is: there's an AI agent
+> running somewhere â€” let's call it a customer-support bot â€” and
 > every time it wants to write something to its memory store, the
 > write can be flagged as "needs human approval." When that happens,
 > the write shows up here, in this Pending Approvals queue. *Point at
@@ -97,16 +97,16 @@ done.*
 > decisions; and health dashboard, which is meta-statistics on memory
 > staleness and contradictions.
 >
-> The data you'll see is fictional — a seeded demo database
+> The data you'll see is fictional â€” a seeded demo database
 > simulating a customer-service bot. Nothing you do here affects any
 > real system.
 
 *Ask: "Any questions about the interface before we start the tasks?"*
 
-> One more thing: I'd like you to **think aloud** while you work —
+> One more thing: I'd like you to **think aloud** while you work â€”
 > talk through what you're looking at, what you're considering,
 > what's confusing, what makes sense. It feels weird at first but
-> after the first task it's normal. There are no wrong answers —
+> after the first task it's normal. There are no wrong answers â€”
 > I'm evaluating the interface, not you.
 
 ---
@@ -123,15 +123,15 @@ done.*
    for more than ~15 seconds, or to reassure them if they get stuck.
    If a task hits the 3-minute soft cut-off and the participant is
    still stuck, ask: "How would you like to proceed if I told you we
-   had to move on — would you give up, or guess?" Record the response
+   had to move on â€” would you give up, or guess?" Record the response
    as the outcome.*
 5. *Stop the timer when the participant says "done" or hits the
    success criterion in `05-tasks.md`.*
 6. *In your notes, record: time elapsed, success y/n, what they got
    stuck on, any quote worth keeping verbatim.*
 
-Per-task timing budget: ~3 minutes each. Five tasks × 3 min = 15 min.
-If a task ends quickly, do not "pad" — proceed to the next one.
+Per-task timing budget: ~3 minutes each. Five tasks Ã— 3 min = 15 min.
+If a task ends quickly, do not "pad" â€” proceed to the next one.
 
 ---
 
@@ -144,7 +144,7 @@ If a task ends quickly, do not "pad" — proceed to the next one.
 
 *Share the NASA-TLX form (`06-nasa-tlx.md`). The participant fills it
 out on screen-share. The pairwise weighting (15 comparisons) is also
-done verbally — read each pair, the participant says which contributed
+done verbally â€” read each pair, the participant says which contributed
 more to workload.*
 
 *If the participant prefers, send the form via Google Forms link and
@@ -159,7 +159,7 @@ call.*
 
 *Share `07-post-task-survey.md`. Read each item; record the Likert
 response. Allow the participant to elaborate on the two open-ended
-questions at the end — these are the highest-signal moments of the
+questions at the end â€” these are the highest-signal moments of the
 session.*
 
 ---

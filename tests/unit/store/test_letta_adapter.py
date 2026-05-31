@@ -1,9 +1,9 @@
-"""Unit tests for :class:`amp.store.letta_adapter.LettaStore`.
+"""Unit tests for :class:`memwire.store.letta_adapter.LettaStore`.
 
 These tests use :class:`unittest.mock.MagicMock` to stand in for the real
-``letta_client.Letta`` client — the Letta SDK is never touched. The goal
-is to prove the adapter translates AMP requests into the right Letta
-calls and maps the mocked responses back into the AMP response models.
+``letta_client.Letta`` client â€” the Letta SDK is never touched. The goal
+is to prove the adapter translates memwire requests into the right Letta
+calls and maps the mocked responses back into the memwire response models.
 
 Integration tests that exercise the real SDK live under
 ``tests/integration/store/test_letta_adapter.py`` and are gated by
@@ -20,7 +20,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from amp.models import (
+from memwire.models import (
     ExpireAction,
     ExpirePolicy,
     ExpireRequest,
@@ -31,8 +31,8 @@ from amp.models import (
     RecallRequest,
     RememberRequest,
 )
-from amp.store import Capability, MemoryStore
-from amp.store.letta_adapter import LettaStore
+from memwire.store import Capability, MemoryStore
+from memwire.store.letta_adapter import LettaStore
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -119,7 +119,7 @@ def test_capabilities_set_matches_spec() -> None:
 
 
 async def test_remember_calls_passages_create_with_encoded_tags() -> None:
-    """``remember`` encodes AMP overlay fields onto Letta's tag list."""
+    """``remember`` encodes memwire overlay fields onto Letta's tag list."""
     client = _make_client()
     client.agents.passages.create.return_value = [
         {"id": "p-1", "text": "Alice prefers email", "tags": []}
@@ -155,7 +155,7 @@ async def test_remember_calls_passages_create_with_encoded_tags() -> None:
 
 
 async def test_remember_with_approval_required_skips_client() -> None:
-    """``approval_required=True`` short-circuits — no Letta call, ``pending_approval``."""
+    """``approval_required=True`` short-circuits â€” no Letta call, ``pending_approval``."""
     client = _make_client()
     store = LettaStore(client=client, agent_id="ag-A")
 
@@ -326,7 +326,7 @@ async def test_forget_by_ids_calls_delete_for_each() -> None:
 
 
 async def test_forget_without_ids_or_filter_raises() -> None:
-    """No-scope mass-delete protection (spec §3.3): must raise ``ValueError``."""
+    """No-scope mass-delete protection (spec Â§3.3): must raise ``ValueError``."""
     store = LettaStore(client=_make_client(), agent_id="ag-A")
     with pytest.raises(ValueError, match=r"ids.*filter"):
         await store.forget(ForgetRequest(agent_id="agent-a"))
@@ -477,7 +477,7 @@ async def test_expire_older_than_days_forget_deletes_matches() -> None:
 
 
 async def test_expire_no_recall_in_days_unsupported() -> None:
-    """``no_recall_in_days`` MUST raise — Letta lacks last-recalled-at tracking."""
+    """``no_recall_in_days`` MUST raise â€” Letta lacks last-recalled-at tracking."""
     store = LettaStore(client=_make_client(), agent_id="ag-A")
     with pytest.raises(ValueError, match="no_recall_in_days"):
         await store.expire(

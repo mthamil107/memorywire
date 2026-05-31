@@ -1,17 +1,17 @@
-# AMP v0 — Schema authoring notes
+﻿# memwire v0 Ã¢â‚¬â€ Schema authoring notes
 
 This file records the judgment calls made while transcribing
-`docs/kickoff/AMP-SPEC-v0.md` into JSON Schema files under
-`src/amp/schemas/`. It is intended for the spec maintainers; it is not
+`docs/kickoff/memwire-SPEC-v0.md` into JSON Schema files under
+`src/memwire/schemas/`. It is intended for the spec maintainers; it is not
 itself normative.
 
 ## Conventions
 
 - All schemas declare Draft 2020-12 via `$schema`.
-- `$id` follows the pattern `https://amp.dev/schemas/v0/<directory>/<name>`
+- `$id` follows the pattern `https://memwire.dev/schemas/v0/<directory>/<name>`
   where `<directory>` is `operations` or `types`, e.g.
-  `https://amp.dev/schemas/v0/operations/remember` or
-  `https://amp.dev/schemas/v0/types/episodic`. Response schemas use the
+  `https://memwire.dev/schemas/v0/operations/remember` or
+  `https://memwire.dev/schemas/v0/types/episodic`. Response schemas use the
   same convention with a `.response` suffix in the trailing path segment
   (e.g. `operations/remember.response`).
 - Field names are transcribed verbatim from the spec doc. Where the spec
@@ -22,7 +22,7 @@ itself normative.
 
 ## Request schemas (operations)
 
-Direct verbatim transcriptions from spec sections 3.1–3.5. No semantic
+Direct verbatim transcriptions from spec sections 3.1Ã¢â‚¬â€œ3.5. No semantic
 changes. Only additions are the meta keys (`$schema`, `$id`, `title`,
 `description`) required by the deliverable contract; field shapes and
 defaults match the spec exactly.
@@ -48,7 +48,7 @@ schemas that include the common fields `id`, `agent_id`, `user_id`,
 - **`semantic`.** No extra fields beyond the common set; the spec
   example is a plain string fact.
 - **`episodic` (event-time / location).** Added `event_time` (epoch ms
-  when the event actually happened — distinct from `created_at`, which
+  when the event actually happened Ã¢â‚¬â€ distinct from `created_at`, which
   is when the record was written), `location` (free-form string), and
   `participants` (array of identifiers). All optional. These names are
   not pinned in the spec doc; flagged below as a follow-up.
@@ -56,7 +56,7 @@ schemas that include the common fields `id`, `agent_id`, `user_id`,
   shape with required `name`, `initial`, `states`, `transitions`,
   `current`. `transitions[]` items require `trigger`, `source`, `dest`
   with `additionalProperties: true` so backends can carry pytransitions
-  extras (`before`, `after`, `conditions`, `unless`, …).
+  extras (`before`, `after`, `conditions`, `unless`, Ã¢â‚¬Â¦).
 - **`emotional` (sentiment/affect).** Added `sentiment`
   (`positive`/`negative`/`neutral`/`mixed`), `valence` (-1..1),
   `arousal` (0..1), `emotion` (free-form discrete label), and `target`.
@@ -68,7 +68,7 @@ schemas that include the common fields `id`, `agent_id`, `user_id`,
 Verbatim from the example object in section 3.1. `id`, `stored_at`,
 `stores`, `pending_approval` made required; `approval_url` is nullable
 because the example shows `null` when no approval is pending.
-`additionalProperties: false` — the spec example is a closed shape.
+`additionalProperties: false` Ã¢â‚¬â€ the spec example is a closed shape.
 
 ### `recall` response
 Verbatim from the example object in section 3.2. Required:
@@ -81,7 +81,7 @@ to keep room for backend-specific diagnostics.
 ### `forget` response (inferred)
 The spec doc does **not** define a response shape for `forget`. The
 section-3.3 text says "Soft delete marks `deleted_at` but retains the
-record … the audit log keeps the operation either way." Section 5 says
+record Ã¢â‚¬Â¦ the audit log keeps the operation either way." Section 5 says
 forget "fans out to all stores; aggregates per-store responses." From
 that I inferred a response with:
 
@@ -95,31 +95,31 @@ that I inferred a response with:
   parallel to `remember.response`, since section 6 lists `forget` as a
   governance-eligible operation.
 
-### `merge` / `expire` responses — deliberately omitted
+### `merge` / `expire` responses Ã¢â‚¬â€ deliberately omitted
 The deliverable lists response schemas only for `remember`, `recall`,
 `forget`. The spec doc does not provide example response shapes for
 `merge` or `expire`, so we leave those unspecified at v0 rather than
 guess. Adapters returning per-store result aggregates will conform once
 v0.x adds them.
 
-## Spec ambiguities / bugs noticed in `docs/kickoff/AMP-SPEC-v0.md`
+## Spec ambiguities / bugs noticed in `docs/kickoff/memwire-SPEC-v0.md`
 
 These were not modified (the kickoff doc is read-only for this phase);
 flagging only.
 
-1. **Operation request schemas in sections 3.2–3.5 omit `$schema`.**
+1. **Operation request schemas in sections 3.2Ã¢â‚¬â€œ3.5 omit `$schema`.**
    Only section 3.1's `remember` request schema declares
    `"$schema": "https://json-schema.org/draft/2020-12/schema"`. The other
    four operation request blocks declare `$id` but no `$schema`. The
    prose says "Schemas use JSON Schema Draft 2020-12" so the intent is
    clear, but the inline blocks are inconsistent. (Our authored files
    all declare `$schema`.)
-2. **Section 5 typo: "RRF" formula uses Σ but unbalanced parens are
+2. **Section 5 typo: "RRF" formula uses ÃŽÂ£ but unbalanced parens are
    fine; however the prose says "k=60" and then writes `60 + rank_i`
-   instead of `k + rank_i`.** Minor — the constant equals k — but the
+   instead of `k + rank_i`.** Minor Ã¢â‚¬â€ the constant equals k Ã¢â‚¬â€ but the
    variable name would aid reading.
 3. **Governance schema in section 6 references the request via
-   `"$ref": "https://amp.dev/schemas/v0/remember"`** but the operation
+   `"$ref": "https://memwire.dev/schemas/v0/remember"`** but the operation
    field is an enum including `forget` and `merge`. The `$ref` should
    probably be conditional on `operation` (oneOf / if-then-else) rather
    than hard-coded to `remember`.
@@ -131,11 +131,11 @@ flagging only.
    surface area.
 5. **Section 7 procedural example** uses `"source": "*"` as a wildcard
    in one transition. pytransitions accepts this, but it's not called
-   out in prose — adapters that re-validate transitions against the
+   out in prose Ã¢â‚¬â€ adapters that re-validate transitions against the
    `states` list need to special-case it. Our procedural schema accepts
    any non-empty string for `source` so this is permitted, but the spec
    should mention the wildcard convention.
 6. **Section 3.1 response example** is shown as a bare JSON object (no
    surrounding JSON Schema), unlike requests which are presented as
-   schemas. Sections 3.3–3.5 give no response example at all. This is
+   schemas. Sections 3.3Ã¢â‚¬â€œ3.5 give no response example at all. This is
    the gap that forced the inferred `forget.response.json` shape above.

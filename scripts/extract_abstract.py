@@ -1,11 +1,11 @@
-"""Extract the AMP paper abstract as plain text ready for the arXiv form."""
+"""Extract the memwire paper abstract as plain text ready for the arXiv form."""
 
 from __future__ import annotations
 
 import re
 from pathlib import Path
 
-TEX = Path(__file__).resolve().parents[1] / "docs" / "paper" / "arxiv-submission" / "amp-paper.tex"
+TEX = Path(__file__).resolve().parents[1] / "docs" / "paper" / "arxiv-submission" / "memwire-paper.tex"
 
 tex = TEX.read_text(encoding="utf-8")
 m = re.search(r"\\begin\{abstract\}(.+?)\\end\{abstract\}", tex, re.DOTALL)
@@ -22,7 +22,7 @@ clean = re.sub(r"\\Cref\{[^}]+\}", "the relevant section", clean)
 clean = re.sub(r"\\ref\{[^}]+\}", "", clean)
 clean = clean.replace(r"\&", "&").replace(r"\%", "%").replace(r"\#", "#").replace(r"\$", "$")
 clean = re.sub(r"\\\\", " ", clean)
-clean = clean.replace("---", "—").replace("--", "–")
+clean = clean.replace("---", "â€”").replace("--", "â€“")
 # Strip math-mode delimiters; arXiv's text field renders math as text.
 clean = re.sub(r"\$([^$]+)\$", r"\1", clean)
 # Replace common math symbols with plain-text equivalents.
@@ -38,7 +38,7 @@ clean = clean.replace(r"\times", "x")
 clean = re.sub(r"\s+", " ", clean).strip()
 
 print("=" * 72)
-print(" PASTE THIS INTO arXiv's 'Abstract' field — plain text ready")
+print(" PASTE THIS INTO arXiv's 'Abstract' field â€” plain text ready")
 print("=" * 72)
 print()
 print(clean)

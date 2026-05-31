@@ -1,4 +1,4 @@
-"""Integration test for :class:`amp.store.mem0_adapter.Mem0Store`.
+"""Integration test for :class:`memwire.store.mem0_adapter.Mem0Store`.
 
 This test exercises the **real** mem0 SDK end-to-end:
 
@@ -25,7 +25,7 @@ import uuid
 
 import pytest
 
-from amp.models import MemoryType, RecallRequest, RememberRequest
+from memwire.models import MemoryType, RecallRequest, RememberRequest
 
 
 @pytest.mark.integration
@@ -36,7 +36,7 @@ from amp.models import MemoryType, RecallRequest, RememberRequest
 async def test_remember_then_recall_against_real_mem0() -> None:
     """Round-trip one fact through a real ``Mem0Store``."""
     # Imported inside the test so collection works without mem0 installed.
-    from amp.store.mem0_adapter import Mem0Store
+    from memwire.store.mem0_adapter import Mem0Store
 
     store = Mem0Store()
     # Unique user id keeps integration runs from contaminating each other.

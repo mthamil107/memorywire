@@ -54,8 +54,8 @@ thread is a stronger signal than upvote count.
 ## Step 4 — file the adapter PRs upstream (Day 2-3)
 
 Per `docs/kickoff/PROJECT-PLAN.md` (week 4): file PRs into
-mem0, Letta, Cognee with the AMP-compatible adapter. Open as
-"Would you accept an AMP-compatible adapter?" issues first,
+mem0, Letta, Cognee with the memwire-compatible adapter. Open as
+"Would you accept a memwire-compatible adapter?" issues first,
 PRs second. This is the move that gets the maintainers'
 attention.
 

@@ -1,25 +1,25 @@
-# Fly.io app config for the AMP Governance UI hosted demo.
+# Fly.io app config for the memwire Governance UI hosted demo.
 #
 # One-time setup (run from the repository root):
 #
 #   fly launch --no-deploy --config deploy/fly.toml --copy-config
-#   fly volumes create amp_demo_data --region iad --size 1
+#   fly volumes create memwire_demo_data --region iad --size 1
 #   fly secrets set \
-#     AMP_UI_TOKEN=$(openssl rand -hex 32) \
-#     AMP_UI_CSRF_SECRET=$(python -c 'import secrets, base64; print(base64.b64encode(secrets.token_bytes(32)).decode())')
+#     MEMWIRE_UI_TOKEN=$(openssl rand -hex 32) \
+#     MEMWIRE_UI_CSRF_SECRET=$(python -c 'import secrets, base64; print(base64.b64encode(secrets.token_bytes(32)).decode())')
 #   fly deploy --config deploy/fly.toml
 #
-# AMP_UI_TOKEN — bearer token that gates write operations (approve / reject /
+# MEMWIRE_UI_TOKEN — bearer token that gates write operations (approve / reject /
 #   co-memorize apply / pattern accept). Anonymous visitors can still browse
-#   read-only pages. Rotate with `fly secrets set AMP_UI_TOKEN=...` followed
+#   read-only pages. Rotate with `fly secrets set MEMWIRE_UI_TOKEN=...` followed
 #   by `fly deploy` (rolling restart).
-# AMP_UI_CSRF_SECRET — base64(32 random bytes). Stable across restarts so
+# MEMWIRE_UI_CSRF_SECRET — base64(32 random bytes). Stable across restarts so
 #   browser sessions survive deploys. Rotating it logs every browser out.
 #
-# If `amp-governance-demo` is taken on Fly, rename the `app` field below
+# If `memwire-governance-demo` is taken on Fly, rename the `app` field below
 # (Fly app names are global) and update the README's `Try it live` link.
 
-app = "amp-governance-demo"
+app = "memwire-governance-demo"
 primary_region = "iad"  # IAD = Ashburn, VA — best for HN/Reddit US-East launch timing.
 
 [build]
@@ -45,15 +45,15 @@ primary_region = "iad"  # IAD = Ashburn, VA — best for HN/Reddit US-East launc
   cpus = 1
 
 [[mounts]]
-  source = "amp_demo_data"
+  source = "memwire_demo_data"
   destination = "/app/data"
   initial_size = "1gb"
 
 [env]
-  AMP_UI_AGENT_ID = "demo-agent"
-  AMP_UI_DB_PATH  = "/app/data/demo.db"
-  AMP_UI_HOST     = "0.0.0.0"
-  AMP_UI_PORT     = "8765"
+  MEMWIRE_UI_AGENT_ID = "demo-agent"
+  MEMWIRE_UI_DB_PATH  = "/app/data/demo.db"
+  MEMWIRE_UI_HOST     = "0.0.0.0"
+  MEMWIRE_UI_PORT     = "8765"
 
 [[restart]]
   policy = "on-failure"

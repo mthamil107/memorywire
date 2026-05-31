@@ -1,4 +1,4 @@
-"""AMP project scripts.
+"""memwire project scripts.
 
 This package marker exists so :mod:`scripts.lib.eval_common` resolves
 unambiguously under both mypy and the runtime ``sys.path`` trampoline

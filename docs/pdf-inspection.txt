@@ -1,0 +1,192 @@
+============================================================================
+FILE : C:\Users\THAMIL\Downloads\view.pdf
+SIZE : 686,593 bytes
+PAGES: 17
+  /Producer      : pdfTeX-1.40.28
+  /Author        : 
+  /Title         : 
+  /Subject       : 
+  /Creator       : LaTeX with hyperref
+  /Keywords      : 
+  /CreationDate  : D:20260529093259Z
+  /ModDate       : D:20260529093259Z
+  /Trapped       : /False
+  /PTEX.Fullbanner : This is pdfTeX, Version 3.141592653-2.6-1.40.28 (TeX Live 2025) kpathsea version 6.4.1
+============================================================================
+
+============================================================================
+ PAGE 1 (title + author + abstract)
+============================================================================
+AMP: A Vendor-Neutral Wire Format for Agent Memory Operations
+Thamilvendhan Munirathinam ∗
+Independent Researcher
+Repository:https://github.com/mthamil107/agent-memory-protocol
+Abstract
+Agent-memory frameworks — mem0, Let-
+ta/MemGPT, Cognee, Zep/Graphiti, MemoryOS,
+MemTensor — each ship their own SDK, storage
+layout, and operational vocabulary. There is no
+shared wire format: every integration is bespoke,
+every migration rebuilds memory from scratch, and
+no framework ships a governance surface that lets
+a human review writes before they enter long-term
+storage. We present the Agent Memory Protocol
+(AMP), a JSON-Schema 2020-12 wire format for
+five memory operations (remember, recall, forget,
+merge, expire) over four memory types (semantic,
+episodic, procedural, emotional), with aMemoryStore
+interface, a fan-out router, and an optional HITL
+governance channel. We describe an open-source
+reference implementation with five backend adapters
+(sqlite-vec, mem0, Letta, Cognee, pgvector); a
+microbenchmark on a 100-fact / 50-query labelled
+corpus achieving recall@5 = 1.000 on the 42 labelled
+queries with ingest p50 = 37.8ms and recall p50 =
+40.6ms; an adversarial-fusion experiment showing
+Reciprocal Rank Fusion holds recall@5 = 1.000 across
+a 1-of-N rank-0 injection sweep (K∈ { 0, 5, . . . ,50})
+where max fusion collapses to 0.500 with 80% leak at
+K≥ 5; and a 16-scenario cross-adapter conformance
+suite passing 68 of 80 cells with zero failures. The
+contribution is not a new algorithm; it is a packaging
+of established components (RRF, FSMs, STM/LTM
+consolidation, diff-and-approve workflows) into a
+venue-neutral protocol with an empirically validated
+reference, positioned to compose with the Model
+Context Protocol rather than compete with it.
+∗mthamil107@gmail.com
+1 Introduction
+1.1 Theproblem: islandedmemoryframe-
+works
+Agent runtimes that maintain memory across ses-
+sions are now a category. Open-source frameworks
+include mem0, Letta (formerly MemGPT), Cognee,
+Zep/Graphiti, MemoryOS, and MemTensor MemOS;
+closed commercial offerings include Oracle’s AI Agent
+Memory and the memory layers shipped inside major
+hosted-agent platforms. What the category has not
+produced is a shared wire format. Each framework
+defines its own SDK surface, JSON shape for memory
+records, embedding-provider integration, taxonomy
+(or absence of taxonomy) for memory types, and im-
+plicit lifecycle for record creation and deletion. The
+heterogeneity is non-trivial to bridge: mem0 stores
+records under amemories[] list keyed byuser_id
+with a heterogeneous created_at representation;
+Letta stores archival memory keyed byagent_id and
+exposes atags list as the only structured-metadata
+sink; Cognee mints internaldata_id UUIDs that are
+not surfaced through its publicadd API, making per-
+record deletion impossible from outside the pipeline;
+sqlite-vec stores tables keyed by a stable ULID-
+shaped string; pgvector exposes records through an
+application-chosen SQL schema. Re-platforming an
+agent from one framework to another therefore re-
+quires a bespoke migrator and field-level losses where
+the source framework encodes more state than the
+target’s data model holds.
+The same heterogeneity means there is no shared
+governancesurface. Each framework provides a write
+API and a read API; none mediate the write with a
+“diff against current state, present to a human, com-
+mit only on approval” workflow. The Co-memorize
+human-in-the-loop pattern, formalized in theGov-
+erned Memoryline of work [10], has no production
+implementation an off-the-shelf agent can drop in.
+Operators who want auditability over what enters
+1
+arXiv:submit/7649383  [cs.CR]  29 May 2026
+
+============================================================================
+ PAGE 2 (intro continued)
+============================================================================
+long-term memory must build it themselves and ac-
+cept that the framework can bypass them.
+This is the gap AMP addresses. It is not “we need
+a better retrieval algorithm” — the algorithms in the
+category (vector search, hybrid lexical-semantic RRF
+fusion, graph hop boosts, FSM-encoded procedures,
+STM/LTM consolidation) are well understood. It is
+“we need a shared protocol so any client can talk to
+any backend, any agent can carry its memory across
+runtimes, and any write can be diffed and approved.”
+Structurally it is the gap MCP closed fortool use,
+applied tomemory.
+1.2 Contributions
+This paper makes five contributions:
+• C1.A wire format for five memory operations over
+four memory types, expressed as JSON Schema
+2020-12 [4] (docs/spec/v0.md). The operations
+are remember, recall, forget, merge, expire;
+the types are semantic, episodic, procedural,
+emotional. The schemas are vendor-neutral,
+transport-agnostic, and explicitly versioned with a
+breaking-change policy through v0.5.
+• C2.A reference implementation in Python 3.11+
+with five production-backend adapters (sqlite-vec,
+mem0, Letta, Cognee, pgvector), all implementing
+a singleMemoryStore Protocol. The reference in-
+cludes a memory router that fans operations across
+N stores in parallel and fuses recall results via Re-
+ciprocal Rank Fusion (k = 60) [3] with an optional
+one-hop graph boost, plus a tolerant partial-failure
+model where a single rogue or unavailable backend
+cannot crash the operation.
+• C3.A governance UI imp
+
+============================================================================
+ LAST PAGE (references)
+============================================================================
+[5] Adyasha Maharana, Dong-Ho Lee, Sergey
+Tulyakov, Mohit Bansal, Francesco Barbieri, and
+Yuwei Fang. Evaluating very long-term conversa-
+tional memory of LLM agents (LoCoMo), 2024.
+[6] Thibault Meunier and Watson Ladd. Web bot
+authentication architecture. IETF Internet-Draft
+draft-meunier-web-bot-auth-architecture-05,
+March 2026. Revision 05, dated 2 March 2026.
+[7] Model Context Protocol working group. Model
+context protocol specification, version 2025-
+11-25. https://modelcontextprotocol.io/
+specification, 2025.
+[8] Charles Packer, Sarah Wooders, Kevin Lin, Vi-
+vian Fang, Shishir G. Patil, Ion Stoica, and
+Joseph E. Gonzalez. MemGPT: Towards LLMs
+as operating systems, 2023.
+[9] Larry R. Squire. Declarative and nondeclara-
+tive memory: Multiple brain systems supporting
+learning and memory.Journal of Cognitive Neu-
+roscience, 4(3):232–243, 1992.
+[10] Hamed Taheri. Governed memory: A production
+architecture for multi-agent workflows, 2026.
+[11] Endel Tulving. Episodic and semantic memory.
+In Endel Tulving and Wayne Donaldson, edi-
+tors,Organization of Memory, pages 381–402.
+Academic Press, New York, 1972.
+[12] Di Wu, Hongwei Wang, Wenhao Yu, Yuwei
+Zhang, Kai-Wei Chang, and Dong Yu. Long-
+MemEval: Benchmarking chat assistants on long-
+term interactive memory, 2024.
+17
+
+============================================================================
+ KEY-STRING SCAN
+============================================================================
+  [OK] Title: AMP wire format                  (present)
+  [OK] Author: Thamilvendhan                   (present)
+  [OK] Author: Munirathinam                    (present)
+  [OK] Affiliation: Independent                (present)
+  [OK] Email: mthamil107@gmail                 (present)
+  [OK] Repository URL                          (present)
+  [OK] Abstract opener                         (present)
+  [OK] Microbench number                       (present)
+  [OK] Adversarial number                      (present)
+  [OK] Conformance number                      (present)
+  [OK] Preliminary LME number                  (present)
+  [OK] Preliminary LoCoMo number               (present)
+  [OK] Threat model section                    (present)
+  [OK] MCP positioning                         (present)
+  [OK] References list                         (present)
+  [OK] Old name placeholder absent             (absent)
+
+Total extracted word count : 9,565

@@ -1,21 +1,21 @@
 """Adapter fixtures and parametrize plumbing for the conformance suite.
 
 Each ``build_store_for(adapter_id)`` helper returns a ready-to-use
-:class:`amp.store.MemoryStore` instance. For the real adapter
+:class:`memwire.store.MemoryStore` instance. For the real adapter
 (sqlite-vec) the store talks to an in-memory SQLite DB with a fake
 sha256-based embedder. For the four mocked adapters the helper builds
 a backend-shaped mock whose method side-effects keep the conformance
 predicates honest:
 
-* ``mem0`` — :class:`unittest.mock.MagicMock` that records every
+* ``mem0`` â€” :class:`unittest.mock.MagicMock` that records every
   ``add``/``search``/``delete``/``get_all`` call in an in-memory store
   dict; the side_effect lambdas filter by user_id / filter dict.
-* ``letta`` — same shape, mock surface
+* ``letta`` â€” same shape, mock surface
   ``client.agents.passages.{create,search,delete,list}``.
-* ``cognee`` — :class:`AsyncMock` for the module-level coroutines plus
-  a side_effect ``search`` that returns AMP-wrapped blobs from an
+* ``cognee`` â€” :class:`AsyncMock` for the module-level coroutines plus
+  a side_effect ``search`` that returns memwire-wrapped blobs from an
   in-memory dict.
-* ``pgvector`` — :class:`AsyncMock` for the asyncpg pool/connection,
+* ``pgvector`` â€” :class:`AsyncMock` for the asyncpg pool/connection,
   with ``fetch`` driven by an in-memory rowset.
 
 The mocks are deliberately simple (not pretending to be a full backend);
@@ -34,18 +34,18 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from amp.models import RememberRequest
-from amp.store.cognee_adapter import CogneeStore
-from amp.store.letta_adapter import LettaStore
-from amp.store.mem0_adapter import Mem0Store
-from amp.store.pgvector_adapter import DEFAULT_EMBEDDING_DIM, PgVectorStore
-from amp.store.sqlite_vec import SqliteVecStore
+from memwire.models import RememberRequest
+from memwire.store.cognee_adapter import CogneeStore
+from memwire.store.letta_adapter import LettaStore
+from memwire.store.mem0_adapter import Mem0Store
+from memwire.store.pgvector_adapter import DEFAULT_EMBEDDING_DIM, PgVectorStore
+from memwire.store.sqlite_vec import SqliteVecStore
 
 ADAPTER_IDS = ["sqlite-vec", "mem0", "letta", "cognee", "pgvector"]
 
 
 # ---------------------------------------------------------------------------
-# Fake embedder — deterministic, sha256-based, 384-dim. Mirrors the existing
+# Fake embedder â€” deterministic, sha256-based, 384-dim. Mirrors the existing
 # unit-test fake_embedder so behaviour stays consistent.
 # ---------------------------------------------------------------------------
 
@@ -71,7 +71,7 @@ def _backdate_from_metadata(req: RememberRequest) -> int | None:
 
 
 # ---------------------------------------------------------------------------
-# sqlite-vec — the REAL adapter.
+# sqlite-vec â€” the REAL adapter.
 # ---------------------------------------------------------------------------
 
 
@@ -101,7 +101,7 @@ def _build_sqlite_vec() -> SqliteVecStore:
 
 
 # ---------------------------------------------------------------------------
-# mem0 — MOCKED.
+# mem0 â€” MOCKED.
 # ---------------------------------------------------------------------------
 
 
@@ -148,7 +148,7 @@ def _build_mem0() -> Mem0Store:
                 continue
             if filters.get("agent_id") and rec.get("agent_id") != filters.get("agent_id"):
                 continue
-            # Soft 'relevance' — score by token overlap with the query.
+            # Soft 'relevance' â€” score by token overlap with the query.
             qtokens = {t for t in query.lower().split() if t}
             ctokens = {t for t in str(rec.get("memory") or "").lower().split() if t}
             overlap = len(qtokens & ctokens)
@@ -197,7 +197,7 @@ def _build_mem0() -> Mem0Store:
 
 
 # ---------------------------------------------------------------------------
-# letta — MOCKED.
+# letta â€” MOCKED.
 # ---------------------------------------------------------------------------
 
 
@@ -268,7 +268,7 @@ def _build_letta() -> LettaStore:
 
 
 # ---------------------------------------------------------------------------
-# cognee — MOCKED.
+# cognee â€” MOCKED.
 # ---------------------------------------------------------------------------
 
 
@@ -316,7 +316,7 @@ def _build_cognee() -> CogneeStore:
 
     async def search(query: str, **_kwargs: Any) -> list[dict[str, Any]]:
         # Score by token overlap on the *content* portion (after the
-        # AMP header), then surface as ResponseGraphEntry-shaped dicts.
+        # memwire header), then surface as ResponseGraphEntry-shaped dicts.
         qtokens = {t for t in str(query).lower().split() if t}
         scored: list[tuple[float, dict[str, Any]]] = []
         for blob in blobs:
@@ -358,7 +358,7 @@ def _build_cognee() -> CogneeStore:
 
 
 # ---------------------------------------------------------------------------
-# pgvector — MOCKED via AsyncMock.
+# pgvector â€” MOCKED via AsyncMock.
 # ---------------------------------------------------------------------------
 
 
@@ -378,14 +378,14 @@ def _build_pgvector() -> PgVectorStore:
 
     The mock parses each SQL statement just enough to dispatch
     INSERT/SELECT/UPDATE/DELETE against an in-memory list-of-dicts. It
-    does NOT speak full Postgres — just the AMP adapter's queries.
+    does NOT speak full Postgres â€” just the memwire adapter's queries.
     """
 
     table: list[dict[str, Any]] = []
 
     async def execute(sql: str, *args: Any) -> str:
         sql = sql.strip()
-        # We watch for the AMP adapter's known DDL/DML patterns.
+        # We watch for the memwire adapter's known DDL/DML patterns.
         if sql.upper().startswith("CREATE "):
             return "CREATE"
         if sql.upper().startswith("INSERT INTO ") and "memories(" in sql.lower():
@@ -561,7 +561,7 @@ def _build_pgvector() -> PgVectorStore:
                         out.append(r)
             return out
         if "select id, agent_id, user_id, type, content, metadata" in sql_l:
-            # The recall query — build a relevance-ranked rowset.
+            # The recall query â€” build a relevance-ranked rowset.
             agent_id = args[0]
             user_id = None
             type_list = None
@@ -584,7 +584,7 @@ def _build_pgvector() -> PgVectorStore:
             def _vec_distance(stored: str, query_vec: str) -> float:
                 # The vector literal is "[v1,v2,...]"; we only have a
                 # similarity proxy from the original text via the score
-                # field — but here we measure on the literal's tail
+                # field â€” but here we measure on the literal's tail
                 # which is unique per string.
                 shared = sum(
                     1 for a, b in zip(stored or "", query_vec or "", strict=False) if a == b
@@ -679,17 +679,17 @@ def build_store_for(adapter_id: str) -> Any:
 
 SKIP_OVERRIDES: dict[str, dict[str, str]] = {
     "mem0": {
-        # mem0's expire() does not enforce the spec §3.5 "empty policy
+        # mem0's expire() does not enforce the spec Â§3.5 "empty policy
         # raises" invariant. The sqlite-vec / pgvector adapters both
         # raise; mem0 / letta / cognee silently treat empty policies as
         # match-everything. This is a real spec divergence flagged for
-        # v0.2 tightening — see the brief's report (H) findings.
+        # v0.2 tightening â€” see the brief's report (H) findings.
         "expire_empty_policy_raises": (
-            "mem0 adapter does not enforce spec §3.5 empty-policy invariant — "
+            "mem0 adapter does not enforce spec Â§3.5 empty-policy invariant â€” "
             "spec-gap surfaced for v0.2 tightening"
         ),
         "expire_empty_policy_object_raises": (
-            "mem0 adapter does not enforce spec §3.5 empty-policy invariant — "
+            "mem0 adapter does not enforce spec Â§3.5 empty-policy invariant â€” "
             "spec-gap surfaced for v0.2 tightening"
         ),
         # mem0's expire path uses LLM-driven `get_all`; our mock doesn't
@@ -703,21 +703,21 @@ SKIP_OVERRIDES: dict[str, dict[str, str]] = {
         ),
     },
     "letta": {
-        # Letta scopes data by Letta agent_id only — it has no separate
-        # user_id namespace. AMP's user_id distinction is lost on the
-        # backend, so two AMP users targeting the same Letta agent share
+        # Letta scopes data by Letta agent_id only â€” it has no separate
+        # user_id namespace. memwire's user_id distinction is lost on the
+        # backend, so two memwire users targeting the same Letta agent share
         # passages. Documented spec-gap; the adapter's module docstring
         # already calls this out.
         "remember_recall_by_user_filter": (
-            "letta scopes data by agent_id only; AMP user_id is not honoured "
-            "as a separate dimension — see LettaStore module docstring"
+            "letta scopes data by agent_id only; memwire user_id is not honoured "
+            "as a separate dimension â€” see LettaStore module docstring"
         ),
         "expire_empty_policy_raises": (
-            "letta adapter does not enforce spec §3.5 empty-policy invariant — "
+            "letta adapter does not enforce spec Â§3.5 empty-policy invariant â€” "
             "spec-gap surfaced for v0.2 tightening"
         ),
         "expire_empty_policy_object_raises": (
-            "letta adapter does not enforce spec §3.5 empty-policy invariant — "
+            "letta adapter does not enforce spec Â§3.5 empty-policy invariant â€” "
             "spec-gap surfaced for v0.2 tightening"
         ),
     },
@@ -738,23 +738,23 @@ SKIP_OVERRIDES: dict[str, dict[str, str]] = {
             "requires data_id UUIDs; adapter-synthetic ids are no-op deletes"
         ),
         # Cognee, like Letta, has no user_id namespace separate from
-        # dataset; AMP's user_id distinction is lost on the backend.
+        # dataset; memwire's user_id distinction is lost on the backend.
         "remember_recall_by_user_filter": (
-            "cognee scopes data by dataset only; AMP user_id is not honoured "
-            "as a separate dimension — see CogneeStore module docstring"
+            "cognee scopes data by dataset only; memwire user_id is not honoured "
+            "as a separate dimension â€” see CogneeStore module docstring"
         ),
         "expire_empty_policy_raises": (
-            "cognee adapter does not enforce spec §3.5 empty-policy invariant — "
+            "cognee adapter does not enforce spec Â§3.5 empty-policy invariant â€” "
             "spec-gap surfaced for v0.2 tightening"
         ),
         "expire_empty_policy_object_raises": (
-            "cognee adapter does not enforce spec §3.5 empty-policy invariant — "
+            "cognee adapter does not enforce spec Â§3.5 empty-policy invariant â€” "
             "spec-gap surfaced for v0.2 tightening"
         ),
         # Cognee's expire(FORGET) calls module.forget(data_id=...) only
         # when the id is *not* an adapter-synthetic ``cog:`` id. Since
         # the adapter always mints ``cog:`` ids on write, expire-by-age
-        # is effectively a no-op against adapter-owned rows — same root
+        # is effectively a no-op against adapter-owned rows â€” same root
         # cause as forget_by_ids above.
         "expire_by_age": (
             "cognee expire(FORGET) skips adapter-synthetic cog: ids; same "

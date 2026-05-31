@@ -6,14 +6,14 @@ not benchmark"`` skips them. Opt in with ``pytest -m benchmark``.
 What this covers
 ----------------
 * :func:`scripts.lib.eval_common.paired_bootstrap_ci` on a known
-  effect-size dataset — verifies the CI is in the right ballpark and
+  effect-size dataset â€” verifies the CI is in the right ballpark and
   the p-value is small.
 * :func:`scripts.lib.eval_common.holm_bonferroni` on a textbook input
-  — verifies the rejection mask matches the algorithm definition.
+  â€” verifies the rejection mask matches the algorithm definition.
 * The ``run_longmemeval.py --dry-run`` CLI on a tiny synthetic subset
-  — verifies the full pipeline (dataset → AMP → grader → stats) wires
+  â€” verifies the full pipeline (dataset â†’ memwire â†’ grader â†’ stats) wires
   end-to-end and the script exits 0.
-* The :class:`LLMGrader` cache path — uses a mock OpenAI client so the
+* The :class:`LLMGrader` cache path â€” uses a mock OpenAI client so the
   test runs without an API key. Verifies the grader scores correctly
   and that cache hits skip the LLM call entirely.
 
@@ -69,7 +69,7 @@ def test_paired_bootstrap_smoke() -> None:
     assert abs(mean_a - mean_b - 0.2) < 1e-9, "constant +0.2 lift expected"
     # CI should bracket the true difference (0.2) tightly. With a
     # constant lift, the per-pair differences are zero-variance so the
-    # bootstrap CI collapses to 0.2 ± float-precision epsilon. Use an
+    # bootstrap CI collapses to 0.2 Â± float-precision epsilon. Use an
     # explicit epsilon rather than a strict <= because IEEE-754 noise
     # in the resample-sum / N can push both bounds slightly above 0.2.
     eps = 1e-9
@@ -83,14 +83,14 @@ def test_paired_bootstrap_smoke() -> None:
 
 
 def test_paired_bootstrap_no_effect() -> None:
-    """Identical inputs → CI brackets 0, p ≈ 1.0."""
+    """Identical inputs â†’ CI brackets 0, p â‰ˆ 1.0."""
     a = [0.4, 0.5, 0.6, 0.5, 0.4, 0.7, 0.6, 0.5, 0.55, 0.45]
     b = list(a)
     mean_a, mean_b, ci_low, ci_high, p = paired_bootstrap_ci(a, b, n_resamples=2000, seed=42)
     assert mean_a == mean_b
     assert ci_low == 0.0 and ci_high == 0.0
     # With zero diffs, every resample has mean 0, both counts are
-    # n_resamples, p = 2 * min / n = 2.0 → clamped to 1.0.
+    # n_resamples, p = 2 * min / n = 2.0 â†’ clamped to 1.0.
     assert p == pytest.approx(1.0)
 
 
@@ -108,8 +108,8 @@ def test_holm_bonferroni_smoke() -> None:
     p-values = [0.01, 0.02, 0.03, 0.5] at alpha=0.05, m=4:
       sorted: 0.01, 0.02, 0.03, 0.5
       thresholds: 0.05/4=0.0125, 0.05/3=0.0167, 0.05/2=0.025, 0.05/1=0.05
-      step 1: 0.01 <= 0.0125 → reject
-      step 2: 0.02 <= 0.0167 → False → STOP, all subsequent fail
+      step 1: 0.01 <= 0.0125 â†’ reject
+      step 2: 0.02 <= 0.0167 â†’ False â†’ STOP, all subsequent fail
     So only the smallest is rejected; the rest are not.
     """
     pvalues = [0.01, 0.02, 0.03, 0.5]
@@ -118,12 +118,12 @@ def test_holm_bonferroni_smoke() -> None:
 
 
 def test_holm_bonferroni_preserves_input_order() -> None:
-    """Out-of-order input → rejection mask still aligns by index."""
+    """Out-of-order input â†’ rejection mask still aligns by index."""
     pvalues = [0.5, 0.01, 0.03, 0.02]
     rejected = holm_bonferroni(pvalues, alpha=0.05)
     # Sorted view: index 1 (0.01), 3 (0.02), 2 (0.03), 0 (0.5).
-    # Step 1: 0.01 <= 0.05/4=0.0125 → reject (index 1).
-    # Step 2: 0.02 <= 0.05/3=0.0167 → False, stop.
+    # Step 1: 0.01 <= 0.05/4=0.0125 â†’ reject (index 1).
+    # Step 2: 0.02 <= 0.05/3=0.0167 â†’ False, stop.
     assert rejected == [False, True, False, False]
 
 
@@ -140,7 +140,7 @@ def test_eval_dry_run_longmemeval(tmp_path: Path) -> None:
     """``run_longmemeval.py --dry-run --n-queries 3`` exits 0 and writes JSON.
 
     The dry-run path uses the synthetic dataset and the no-op grader,
-    so it needs no API key and no sentence-transformers — fits CI.
+    so it needs no API key and no sentence-transformers â€” fits CI.
     """
     out_json = tmp_path / "lme-dry.json"
     result = subprocess.run(
@@ -241,7 +241,7 @@ def test_longmemeval_per_question_isolation(tmp_path: Path) -> None:
     row_q2 = next(r for r in rows if r.qid == "qid-002")
     # Question 2's recall surfaced its own ingest (fingerprint_q2). The
     # leak we're protecting against is question 1's fingerprint showing
-    # up in question 2's recall context — that would indicate the agent
+    # up in question 2's recall context â€” that would indicate the agent
     # scope did not isolate the two.
     assert fingerprint_q1 not in row_q2.candidate_answer, (
         f"cross-question leak detected: question 1's fingerprint "
@@ -347,7 +347,7 @@ def test_grader_mocks(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         cache_dir=tmp_path / "grader",
     )
     try:
-        # First call → API hit.
+        # First call â†’ API hit.
         score1 = grader.grade(
             question="What is the user's favorite color?",
             gold_answer="blue",
@@ -358,7 +358,7 @@ def test_grader_mocks(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         client = grader._ensure_client()
         assert client.chat.completions.calls == 1
 
-        # Second call with identical prompt → cache hit, no API call.
+        # Second call with identical prompt â†’ cache hit, no API call.
         score2 = grader.grade(
             question="What is the user's favorite color?",
             gold_answer="blue",
@@ -367,7 +367,7 @@ def test_grader_mocks(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         assert score2 == 1.0
         assert client.chat.completions.calls == 1, "cache should have prevented a second API call"
 
-        # Different prompt → API hit again.
+        # Different prompt â†’ API hit again.
         score3 = grader.grade(
             question="What is the user's favorite color?",
             gold_answer="blue",
@@ -376,7 +376,7 @@ def test_grader_mocks(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         assert score3 == 0.0
         assert client.chat.completions.calls == 2
 
-        # Different model → cache key changes → API hit.
+        # Different model â†’ cache key changes â†’ API hit.
         grader2 = LLMGrader(
             model="gpt-4o-mini",
             api_key="sk-test",
@@ -397,10 +397,10 @@ def test_grader_mocks(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
 
 
 def test_grader_parses_malformed_response(tmp_path: Path) -> None:
-    """A grader response that isn't valid JSON scores 0 — never crashes."""
+    """A grader response that isn't valid JSON scores 0 â€” never crashes."""
     from scripts.lib.eval_common import _parse_grader_response
 
-    # Total garbage → 0.0.
+    # Total garbage â†’ 0.0.
     score, raw = _parse_grader_response("not json at all")
     assert score == 0.0
     assert raw == "not json at all"
@@ -413,7 +413,7 @@ def test_grader_parses_malformed_response(tmp_path: Path) -> None:
     assert _parse_grader_response('{"score": 1.5}')[0] == 1.0
     assert _parse_grader_response('{"score": -0.3}')[0] == 0.0
 
-    # NaN scores → 0.0 (defensive).
+    # NaN scores â†’ 0.0 (defensive).
     score, _ = _parse_grader_response('{"score": "nope"}')
     assert score == 0.0
 

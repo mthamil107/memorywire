@@ -1,8 +1,8 @@
-"""Tests for :mod:`amp.transformer` — the STM↔LTM consolidator (Phase 5).
+"""Tests for :mod:`memwire.transformer` â€” the STMâ†”LTM consolidator (Phase 5).
 
 The transformer is an always-on async background task that promotes
 high-value short-term memory entries to long-term storage via a
-:class:`amp.store.MemoryStore`-shaped target. These tests exercise:
+:class:`memwire.store.MemoryStore`-shaped target. These tests exercise:
 
 * the in-buffer ``push`` / ``record_recall`` shapes;
 * the consolidation algorithm in :meth:`STMToLTMTransformer.tick`;
@@ -22,7 +22,7 @@ from typing import Any
 
 import pytest
 
-from amp.models import (
+from memwire.models import (
     ExpireRequest,
     ExpireResponse,
     ForgetRequest,
@@ -35,8 +35,8 @@ from amp.models import (
     RememberRequest,
     RememberResponse,
 )
-from amp.store import Capability
-from amp.transformer import STMItem, STMToLTMTransformer
+from memwire.store import Capability
+from memwire.transformer import STMItem, STMToLTMTransformer
 
 # ---------------------------------------------------------------------------
 # Test helpers
@@ -187,7 +187,7 @@ async def test_tick_consolidates_high_importance_item() -> None:
 
 
 # ---------------------------------------------------------------------------
-# 3. low-importance + recent → skipped
+# 3. low-importance + recent â†’ skipped
 # ---------------------------------------------------------------------------
 
 
@@ -213,7 +213,7 @@ async def test_tick_skips_low_importance_recent_item() -> None:
 
 
 # ---------------------------------------------------------------------------
-# 4. low-importance + aged out → evicted
+# 4. low-importance + aged out â†’ evicted
 # ---------------------------------------------------------------------------
 
 
@@ -282,7 +282,7 @@ def test_default_scorer_math() -> None:
     #   importance term : 0.5 * 0.8                       = 0.40
     #   recall term     : 0.2 * min(1, 2/5)               = 0.08
     #   recency term    : 0.2 * max(0, 1 - 60/3600)       = 0.2 * (59/60)
-    #                                                     ≈ 0.19666...
+    #                                                     â‰ˆ 0.19666...
     #   flagged term    : 0.1 * 1                         = 0.10
     expected = 0.5 * 0.8 + 0.2 * min(1.0, 2 / 5) + 0.2 * max(0.0, 1.0 - 60.0 / 3600.0) + 0.1
     score = t._default_scorer(item)
@@ -318,7 +318,7 @@ async def test_pluggable_scorer_always_one_consolidates_everything() -> None:
         importance_threshold=0.5,
         scorer=lambda _it: 1.0,
     )
-    # Push three items with low importance — but the custom scorer ignores
+    # Push three items with low importance â€” but the custom scorer ignores
     # the importance field entirely.
     for content in ("a", "b", "c"):
         await t.push(
@@ -372,7 +372,7 @@ async def test_custom_clock_drives_recency_calculation() -> None:
     # Backdate the push timestamp to align with the simulated clock.
     item.pushed_at = int(state["now"] * 1000)
 
-    # Advance the clock by 1 hour — > cadence*2 = 120 s, so it's "aged out".
+    # Advance the clock by 1 hour â€” > cadence*2 = 120 s, so it's "aged out".
     state["now"] += 3600.0
 
     result = await t.tick()
@@ -411,7 +411,7 @@ async def test_on_consolidate_callback_fires_with_pair() -> None:
 
 
 # ---------------------------------------------------------------------------
-# 9. target.remember exception → recorded in errors, item stays
+# 9. target.remember exception â†’ recorded in errors, item stays
 # ---------------------------------------------------------------------------
 
 
@@ -506,7 +506,7 @@ async def test_overflow_triggers_immediate_tick() -> None:
     await t.push(content="b", agent_id="agent-a", type=MemoryType.SEMANTIC, importance=1.0)
 
     # Yield to the event loop so the create_task'd tick can run to
-    # completion. A single zero-delay sleep is sufficient — tick() doesn't
+    # completion. A single zero-delay sleep is sufficient â€” tick() doesn't
     # await anything blocking under our FakeTargetStore.
     await asyncio.sleep(0)
     await asyncio.sleep(0)

@@ -1,6 +1,6 @@
-# Contributing to AMP
+﻿# Contributing to memwire
 
-Thank you for considering a contribution. AMP is in early v0 development; the
+Thank you for considering a contribution. memwire is in early v0 development; the
 spec and reference implementation are both moving fast. This guide covers the
 mechanics of contributing code, spec edits, and adapters.
 
@@ -11,8 +11,8 @@ mechanics of contributing code, spec edits, and adapters.
 pip install uv
 
 # Clone and set up
-git clone https://github.com/mthamil107/agent-memory-protocol.git
-cd agent-memory-protocol
+git clone https://github.com/mthamil107/memwire.git
+cd memwire
 uv venv
 uv pip install -e ".[sqlite-vec,ui]" --group dev
 ```
@@ -40,24 +40,24 @@ uv run pytest -m "not integration"
 - Every PR adds or updates tests. Mock backends for unit tests
   (`tests/unit/`); real backends only in `tests/integration/`.
 - For spec edits, the implementation must follow within the same PR set, not
-  the same PR — but reference the spec change in the implementation PR.
+  the same PR Ã¢â‚¬â€ but reference the spec change in the implementation PR.
 
 ## Spec edits
 
 The spec is the source of truth. If the implementation does something the spec
-doesn't describe, that's a spec bug — fix the spec first. See `docs/spec/v0.md`
-for the current draft and `docs/kickoff/AMP-SPEC-v0.md` for original draft history.
+doesn't describe, that's a spec bug Ã¢â‚¬â€ fix the spec first. See `docs/spec/v0.md`
+for the current draft and `docs/kickoff/memwire-SPEC-v0.md` for original draft history.
 
-Operation schemas live in `src/amp/schemas/operations/`. Type schemas live in
-`src/amp/schemas/types/`. Every change there must add or update a worked example
+Operation schemas live in `src/memwire/schemas/operations/`. Type schemas live in
+`src/memwire/schemas/types/`. Every change there must add or update a worked example
 in `docs/spec/examples/` and pass `python scripts/verify_spec.py`.
 
 ## Adding a new backend adapter
 
 See `docs/adapters.md`. The short version:
 
-1. Implement `amp.store.base.MemoryStore` for your backend in
-   `src/amp/store/<your_backend>.py`.
+1. Implement `memwire.store.base.MemoryStore` for your backend in
+   `src/memwire/store/<your_backend>.py`.
 2. Declare your `capabilities` set.
 3. Add the dependency to `[project.optional-dependencies]` in `pyproject.toml`
    under a matching extra name.

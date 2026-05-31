@@ -2,12 +2,12 @@
 
 This script is **read-only by default**. It prints the version currently
 recorded in the repo's release-please manifest, in ``CITATION.cff``, and in
-``src/amp/__init__.py``'s fallback string, then validates that those three
+``src/memwire/__init__.py``'s fallback string, then validates that those three
 agree and that any provided ``--target`` version is strictly greater than the
 manifest version.
 
 Hatch-vcs derives the actual installed version from the latest ``v*`` git tag,
-so the in-file values are *advisory* — they exist so editors and humans can see
+so the in-file values are *advisory* â€” they exist so editors and humans can see
 the intended version without running ``git describe``. release-please rewrites
 all three on merge.
 
@@ -85,13 +85,13 @@ def main() -> int:
     print("Current version state")
     print("---------------------")
     print(f"  .github/.release-please-manifest.json : {manifest_v}")
-    print(f"  src/amp/__init__.py (fallback)        : {init_v}")
+    print(f"  src/memwire/__init__.py (fallback)        : {init_v}")
     print(f"  CITATION.cff                          : {cff_v}")
     print()
 
     print("On the next release-please merge, the following files will be rewritten:")
     print("  - .github/.release-please-manifest.json")
-    print("  - src/amp/__init__.py        (extra-files in release-please-config.json)")
+    print("  - src/memwire/__init__.py        (extra-files in release-please-config.json)")
     print("  - CITATION.cff               (extra-files in release-please-config.json)")
     print("  - CHANGELOG.md")
     print()

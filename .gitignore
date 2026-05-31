@@ -1,4 +1,4 @@
-# Python
+﻿# Python
 __pycache__/
 *.py[cod]
 *$py.class
@@ -58,6 +58,7 @@ coverage.xml
 # Local smoke-test artifacts
 test-ui.log
 test-ui.err
+memwire-cli.db
 amp-cli.db
 
 # Eval harness per-question SQLite workspace + diag scratch.
@@ -92,7 +93,7 @@ desktop.ini
 !.env.example
 .claude/
 
-# Local demo tooling (vhs.exe, ffmpeg.exe, ttyd.exe — fetched on demand)
+# Local demo tooling (vhs.exe, ffmpeg.exe, ttyd.exe â€” fetched on demand)
 .tools/
 
 # Demo render intermediates (regenerate via docs/demos scripts)

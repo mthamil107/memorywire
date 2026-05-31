@@ -1,11 +1,11 @@
 """Author, drive, serialize, and reload a procedural FSM (spec section 7).
 
-Runnable demo of the Phase-5 :mod:`amp.procedural` backend:
+Runnable demo of the Phase-5 :mod:`memwire.procedural` backend:
 
-1. Build the canonical ``book-flight`` procedure from spec §7.
+1. Build the canonical ``book-flight`` procedure from spec Â§7.
 2. Statically validate the procedure.
 3. Drive it through the happy path:
-   ``found_options → picked → paid → receipt``.
+   ``found_options â†’ picked â†’ paid â†’ receipt``.
 4. Demonstrate the ``"source": "*"`` wildcard idiom by ``cancel`` from a
    mid-flow state.
 5. Roundtrip through ``to_dict()`` / JSON / ``from_dict()`` and assert
@@ -20,11 +20,11 @@ from __future__ import annotations
 
 import json
 
-from amp.procedural import Procedure, ProcedureRunner
+from memwire.procedural import Procedure, ProcedureRunner
 
 
 def build_book_flight() -> Procedure:
-    """Construct the spec §7 ``book-flight`` procedure."""
+    """Construct the spec Â§7 ``book-flight`` procedure."""
     return Procedure(
         name="book-flight",
         states=[

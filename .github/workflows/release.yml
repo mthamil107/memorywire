@@ -39,7 +39,7 @@ jobs:
     # Non-fatal: this job requires a one-time repo setting toggle
     # (Settings -> Actions -> General -> "Allow GitHub Actions to create and
     # approve pull requests"). Until the user enables it, release-please
-    # cannot create the release PR — but we don't want that to block CI
+    # cannot create the release PR â€” but we don't want that to block CI
     # signal. continue-on-error keeps the workflow green; the setting flip
     # is documented in docs/RELEASE.md.
     continue-on-error: true
@@ -59,7 +59,7 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
 
   # --------------------------------------------------------------------------
-  # build: produces the AMP wheel + sdist, plus a separate UI wheel artifact.
+  # build: produces the memwire wheel + sdist, plus a separate UI wheel artifact.
   # Runs on every v* tag push (and on workflow_dispatch for TestPyPI dry-runs).
   # --------------------------------------------------------------------------
   build:
@@ -83,7 +83,7 @@ jobs:
       - name: Set up Python
         run: uv python install 3.12
 
-      - name: Build AMP wheel + sdist
+      - name: Build memwire wheel + sdist
         run: uv build --out-dir dist .
 
       - name: Build UI wheel (FSL-licensed; built but not auto-published)
@@ -91,21 +91,21 @@ jobs:
 
       - name: List built distributions
         run: |
-          echo "=== dist/ (AMP — published to PyPI) ==="
+          echo "=== dist/ (memwire â€” published to PyPI) ==="
           ls -la dist/
-          echo "=== dist-ui/ (UI — FSL, NOT published to PyPI) ==="
+          echo "=== dist-ui/ (UI â€” FSL, NOT published to PyPI) ==="
           ls -la dist-ui/
 
-      - name: Upload AMP distributions
+      - name: Upload memwire distributions
         uses: actions/upload-artifact@v4
         with:
-          name: amp-dist
+          name: memwire-dist
           path: dist/
 
       - name: Upload UI distribution (artifact only)
         uses: actions/upload-artifact@v4
         with:
-          name: amp-ui-dist
+          name: memwire-ui-dist
           path: dist-ui/
 
   # --------------------------------------------------------------------------
@@ -123,15 +123,15 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: testpypi
-      url: https://test.pypi.org/p/agent-memory-protocol
+      url: https://test.pypi.org/p/memwire
     permissions:
       id-token: write
       contents: read
     steps:
-      - name: Download AMP distributions
+      - name: Download memwire distributions
         uses: actions/download-artifact@v4
         with:
-          name: amp-dist
+          name: memwire-dist
           path: dist/
 
       - name: Publish to TestPyPI (OIDC, no token)
@@ -143,7 +143,7 @@ jobs:
 
   # --------------------------------------------------------------------------
   # publish-pypi: real PyPI release. Only runs for final v* tags (no "-").
-  # Uses PyPI Trusted Publisher (OIDC) — no API token required.
+  # Uses PyPI Trusted Publisher (OIDC) â€” no API token required.
   # --------------------------------------------------------------------------
   publish-pypi:
     name: Publish to PyPI
@@ -154,15 +154,15 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: pypi
-      url: https://pypi.org/p/agent-memory-protocol
+      url: https://pypi.org/p/memwire
     permissions:
       id-token: write
       contents: read
     steps:
-      - name: Download AMP distributions
+      - name: Download memwire distributions
         uses: actions/download-artifact@v4
         with:
-          name: amp-dist
+          name: memwire-dist
           path: dist/
 
       - name: Publish to PyPI (OIDC, no token)
@@ -187,16 +187,16 @@ jobs:
         with:
           ref: ${{ github.event.release.tag_name || github.ref }}
 
-      - name: Download AMP distributions
+      - name: Download memwire distributions
         uses: actions/download-artifact@v4
         with:
-          name: amp-dist
+          name: memwire-dist
           path: dist/
 
       - name: Download UI distribution
         uses: actions/download-artifact@v4
         with:
-          name: amp-ui-dist
+          name: memwire-ui-dist
           path: dist-ui/
 
       - name: Upload artifacts to GitHub release

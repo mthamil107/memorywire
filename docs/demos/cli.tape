@@ -1,10 +1,10 @@
-# Tape script for the AMP CLI launch demo GIF.
+﻿# Tape script for the AMP CLI launch demo GIF.
 #
 # Canonical renderer: `charmbracelet/vhs`. On Linux/macOS run:
 #     vhs docs/demos/cli.tape
 #
 # Windows fallback: VHS on Windows depends on ttyd, which uses ConPTY in
-# a way that ttyd 1.7.x does not drive cleanly under VHS — the run
+# a way that ttyd 1.7.x does not drive cleanly under VHS â€” the run
 # produces no frames. Until that lands upstream we render the same
 # storyboard deterministically via:
 #     .venv/Scripts/python.exe docs/demos/render_cli.py
@@ -15,7 +15,7 @@
 #   - amp installed in $PATH (or activate the project venv first)
 #   - HF_HUB_OFFLINE=1 + the sentence-transformers model pre-cached
 #     (otherwise each `amp recall` call blocks for 10-25s on cold load)
-#   - rm -f ./amp-cli.db    # clean state
+#   - rm -f ./memwire-cli.db    # clean state
 
 Output docs/demos/cli.gif
 
@@ -29,7 +29,7 @@ Set PlaybackSpeed 1.0
 Set Padding 24
 Set Framerate 12
 
-# ---- Section 1: install (faked — real install would be ~30s) -----------
+# ---- Section 1: install (faked â€” real install would be ~30s) -----------
 Type "# Install with three day-1 backends"
 Sleep 600ms
 Enter

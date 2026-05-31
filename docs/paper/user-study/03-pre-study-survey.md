@@ -3,7 +3,7 @@
 > Administered electronically (Google Forms or equivalent) **before**
 > the session. Estimated completion time: 5 minutes. Used both for
 > screening (eligibility check items live alongside these in the
-> screening form) and for §5.5.2 participant-characteristics
+> screening form) and for Â§5.5.2 participant-characteristics
 > reporting.
 
 ---
@@ -30,18 +30,18 @@ the participant does not see this).
 ## Q2. Familiarity with AI agents
 
 > "AI agent" here means a piece of software that uses an LLM (or
-> similar) and takes actions — calls tools, reads/writes external
+> similar) and takes actions â€” calls tools, reads/writes external
 > state, or runs in a loop with feedback. Not just one-shot prompting.
 
 How familiar are you with building, reviewing, or debugging AI agents?
 
-- [ ] 1 — Not at all familiar (haven't worked with them)
-- [ ] 2 — Slightly familiar (read about them; one or two toy experiments)
-- [ ] 3 — Moderately familiar (built or shipped one; understand the
+- [ ] 1 â€” Not at all familiar (haven't worked with them)
+- [ ] 2 â€” Slightly familiar (read about them; one or two toy experiments)
+- [ ] 3 â€” Moderately familiar (built or shipped one; understand the
   basics of tool use, state, and prompt structure)
-- [ ] 4 — Very familiar (work with them regularly; comfortable with
+- [ ] 4 â€” Very familiar (work with them regularly; comfortable with
   loops, tool routing, evaluation)
-- [ ] 5 — Expert (publish, teach, or lead engineering on agent systems)
+- [ ] 5 â€” Expert (publish, teach, or lead engineering on agent systems)
 
 ---
 
@@ -52,11 +52,11 @@ How familiar are you with building, reviewing, or debugging AI agents?
 
 How familiar are you with vector databases?
 
-- [ ] 1 — Not at all familiar
-- [ ] 2 — Slightly familiar (read docs; never deployed one)
-- [ ] 3 — Moderately familiar (used one in a project)
-- [ ] 4 — Very familiar (shipped to production; tuned indexes / recall)
-- [ ] 5 — Expert (build them, contribute to one, or publish on the
+- [ ] 1 â€” Not at all familiar
+- [ ] 2 â€” Slightly familiar (read docs; never deployed one)
+- [ ] 3 â€” Moderately familiar (used one in a project)
+- [ ] 4 â€” Very familiar (shipped to production; tuned indexes / recall)
+- [ ] 5 â€” Expert (build them, contribute to one, or publish on the
   underlying retrieval methods)
 
 ---
@@ -67,9 +67,9 @@ Have you ever audited, reviewed, or moderated content that an AI agent
 generated or wrote into a system (RAG outputs, memory writes, tool
 calls, automated PRs)?
 
-- [ ] Yes — regularly, as part of my job.
-- [ ] Sometimes — occasionally, e.g. for spot-checks or incident review.
-- [ ] No — I have not done this.
+- [ ] Yes â€” regularly, as part of my job.
+- [ ] Sometimes â€” occasionally, e.g. for spot-checks or incident review.
+- [ ] No â€” I have not done this.
 
 ---
 
@@ -85,7 +85,7 @@ Which of the following AI-memory frameworks or libraries have you used?
 - [ ] LangChain Memory
 - [ ] LlamaIndex memory modules
 - [ ] MemoryOS
-- [ ] AMP (Agent Memory Protocol)
+- [ ] memwire
 - [ ] Other: ______
 - [ ] None of the above
 
@@ -93,14 +93,14 @@ Which of the following AI-memory frameworks or libraries have you used?
 
 ## Q6. Importance of governance / audit for AI systems
 
-In the work you do, how important is governance — auditability,
-approval workflows, and human review — for AI systems?
+In the work you do, how important is governance â€” auditability,
+approval workflows, and human review â€” for AI systems?
 
-- [ ] 1 — Not important at all
-- [ ] 2 — Slightly important
-- [ ] 3 — Moderately important
-- [ ] 4 — Very important
-- [ ] 5 — Critical / a hard requirement
+- [ ] 1 â€” Not important at all
+- [ ] 2 â€” Slightly important
+- [ ] 3 â€” Moderately important
+- [ ] 4 â€” Very important
+- [ ] 5 â€” Critical / a hard requirement
 
 ---
 
@@ -130,7 +130,7 @@ since 2018; LLM-era for ~3 years".
 
 ## Reporting
 
-For §5.5.2 of the paper, the PI will report:
+For Â§5.5.2 of the paper, the PI will report:
 
 - **Q1 distribution** as a histogram (years of experience).
 - **Q2-Q3** as means with 95% CIs.

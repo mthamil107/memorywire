@@ -1,6 +1,6 @@
-"""Protocol-conformance scenarios for every :class:`amp.store.MemoryStore` adapter.
+"""Protocol-conformance scenarios for every :class:`memwire.store.MemoryStore` adapter.
 
-A :class:`ProtocolScenario` is a self-contained description of one AMP
+A :class:`ProtocolScenario` is a self-contained description of one memwire
 wire-format invariant: a setup of :class:`RememberRequest` writes, an
 ``action`` callable that exercises the store, and a ``predicate`` that
 takes the action's result and returns ``True`` on conformance.
@@ -28,13 +28,13 @@ from collections.abc import Awaitable, Callable
 from dataclasses import dataclass, field
 from typing import Any
 
-from amp.models import (
+from memwire.models import (
     MemoryType,
     RecallResponse,
     RememberRequest,
     RememberResponse,
 )
-from amp.store.base import Capability
+from memwire.store.base import Capability
 
 # ---------------------------------------------------------------------------
 # Scenario dataclass
@@ -77,7 +77,7 @@ class ProtocolScenario:
 
 
 # ---------------------------------------------------------------------------
-# Helpers — predicates and action factories.
+# Helpers â€” predicates and action factories.
 #
 # Defined at module scope (not inside SCENARIOS) so the resulting closures
 # are picklable / debuggable and the dataclass stays frozen.
@@ -125,7 +125,7 @@ def _req(
 # Concrete scenario actions
 # ---------------------------------------------------------------------------
 
-from amp.models import (  # noqa: E402 — imports placed here to keep helpers above
+from memwire.models import (  # noqa: E402 â€” imports placed here to keep helpers above
     ExpirePolicy,
     ExpireRequest,
     ForgetRequest,
@@ -174,7 +174,7 @@ def _pred_user_filter_recall(resp: Any) -> bool:
         text = (h.content if isinstance(h.content, str) else "").lower()
         if "purple" in text:
             return False
-    # And at least one hit should look like Alice's preference (blue) —
+    # And at least one hit should look like Alice's preference (blue) â€”
     # otherwise we can't verify the scope worked at all.
     contents = " ".join(
         (h.content if isinstance(h.content, str) else "").lower() for h in resp.results
@@ -238,7 +238,7 @@ def _pred_forget_by_ids(resp: Any) -> bool:
 
 
 async def _action_forget_no_scope(store: Any) -> Any:
-    # Will raise ValueError per spec § 3.3 invariant.
+    # Will raise ValueError per spec Â§ 3.3 invariant.
     return await store.forget(ForgetRequest(agent_id=AGENT_A))
 
 
@@ -376,7 +376,7 @@ def _pred_capabilities(caps: Any) -> bool:
         Capability.GOVERNANCE,
         Capability.RECALL_TRACKING,
     }
-    # Every declared capability MUST be a recognised constant — the spec
+    # Every declared capability MUST be a recognised constant â€” the spec
     # leaves room for backends to declare more, but our reference impl
     # only knows these. Unknown strings indicate a typo.
     return caps.issubset(known)
@@ -391,7 +391,7 @@ def _pred_health(payload: Any) -> bool:
 
 
 async def _action_isinstance(store: Any) -> bool:
-    from amp.store import MemoryStore
+    from memwire.store import MemoryStore
 
     return isinstance(store, MemoryStore)
 
@@ -463,7 +463,7 @@ async def _action_multi_remember_recall(store: Any) -> RecallResponse:
 def _pred_multi_remember_recall(resp: Any) -> bool:
     if not isinstance(resp, RecallResponse):
         return False
-    # Bulk-write 10 facts; expect at least 1 hit (soft threshold — the
+    # Bulk-write 10 facts; expect at least 1 hit (soft threshold â€” the
     # fake embedder is not semantic, so we cannot demand 10/10).
     return len(resp.results) >= 1
 
@@ -525,7 +525,7 @@ SCENARIOS: list[ProtocolScenario] = [
     ),
     ProtocolScenario(
         name="forget_no_scope_raises",
-        description="forget() with neither ids nor filter MUST raise ValueError (spec §3.3).",
+        description="forget() with neither ids nor filter MUST raise ValueError (spec Â§3.3).",
         setup=[],
         action=_action_forget_no_scope,
         predicate=_pred_no_scope_raise,
@@ -534,7 +534,7 @@ SCENARIOS: list[ProtocolScenario] = [
     ),
     ProtocolScenario(
         name="expire_empty_policy_raises",
-        description="expire(policy=None) MUST raise ValueError (spec §3.5).",
+        description="expire(policy=None) MUST raise ValueError (spec Â§3.5).",
         setup=[],
         action=_action_expire_empty_policy,
         predicate=_pred_no_scope_raise,
@@ -544,7 +544,7 @@ SCENARIOS: list[ProtocolScenario] = [
     ProtocolScenario(
         name="expire_empty_policy_object_raises",
         description=(
-            "expire(policy=ExpirePolicy()) — an empty policy object — MUST raise (spec §3.5)."
+            "expire(policy=ExpirePolicy()) â€” an empty policy object â€” MUST raise (spec Â§3.5)."
         ),
         setup=[],
         action=_action_expire_empty_policy_with_empty_object,

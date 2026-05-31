@@ -1,9 +1,9 @@
-"""Analysis script for the AMP governance-UI user study (paper §5.5).
+"""Analysis script for the memwire governance-UI user study (paper Â§5.5).
 
 Reads a CSV of per-participant responses and emits:
 
-* ``analysis-summary.md`` — descriptive statistics tables with 95 % CIs.
-* ``analysis-plots.png`` — a 2-panel matplotlib figure (NASA-TLX bar
+* ``analysis-summary.md`` â€” descriptive statistics tables with 95 % CIs.
+* ``analysis-plots.png`` â€” a 2-panel matplotlib figure (NASA-TLX bar
   chart with CI error bars + per-task usability radar).
 
 The script is deliberately defensive about optional dependencies:
@@ -11,7 +11,7 @@ The script is deliberately defensive about optional dependencies:
 inside the functions that need them, so the file is importable in
 environments where those libraries are absent (e.g. when ruff/mypy
 runs in a minimal CI image). When a dependency is missing, the
-relevant computation degrades gracefully — numeric outputs fall back
+relevant computation degrades gracefully â€” numeric outputs fall back
 to a pure-Python implementation, and the matplotlib plot is skipped
 with a warning.
 
@@ -23,18 +23,18 @@ Run from this directory::
 
 Expected CSV columns (synthetic-data.csv is the reference schema):
 
-* ``participant_id``                       — string, e.g. ``P01``
-* ``t1_success`` … ``t5_success``         — int, 0/1 success per task
-* ``t1_time_s`` … ``t5_time_s``           — float, completion time in seconds
-* ``tlx_mental`` … ``tlx_frustration``    — int, 0-100 raw NASA-TLX
-* ``tlx_w_mental`` … ``tlx_w_frustration``— int, 0-5 pairwise weight (sum = 15)
-* ``l1_t1_conf`` … ``l1_t5_conf``         — int, 1-7 per-task confidence
-* ``l2_diff_clarity``                      — int, 1-7
-* ``l3_audit_nav``                         — int, 1-7
-* ``l4_prod_trust``                        — int, 1-7
-* ``l5_overall``                           — int, 1-7
-* ``l6_self_conf``                         — int, 1-7
-* ``l7_recommend``                         — int, 1-7
+* ``participant_id``                       â€” string, e.g. ``P01``
+* ``t1_success`` â€¦ ``t5_success``         â€” int, 0/1 success per task
+* ``t1_time_s`` â€¦ ``t5_time_s``           â€” float, completion time in seconds
+* ``tlx_mental`` â€¦ ``tlx_frustration``    â€” int, 0-100 raw NASA-TLX
+* ``tlx_w_mental`` â€¦ ``tlx_w_frustration``â€” int, 0-5 pairwise weight (sum = 15)
+* ``l1_t1_conf`` â€¦ ``l1_t5_conf``         â€” int, 1-7 per-task confidence
+* ``l2_diff_clarity``                      â€” int, 1-7
+* ``l3_audit_nav``                         â€” int, 1-7
+* ``l4_prod_trust``                        â€” int, 1-7
+* ``l5_overall``                           â€” int, 1-7
+* ``l6_self_conf``                         â€” int, 1-7
+* ``l7_recommend``                         â€” int, 1-7
 
 Performance dimension reversal is applied here (``100 - tlx_performance``)
 so callers feed the raw value the participant marked.
@@ -100,7 +100,7 @@ def _t_ci95(xs: list[float]) -> tuple[float, float]:
     Uses a t-critical-value approximation; for n >= 15 the difference
     from the exact t-quantile is < 4 %, which is well within the
     precision we report (one decimal). Where ``scipy`` is available
-    we use ``scipy.stats.t.ppf`` instead — see ``_t_critical``.
+    we use ``scipy.stats.t.ppf`` instead â€” see ``_t_critical``.
     """
     n = len(xs)
     if n < 2:
@@ -289,7 +289,7 @@ def summarise(rows: list[ParticipantRow]) -> Summary:
 
 def render_summary_markdown(s: Summary) -> str:
     out: list[str] = []
-    out.append("# AMP Governance UI — Analysis Summary\n")
+    out.append("# memwire Governance UI â€” Analysis Summary\n")
     out.append(f"n = {s.n} participants\n")
 
     out.append("## NASA-TLX overall (lower is better)\n")
@@ -346,7 +346,7 @@ def render_plot(s: Summary, out_path: Path) -> bool:
         import numpy as np
     except ImportError:
         print(
-            "[analyze] matplotlib or numpy not installed — skipping plot. "
+            "[analyze] matplotlib or numpy not installed â€” skipping plot. "
             "Install with: pip install matplotlib numpy",
             file=sys.stderr,
         )
@@ -436,7 +436,7 @@ def _validate_inputs(rows: list[ParticipantRow]) -> None:
     """Sanity checks beyond the CSV-row validator. Currently a stub.
 
     Reserved for future checks (e.g. detecting straight-line responses
-    on the Likert items). Not called by ``main`` — invoke explicitly if
+    on the Likert items). Not called by ``main`` â€” invoke explicitly if
     you want the additional validation.
     """
     for r in rows:

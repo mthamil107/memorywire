@@ -1,4 +1,4 @@
-# Recruitment — email template + screening criteria
+# Recruitment â€” email template + screening criteria
 
 > Two artifacts:
 > 1. The recruitment email the PI sends to candidates.
@@ -8,7 +8,7 @@
 
 ## 1. Recruitment email template
 
-**Subject:** Paid 40-minute remote study — usability of an AI-agent
+**Subject:** Paid 40-minute remote study â€” usability of an AI-agent
 memory governance UI (USD 15)
 
 **Body:**
@@ -17,7 +17,7 @@ memory governance UI (USD 15)
 >
 > I'm `[PI NAME]` at `[INSTITUTION]`. I'm running a short remote
 > usability study for an open-source governance interface I built for
-> AI-agent memory writes — the Agent Memory Protocol (AMP) governance
+> AI-agent memory writes â€” the memwire governance
 > UI. I'm looking for 15 software engineers or ML practitioners who
 > have experience reviewing or writing code that touches AI agents or
 > vector databases.
@@ -26,18 +26,18 @@ memory governance UI (USD 15)
 > the UI, think aloud, fill out a workload questionnaire, and chat with
 > me about what you saw. Compensation is a USD 15 Amazon gift card.
 >
-> A 90-second screening questionnaire is here: `[SCREENING LINK —
+> A 90-second screening questionnaire is here: `[SCREENING LINK â€”
 > Google Form or equivalent that mirrors `03-pre-study-survey.md`]`.
 >
 > Conflict of interest disclosure: I'm the author of the open-source
 > project being evaluated, so I'm genuinely interested in honest
-> negative feedback — there's no wrong answer.
+> negative feedback â€” there's no wrong answer.
 >
 > Happy to answer any questions. Reply to this email or DM me.
 >
 > Thanks,
 > `[PI NAME]`
-> IRB protocol `[IRB-#####]` · `[INSTITUTION]`
+> IRB protocol `[IRB-#####]` Â· `[INSTITUTION]`
 
 Word count: ~155 words (target was ~120; the COI disclosure pushes it
 over but is non-negotiable per IRB protocol).
@@ -52,7 +52,7 @@ Applied to responses on the screening questionnaire. A candidate
 
 ### Inclusion (all must be true)
 
-1. **Age ≥ 18.**
+1. **Age â‰¥ 18.**
 2. **Current or recent role** as software engineer, ML engineer, data
    scientist, applied researcher, or closely related role.
 3. **Hands-on experience** with at least one of:
@@ -72,8 +72,8 @@ Applied to responses on the screening questionnaire. A candidate
 1. Under 18.
 2. Currently a direct report of the PI or otherwise in a reporting
    relationship that could create perceived coercion.
-3. Has previously contributed to the AMP repository
-   (`github.com/mthamil107/agent-memory-protocol`). This is checked by
+3. Has previously contributed to the memwire repository
+   (`github.com/mthamil107/memwire`). This is checked by
    asking the candidate directly on the screening form and by spot-
    checking GitHub usernames against the commit log.
 4. Already participated in a prior pilot session of this study.
@@ -91,14 +91,14 @@ try to ensure the n = 15 sample spans:
   experience accurately).
 - A range of **organization types** (FAANG, startup, academic /
   research lab, freelance / consultant). Not strictly stratified but
-  noted in §5.5.2 of the paper.
+  noted in Â§5.5.2 of the paper.
 
 ---
 
 ## 3. Workflow
 
 1. PI posts recruitment message in the channels listed in
-   `00-irb-application.md §3`.
+   `00-irb-application.md Â§3`.
 2. Candidates fill out the screening questionnaire (mirror of
    `03-pre-study-survey.md`, plus inclusion/exclusion check items).
 3. PI reviews responses within 24-48 hours.

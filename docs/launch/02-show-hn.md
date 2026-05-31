@@ -4,7 +4,7 @@ Submit at <https://news.ycombinator.com/submit>. Substitute
 `<ARXIV_ID>` with the real `2605.NNNNN`.
 
 The Show HN format: title must start with `Show HN:`. The URL
-field points to either the arXiv abstract page OR the repo —
+field points to either the arXiv abstract page OR the repo â€”
 **use the arXiv page** (more "showable" than a repo). Put the
 repo link in the first comment.
 
@@ -13,7 +13,7 @@ repo link in the first comment.
 ## Title (80-char limit)
 
 ```
-Show HN: AMP – a vendor-neutral wire format for agent memory operations
+Show HN: memwire â€“ a vendor-neutral wire format for agent memory operations
 ```
 
 (74 chars; fits.)
@@ -34,13 +34,13 @@ gives context.
 ## First comment (post this within 30 seconds of submitting)
 
 ```
-Hi HN — author here.
+Hi HN â€” author here.
 
 The pitch in one line: every agent-memory framework today (mem0,
 Letta, Cognee, Zep, MemoryOS) stores memories in its own format,
 and none of them ship a governance surface that lets a human
-review writes before they enter long-term storage. AMP is the
-layer above them — five operations (remember, recall, forget,
+review writes before they enter long-term storage. memwire is the
+layer above them â€” five operations (remember, recall, forget,
 merge, expire), four memory types (semantic, episodic,
 procedural, emotional), a memory router that fuses results
 across backends via RRF, and an optional human-in-the-loop
@@ -68,15 +68,15 @@ venue-neutral protocol with an empirically validated reference,
 positioned to compose with MCP rather than compete with it.
 
 Companion paper to my earlier arXiv:2604.18248 (Prompt
-Injection Detection) — same threat-class lens, applied to
+Injection Detection) â€” same threat-class lens, applied to
 memory-side injection rather than prompt-side.
 
 Repo (Apache-2.0 for the protocol, FSL for the governance UI):
-https://github.com/mthamil107/agent-memory-protocol
+https://github.com/mthamil107/memwire
 
-Honest about what's not there: full 5-seed × 200-question
+Honest about what's not there: full 5-seed Ã— 200-question
 LongMemEval / LoCoMo runs are deferred to a v2 replacement on
-arXiv — the per-question Memory construction pattern that
+arXiv â€” the per-question Memory construction pattern that
 protects against cross-question contamination costs ~30-45 s
 per iteration in CPU-only inference, which extrapolates to ~12
 hours wall time. The harness exists; the wall time doesn't.
@@ -84,7 +84,14 @@ hours wall time. The harness exists; the wall time doesn't.
 Happy to answer questions about the protocol design, the
 conformance suite results (especially the 12 SKIP cells which
 are v0.2 spec-tightening signals), the threat model, or how
-AMP composes with MCP.
+memwire composes with MCP.
+
+Naming note: there is a prior project called AMP at
+github.com/akshayaggarwal99/amp (an MCP-native memory server
+with visualizations). This is a different shape â€” a
+vendor-neutral wire format and spec + 5 backend adapters.
+Renamed to `memwire` before launch to avoid confusion. See
+docs/PRIOR-WORK.md for the long version.
 ```
 
 ---
@@ -93,13 +100,13 @@ AMP composes with MCP.
 
 - **Best time:** Tuesday or Wednesday, 7:00-9:00 AM Pacific
   (the canonical Show HN sweet spot). Avoid Friday afternoon
-  and Sunday — the algorithm de-weights weekend posts.
+  and Sunday â€” the algorithm de-weights weekend posts.
 - **Reply window:** the first 6 hours determine front-page
   placement. Plan to be at a keyboard for those 6 hours.
 - **Do not** ask friends to upvote. HN bans this and it's
   detectable.
 - **Do** engage every substantive comment, even the critical
-  ones. Especially the critical ones — the algorithm rewards
+  ones. Especially the critical ones â€” the algorithm rewards
   thread depth.
 
 ## If the post gets traction (>100 points / >50 comments)
@@ -108,7 +115,7 @@ Cross-post (NOT cross-spam) to:
 
 - `r/MachineLearning` (self-post; describe the work, link arXiv + repo)
 - `r/LocalLLaMA` (different framing: "I built a cross-vendor
-  memory layer for local LLM agents — would love feedback")
+  memory layer for local LLM agents â€” would love feedback")
 - `r/programming` (lighter, infra-friendly framing)
 
 Stagger by 2+ hours between subreddits.

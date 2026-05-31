@@ -1,9 +1,9 @@
-"""Tests for the :class:`amp.api.Memory` facade.
+"""Tests for the :class:`memwire.api.Memory` facade.
 
-The facade is a thin wrapper around :class:`amp.router.MemoryRouter` and a
-URL → adapter dispatcher. These tests cover both halves:
+The facade is a thin wrapper around :class:`memwire.router.MemoryRouter` and a
+URL â†’ adapter dispatcher. These tests cover both halves:
 
-* :func:`amp.api._build_store` round-trips known schemes and rejects unknown
+* :func:`memwire.api._build_store` round-trips known schemes and rejects unknown
   ones.
 * :class:`Memory` builds the right pydantic request from kwargs, dispatches
   through the router, and reshapes the response (e.g. :meth:`recall`
@@ -19,7 +19,7 @@ from typing import Any
 
 import pytest
 
-from amp import (
+from memwire import (
     Capability,
     ExpireAction,
     FusionAlgorithm,
@@ -29,8 +29,8 @@ from amp import (
     MergeStrategy,
     RecallHit,
 )
-from amp.api import _build_store
-from amp.models import (
+from memwire.api import _build_store
+from memwire.models import (
     ExpireRequest,
     ExpireResponse,
     ForgetRequest,
@@ -43,9 +43,9 @@ from amp.models import (
     RememberRequest,
     RememberResponse,
 )
-from amp.store.letta_adapter import LettaStore
-from amp.store.mem0_adapter import Mem0Store
-from amp.store.sqlite_vec import SqliteVecStore
+from memwire.store.letta_adapter import LettaStore
+from memwire.store.mem0_adapter import Mem0Store
+from memwire.store.sqlite_vec import SqliteVecStore
 
 # ---------------------------------------------------------------------------
 # Test helpers
@@ -167,7 +167,7 @@ def test_build_store_sqlite_vec_url() -> None:
 
     # Inject a fake embedder via the post-construction attribute so we don't
     # pull sentence-transformers. _build_store doesn't expose the embedder
-    # kwarg directly — but SqliteVecStore.from_url uses the default model
+    # kwarg directly â€” but SqliteVecStore.from_url uses the default model
     # only on first embed call, so just verifying type is enough.
     store = _build_store("sqlite-vec://:memory:")
     assert isinstance(store, SqliteVecStore)
@@ -182,7 +182,7 @@ def test_build_store_mem0_url() -> None:
 
 def test_build_store_letta_url() -> None:
     """``letta://default`` resolves to :class:`LettaStore`."""
-    # No client is required to *construct* the adapter — the real Letta
+    # No client is required to *construct* the adapter â€” the real Letta
     # client is lazy-loaded on first operation. The URL carries an
     # agent_id query string to satisfy the `agent_id`-required invariant
     # if any operation were to be invoked (none are, in this test).
@@ -192,7 +192,7 @@ def test_build_store_letta_url() -> None:
 
 def test_build_store_cognee_url() -> None:
     """``cognee://default`` resolves to :class:`CogneeStore`."""
-    from amp.store.cognee_adapter import CogneeStore
+    from memwire.store.cognee_adapter import CogneeStore
 
     store = _build_store("cognee://default")
     assert isinstance(store, CogneeStore)
@@ -200,10 +200,10 @@ def test_build_store_cognee_url() -> None:
 
 def test_build_store_pgvector_url() -> None:
     """``pgvector://`` resolves to :class:`PgVectorStore` without connecting."""
-    from amp.store.pgvector_adapter import PgVectorStore
+    from memwire.store.pgvector_adapter import PgVectorStore
 
     # No pool / DSN is reachable; PgVectorStore.from_url only validates the
-    # URL shape and stashes config — actual connection is deferred to first
+    # URL shape and stashes config â€” actual connection is deferred to first
     # operation, which never runs in this test.
     store = _build_store("pgvector://localhost:5432/amp")
     assert isinstance(store, PgVectorStore)
@@ -312,7 +312,7 @@ async def test_forget_by_ids_dispatches() -> None:
 
 
 async def test_forget_without_scope_raises() -> None:
-    """No ids and no filter → :class:`ValueError`, no router call."""
+    """No ids and no filter â†’ :class:`ValueError`, no router call."""
     mock = MockStore()
     mem = Memory(agent_id="a", stores=[mock])
     with pytest.raises(ValueError, match="forget requires"):
@@ -418,7 +418,7 @@ async def test_close_tolerates_missing_close_method() -> None:
             return {"status": "ok", "backend": self.BACKEND_NAME}
 
     closeless = Closeless()
-    assert isinstance(closeless, MemoryStore)  # sanity — structural Protocol
+    assert isinstance(closeless, MemoryStore)  # sanity â€” structural Protocol
     mem = Memory(agent_id="a", stores=[closeless])
 
     # Should not raise.

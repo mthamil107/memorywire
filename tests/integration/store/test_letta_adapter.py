@@ -1,4 +1,4 @@
-"""Integration test for :class:`amp.store.letta_adapter.LettaStore`.
+"""Integration test for :class:`memwire.store.letta_adapter.LettaStore`.
 
 This test exercises the **real** Letta SDK end-to-end:
 
@@ -24,7 +24,7 @@ import os
 
 import pytest
 
-from amp.models import MemoryType, RecallRequest, RememberRequest
+from memwire.models import MemoryType, RecallRequest, RememberRequest
 
 
 @pytest.mark.integration
@@ -35,7 +35,7 @@ from amp.models import MemoryType, RecallRequest, RememberRequest
 async def test_remember_then_recall_against_real_letta() -> None:
     """Round-trip one fact through a real ``LettaStore``."""
     # Imported inside the test so collection works without letta-client installed.
-    from amp.store.letta_adapter import LettaStore
+    from memwire.store.letta_adapter import LettaStore
 
     store = LettaStore(
         base_url=os.environ["LETTA_BASE_URL"],

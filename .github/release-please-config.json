@@ -4,9 +4,9 @@
   "packages": {
     ".": {
       "release-type": "python",
-      "package-name": "agent-memory-protocol",
+      "package-name": "memwire",
       "extra-files": [
-        "src/amp/__init__.py",
+        "src/memwire/__init__.py",
         "CITATION.cff"
       ]
     }

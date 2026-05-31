@@ -15,8 +15,8 @@ from pathlib import Path
 
 import pytest
 
-from amp.models import MemoryType, RememberRequest
-from amp.store.sqlite_vec import DEFAULT_EMBEDDING_DIM, SqliteVecStore
+from memwire.models import MemoryType, RememberRequest
+from memwire.store.sqlite_vec import DEFAULT_EMBEDDING_DIM, SqliteVecStore
 
 _REPO_ROOT = Path(__file__).resolve().parent.parent.parent
 _SEED_PATH = _REPO_ROOT / "deploy" / "seed-on-boot.py"
@@ -51,7 +51,7 @@ def test_fake_embedder_dim_matches_sqlite_vec_default() -> None:
         f"seed-on-boot fake embedder produced {len(vec)}-d vector; "
         f"SqliteVecStore default is {DEFAULT_EMBEDDING_DIM}-d"
     )
-    # Determinism check — same input → same output.
+    # Determinism check â€” same input â†’ same output.
     again = seed_mod._fake_embedder("hello world")
     assert vec == again
     # Values bounded to [0, 1] (byte / 255.0).

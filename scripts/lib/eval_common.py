@@ -53,8 +53,8 @@ class EvalConfig:
 
     Both ``run_longmemeval.py`` and ``run_locomo.py`` instantiate this
     from argparse and pass it down through the eval loop. Keep it small
-    and JSON-serializable — the per-run JSON output embeds it for
-    reproducibility audit (paper §5 calls this out).
+    and JSON-serializable â€” the per-run JSON output embeds it for
+    reproducibility audit (paper Â§5 calls this out).
     """
 
     stores: list[str] = field(default_factory=lambda: ["sqlite-vec://./eval.db"])
@@ -72,7 +72,7 @@ class EvalConfig:
     out_csv_dir: Path | None = None
 
     def to_jsonable(self) -> dict[str, Any]:
-        """Return a JSON-serialisable dict (Path → str)."""
+        """Return a JSON-serialisable dict (Path â†’ str)."""
         return {
             "stores": list(self.stores),
             "seeds": self.seeds,
@@ -109,7 +109,7 @@ def paired_bootstrap_ci(
     ----------
     a, b:
         Equal-length sequences of per-item scores from two conditions
-        (e.g. AMP vs single-backend baseline) evaluated on the *same*
+        (e.g. memwire vs single-backend baseline) evaluated on the *same*
         items. Pairing is positional: ``a[i]`` and ``b[i]`` must be the
         same question / seed.
     n_resamples:
@@ -119,7 +119,7 @@ def paired_bootstrap_ci(
     seed:
         RNG seed so the CI is reproducible across reruns.
     alpha:
-        Two-sided significance level; defaults to 0.05 → 95% CI.
+        Two-sided significance level; defaults to 0.05 â†’ 95% CI.
 
     Returns
     -------
@@ -129,13 +129,13 @@ def paired_bootstrap_ci(
 
     Notes
     -----
-    Pure-stdlib implementation — no NumPy dependency, because the eval
+    Pure-stdlib implementation â€” no NumPy dependency, because the eval
     harness must run on a fresh ``pip install agent-memory-protocol``
     without numpy/scipy.
 
     References
     ----------
-    Efron & Tibshirani (1993), "An Introduction to the Bootstrap" §16
+    Efron & Tibshirani (1993), "An Introduction to the Bootstrap" Â§16
     (paired bootstrap).
     """
     if len(a) != len(b):
@@ -268,8 +268,8 @@ class LLMGrader:
 
     Cache invalidation
     ------------------
-    Swap models → key changes → cache miss → fresh grade. Swap prompt
-    template → key changes → cache miss → fresh grade. This is
+    Swap models â†’ key changes â†’ cache miss â†’ fresh grade. Swap prompt
+    template â†’ key changes â†’ cache miss â†’ fresh grade. This is
     intentional: the paper's reproducibility claim hinges on the cache
     capturing the *exact* grader prompt + model used to produce the
     numbers, and on a different setup producing different numbers
@@ -357,7 +357,7 @@ class LLMGrader:
     def _call_openai(self, prompt: str) -> str:
         client = self._ensure_client()
         # Backoff is exponential with jitter; we don't retry on 4xx
-        # except 429 (rate limit). 429 and 5xx → retry.
+        # except 429 (rate limit). 429 and 5xx â†’ retry.
         last_exc: Exception | None = None
         for attempt in range(self._max_retries):
             try:
@@ -380,7 +380,7 @@ class LLMGrader:
                 # Exponential backoff with jitter.
                 sleep_s = (2**attempt) + random.Random(attempt).random()
                 time.sleep(min(sleep_s, 30.0))
-        # Defensive — we only get here if max_retries == 0.
+        # Defensive â€” we only get here if max_retries == 0.
         raise RuntimeError(f"grader call failed after {self._max_retries} retries: {last_exc}")
 
     def grade_with_meta(
@@ -431,13 +431,13 @@ def _parse_grader_response(raw: str) -> tuple[float, str]:
 
     Tolerant on purpose: trims markdown fences, swallows trailing text,
     accepts ``score`` as either int or float, clamps to [0, 1]. Returns
-    ``(0.0, raw)`` if the response cannot be parsed at all — better to
+    ``(0.0, raw)`` if the response cannot be parsed at all â€” better to
     score a malformed grader reply as zero than to crash a 1000-question
     eval halfway through.
     """
     stripped = raw.strip()
     # Strip markdown fences if the grader wrapped JSON in them despite
-    # response_format=json_object — defensive, not expected.
+    # response_format=json_object â€” defensive, not expected.
     if stripped.startswith("```"):
         lines = stripped.splitlines()
         stripped = "\n".join(line for line in lines if not line.startswith("```"))
@@ -482,7 +482,7 @@ class _ShelveCache:
         self._path = path
         # writeback=False keeps memory bounded; we use the cache as a
         # straight key-value store. The shelf is held for the grader's
-        # lifetime and closed via :meth:`close` — a ``with`` block here
+        # lifetime and closed via :meth:`close` â€” a ``with`` block here
         # would close it before any grader call could use it.
         self._shelf = shelve.open(str(path), writeback=False)  # noqa: SIM115
 
@@ -633,7 +633,7 @@ def stage_dataset(
 
 # Rough per-1k-token rates as of 2026-Q2. Conservative defaults; users
 # can pass their own --grader-model and we'll fall back to a generic
-# rate. We don't track *every* model — only the ones we recommend.
+# rate. We don't track *every* model â€” only the ones we recommend.
 GRADER_RATES_USD_PER_1K_TOKENS: dict[str, tuple[float, float]] = {
     # model -> (input_per_1k, output_per_1k)
     "gpt-4-turbo": (0.01, 0.03),
@@ -653,7 +653,7 @@ def estimate_grader_cost(
     """Cost estimate in USD for ``n_calls`` grader invocations.
 
     If the model isn't in :data:`GRADER_RATES_USD_PER_1K_TOKENS` we use
-    the ``gpt-4-turbo`` rate as a pessimistic default — better the user
+    the ``gpt-4-turbo`` rate as a pessimistic default â€” better the user
     overestimates and isn't surprised than the other way around.
     """
     rate_in, rate_out = GRADER_RATES_USD_PER_1K_TOKENS.get(
@@ -688,7 +688,7 @@ def per_question_store_urls(
     This helper sidesteps the issue by giving each (question, seed)
     combination its own fresh SQLite file under ``workspace``. The path
     encodes ``key`` so concurrent harness runs don't clobber each
-    other. Non-``sqlite-vec`` URLs pass through unchanged — Mem0,
+    other. Non-``sqlite-vec`` URLs pass through unchanged â€” Mem0,
     Letta, etc. manage their own per-tenant isolation.
 
     Parameters
@@ -706,8 +706,8 @@ def per_question_store_urls(
     -------
     ``(rewritten_urls, owned_paths)``:
 
-    * ``rewritten_urls`` — the URL list to feed to ``Memory(stores=...)``.
-    * ``owned_paths`` — the files the helper created and the caller
+    * ``rewritten_urls`` â€” the URL list to feed to ``Memory(stores=...)``.
+    * ``owned_paths`` â€” the files the helper created and the caller
       should delete after ``mem.close()``. Empty for non-sqlite-vec
       URLs.
     """
@@ -740,7 +740,7 @@ def cleanup_question_dbs(paths: Iterable[Path]) -> None:
 
     SQLite WAL/SHM journals are removed alongside the main DB so the
     workspace stays bounded across a 1000-question run. Errors are
-    swallowed — losing a stale DB file is never worth aborting the
+    swallowed â€” losing a stale DB file is never worth aborting the
     harness for.
     """
     for db_path in paths:
@@ -756,7 +756,7 @@ def cleanup_question_dbs(paths: Iterable[Path]) -> None:
 def build_grader_context(hits: Iterable[Any], *, max_chars: int = 4000) -> str:
     """Format a list of :class:`RecallHit` rows into a grader-facing context.
 
-    The grader doesn't see the raw recall output — it sees a flat string
+    The grader doesn't see the raw recall output â€” it sees a flat string
     of the top-k passages, one per line, prefixed with ``[i]``. We cap
     total length at ``max_chars`` so a runaway corpus can't blow the
     grader's context window. Truncation happens at the hit boundary

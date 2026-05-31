@@ -1,19 +1,19 @@
-"""Hand-authored corpus for the AMP recall microbenchmark.
+"""Hand-authored corpus for the memwire recall microbenchmark.
 
 This dataset is the source-of-truth corpus for ``scripts/run_microbench.py``
 and ``tests/benchmarks/test_recall_benchmark.py``. It is deliberately small,
 deliberately human-written, and deliberately *not* drawn from any upstream
-benchmark — the goal is one honest blog-post number for v0, not a claim to
+benchmark â€” the goal is one honest blog-post number for v0, not a claim to
 LongMemEval / LoCoMo / BEAM parity. Those land in v0.2.
 
 Shape
 -----
-* :data:`FACTS` — 100 entries. Each is a ``dict`` with ``id`` (stable
+* :data:`FACTS` â€” 100 entries. Each is a ``dict`` with ``id`` (stable
   string id used as gold-label), ``user_id`` (~10 distinct users so we
   exercise the per-user recall scope), ``type`` (mix of all four
-  :class:`amp.MemoryType` values), and ``content`` (the natural-language
+  :class:`memwire.MemoryType` values), and ``content`` (the natural-language
   text the embedder sees).
-* :data:`QUERIES` — 50 entries. Each is a ``dict`` with ``query`` (the
+* :data:`QUERIES` â€” 50 entries. Each is a ``dict`` with ``query`` (the
   natural-language search string), ``gold_ids`` (the set of fact ids that
   a correct system should return; may be empty for no-match probes; may
   have multiple ids for multi-hit queries), and ``user_id`` (the scope
@@ -21,10 +21,10 @@ Shape
 
 Query taxonomy
 --------------
-* **Exact match** — query repeats a salient phrase from one fact.
-* **Paraphrase** — query rewords a fact ("foods to avoid" → peanuts).
-* **Multi-hit** — query maps to 2-3 facts (e.g. "what languages does X speak").
-* **No-match** — query has no expected fact (gold_ids=[]); used to
+* **Exact match** â€” query repeats a salient phrase from one fact.
+* **Paraphrase** â€” query rewords a fact ("foods to avoid" â†’ peanuts).
+* **Multi-hit** â€” query maps to 2-3 facts (e.g. "what languages does X speak").
+* **No-match** â€” query has no expected fact (gold_ids=[]); used to
   measure how often the system surfaces a confident wrong answer.
 
 Maintenance
@@ -56,7 +56,7 @@ class Query(TypedDict):
 
 
 # ---------------------------------------------------------------------------
-# Facts — 100 entries across ~10 users, mixed memory types
+# Facts â€” 100 entries across ~10 users, mixed memory types
 # ---------------------------------------------------------------------------
 
 FACTS: list[Fact] = [
@@ -664,7 +664,7 @@ FACTS: list[Fact] = [
 
 
 # ---------------------------------------------------------------------------
-# Queries — 50 entries, mix of paraphrase / exact-match / multi-hit / no-match
+# Queries â€” 50 entries, mix of paraphrase / exact-match / multi-hit / no-match
 # ---------------------------------------------------------------------------
 
 QUERIES: list[Query] = [

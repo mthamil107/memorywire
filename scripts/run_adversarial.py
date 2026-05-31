@@ -1,8 +1,8 @@
-"""Adversarial fusion experiment — 1-of-N poisoned backend vs MemoryRouter.
+"""Adversarial fusion experiment â€” 1-of-N poisoned backend vs MemoryRouter.
 
-This is the experiment promised by ``docs/THREATS.md`` §3.3:
+This is the experiment promised by ``docs/THREATS.md`` Â§3.3:
 how much does a single malicious child store pollute the fused
-top-k that :class:`amp.router.MemoryRouter` returns? Where does
+top-k that :class:`memwire.router.MemoryRouter` returns? Where does
 the RRF defense break down?
 
 Methodology
@@ -11,18 +11,18 @@ Methodology
 * Hand-build ``Q`` queries; each query's "gold set" is a small, fixed
   subset of memory ids that a correctly behaving store should return.
 * Wire ``N`` :class:`StubStore` children into a real
-  :class:`amp.router.MemoryRouter`. ``N - n_adversarial`` of them are
-  *benign* — they return the gold rows for each query in their correct
+  :class:`memwire.router.MemoryRouter`. ``N - n_adversarial`` of them are
+  *benign* â€” they return the gold rows for each query in their correct
   order, with some random noise tail to fill out per-store k. One (or
-  more, configurable) backend is *adversarial* — it injects ``K``
+  more, configurable) backend is *adversarial* â€” it injects ``K``
   attacker-controlled rows at the top ranks, then optionally a benign
   tail (so the rogue store still looks "normal" past rank K).
 * For each ``K`` in ``0, S, 2S, ..., M``, run all ``Q`` queries through
   ``router.recall(k=5)`` and measure:
     - **recall@5** against the gold set (per-query mean).
-    - **leak rate** — fraction of returned rows whose id is one of the
+    - **leak rate** â€” fraction of returned rows whose id is one of the
       attacker's injected rows.
-    - **displacement rate** — fraction of gold ids that *should* be in
+    - **displacement rate** â€” fraction of gold ids that *should* be in
       top-5 (in the un-poisoned baseline) but were pushed out by
       attacker rows.
 * Plot or tabulate curves of those metrics vs ``K``.
@@ -30,9 +30,9 @@ Methodology
 Limitations / honest framing
 ----------------------------
 * Synthetic: uniform-difficulty queries, no LLM grader, no real
-  embedder. The benign backends are *perfect* — they always return
+  embedder. The benign backends are *perfect* â€” they always return
   the gold set in the right order. Real-world per-store recall is
-  noisier; this number is therefore an *upper bound* on AMP's
+  noisier; this number is therefore an *upper bound* on memwire's
   resilience under one specific attack shape.
 * Adversary has full knowledge: it knows the per-store ``k * 4``
   over-fetch and can fill exactly that many top slots.
@@ -41,9 +41,9 @@ Limitations / honest framing
   the majority is honest" claim.
 * Three fusion modes (``rrf`` / ``max`` / ``weighted``) covered. The
   weighted variant uses equal weights here (it would be lower with
-  attacker-down-weighted weights — that's a deployment knob, not a
+  attacker-down-weighted weights â€” that's a deployment knob, not a
   protocol property).
-* Latency, FTS5, real ANN — all out of scope. This experiment
+* Latency, FTS5, real ANN â€” all out of scope. This experiment
   measures *fusion math under adversarial input*, not end-to-end
   recall.
 
@@ -87,7 +87,7 @@ _REPO_ROOT = Path(__file__).resolve().parent.parent
 if str(_REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(_REPO_ROOT))
 
-from amp.models import (  # noqa: E402
+from memwire.models import (  # noqa: E402
     ExpireAction,
     ExpireRequest,
     ExpireResponse,
@@ -105,11 +105,11 @@ from amp.models import (  # noqa: E402
     RememberRequest,
     RememberResponse,
 )
-from amp.router import MemoryRouter  # noqa: E402
-from amp.store.base import Capability  # noqa: E402
+from memwire.router import MemoryRouter  # noqa: E402
+from memwire.store.base import Capability  # noqa: E402
 
 # ---------------------------------------------------------------------------
-# Stub stores — benign and adversarial. Both satisfy the :class:`MemoryStore`
+# Stub stores â€” benign and adversarial. Both satisfy the :class:`MemoryStore`
 # Protocol structurally; they implement just enough surface for the router's
 # recall fan-out + fusion path.
 # ---------------------------------------------------------------------------
@@ -118,7 +118,7 @@ from amp.store.base import Capability  # noqa: E402
 class _BaseStubStore:
     """Common no-op surface so the router can treat us like any backend.
 
-    Only ``recall`` is non-trivial — adversarial-fusion is a recall-side
+    Only ``recall`` is non-trivial â€” adversarial-fusion is a recall-side
     experiment, so the other ops are stubbed to satisfy the Protocol.
     """
 
@@ -178,7 +178,7 @@ class _BaseStubStore:
 class BenignStore(_BaseStubStore):
     """A benign backend with a fixed per-query gold ranking.
 
-    The benchmark seeds it with ``per_query_results`` — a map from
+    The benchmark seeds it with ``per_query_results`` â€” a map from
     ``query`` string to a ranked list of memory ids. On ``recall`` it
     looks up the query and returns the prefix of length ``req.k``.
 
@@ -233,7 +233,7 @@ class AdversarialStore(_BaseStubStore):
         Pool of fabricated ids to draw from. The store fills the top
         ranks from the front of this list deterministically.
     benign_tail:
-        Optional per-query map from query → ranked benign-id list. When
+        Optional per-query map from query â†’ ranked benign-id list. When
         present, the store appends the benign tail *after* the attacker
         block so the rogue store looks "mostly benign" past rank K.
         When absent the store returns only attacker rows.
@@ -325,8 +325,8 @@ def _build_corpus(
 ) -> tuple[list[str], list[QuerySpec]]:
     """Return ``(memory_ids, queries)`` for the experiment.
 
-    * ``memory_ids`` — ``corpus_size`` deterministic ids ``m000..m{M-1}``.
-    * ``queries`` — ``n_queries`` ``QuerySpec`` rows. Each query is given
+    * ``memory_ids`` â€” ``corpus_size`` deterministic ids ``m000..m{M-1}``.
+    * ``queries`` â€” ``n_queries`` ``QuerySpec`` rows. Each query is given
       ``gold_per_query`` distinct gold ids drawn without replacement from
       the corpus, plus a "distractor" tail (the rest of the per-query
       ranked list) sampled from the remaining ids.
@@ -353,7 +353,7 @@ def _build_benign_per_query(
     ``per_store_k`` so the router's k*4 over-fetch sees a full list.
 
     Each call to this function uses an independent random.shuffle, so
-    distinct benign stores will see *different* distractor orderings —
+    distinct benign stores will see *different* distractor orderings â€”
     realistic for backends with different embedders / indexes. Gold ids
     always sit at the top to model "benign stores agree on the correct
     answer", which is the assumption the experiment is testing the
@@ -426,9 +426,9 @@ async def _run_one_query(
 ) -> tuple[float, float, float]:
     """Run one query, return ``(recall, leak, displacement)``.
 
-    * ``recall`` — fraction of ``q.gold_ids`` in the fused top-5.
-    * ``leak`` — fraction of fused top-5 whose id is in ``attacker_id_set``.
-    * ``displacement`` — fraction of ids in ``baseline_top5_gold`` that
+    * ``recall`` â€” fraction of ``q.gold_ids`` in the fused top-5.
+    * ``leak`` â€” fraction of fused top-5 whose id is in ``attacker_id_set``.
+    * ``displacement`` â€” fraction of ids in ``baseline_top5_gold`` that
       are *missing* from the fused top-5 (i.e. that the attacker pushed out).
       Returns 0.0 when the baseline gold set in top-5 was empty.
     """
@@ -474,11 +474,11 @@ async def _sweep_k(
 
     rng = random.Random(seed)
     memory_ids, queries = _build_corpus(corpus_size, n_queries, rng=rng)
-    # Router over-fetches k*4 per store (router.py:350). recall(k=5) → 20.
+    # Router over-fetches k*4 per store (router.py:350). recall(k=5) â†’ 20.
     # Build benign lists long enough that the router sees a saturated tail.
     per_store_k = max(corpus_size, 20)
     n_benign = n_backends - n_adversarial
-    # Each benign store gets its OWN distractor permutation — realistic
+    # Each benign store gets its OWN distractor permutation â€” realistic
     # for distinct backends with distinct embedders / indexes. Gold ids
     # remain at the top across all benign stores (benign stores agree on
     # the correct answer; only distractor tail differs).
@@ -502,7 +502,7 @@ async def _sweep_k(
     attacker_ids = _build_attacker_ids(corpus_size, max_budget=corpus_size)
     attacker_id_set = set(attacker_ids)
 
-    # Baseline (K=0) top-5 ids per query — anything in this set that gets
+    # Baseline (K=0) top-5 ids per query â€” anything in this set that gets
     # ejected at K>0 counts as "displaced".
     baseline_top5_per_query: dict[str, set[str]] = {}
 
@@ -526,7 +526,7 @@ async def _sweep_k(
         k_values.append(corpus_size)
 
     for k_attack in k_values:
-        # Wire fresh stores per K so state is clean. Cheap — these are
+        # Wire fresh stores per K so state is clean. Cheap â€” these are
         # in-memory stubs.
         stores: list[Any] = []
         for i in range(n_benign):
@@ -547,7 +547,7 @@ async def _sweep_k(
                 )
             )
 
-        # Equal weights for `weighted` — operator hasn't down-weighted
+        # Equal weights for `weighted` â€” operator hasn't down-weighted
         # the malicious backend yet (that's the v0.2 mitigation).
         router = MemoryRouter(
             stores,
@@ -606,7 +606,7 @@ async def _sweep_k(
 def _format_text(result: AdversarialResult) -> str:
     """Pretty human-readable report."""
     lines: list[str] = []
-    lines.append("AMP adversarial-fusion experiment")
+    lines.append("memwire adversarial-fusion experiment")
     lines.append("=" * 72)
     lines.append(f"  fusion             : {result.fusion}")
     lines.append(f"  backends           : {result.n_backends} ({result.n_adversarial} adversarial)")
@@ -662,7 +662,7 @@ def _try_plot(result: AdversarialResult, plot_path: Path) -> str | None:
         ax.set_ylabel("rate")
         ax.set_ylim(-0.02, 1.02)
         ax.set_title(
-            f"AMP adversarial fusion ({result.fusion}, "
+            f"memwire adversarial fusion ({result.fusion}, "
             f"{result.n_adversarial}/{result.n_backends} malicious)"
         )
         ax.grid(True, alpha=0.3)
@@ -685,7 +685,7 @@ def _build_parser() -> argparse.ArgumentParser:
     """Construct the argparse parser; factored out so tests can introspect it."""
     p = argparse.ArgumentParser(
         prog="run_adversarial",
-        description="Adversarial-fusion experiment for AMP's MemoryRouter (THREATS §3.3).",
+        description="Adversarial-fusion experiment for memwire's MemoryRouter (THREATS Â§3.3).",
     )
     p.add_argument("--n-backends", type=int, default=3, help="Total stores (default: 3).")
     p.add_argument(

@@ -1,6 +1,6 @@
 cff-version: 1.2.0
-message: "If you use AMP, please cite it as below."
-title: "Agent Memory Protocol (AMP): A vendor-neutral wire format for agent memory operations"
+message: "If you use memwire, please cite it as below."
+title: "memwire: A vendor-neutral wire format for agent memory operations"
 type: software
 authors:
   - family-names: "Munirathinam"
@@ -15,34 +15,33 @@ date-released: 2026-05-26
 # DOI placeholder — replace once the GitHub <-> Zenodo integration is wired.
 # To wire Zenodo:
 #   1. Sign in to https://zenodo.org with your GitHub account.
-#   2. Toggle ON the `mthamil107/agent-memory-protocol` repo in Zenodo's
+#   2. Toggle ON the `mthamil107/memwire` repo in Zenodo's
 #      GitHub settings panel — Zenodo will then mint a concept DOI and a
 #      per-release DOI every time a GitHub release is published.
 #   3. Replace the placeholder below with the concept DOI Zenodo returns.
 doi: 10.5281/zenodo.PLACEHOLDER
-url: "https://github.com/mthamil107/agent-memory-protocol"
-repository-code: "https://github.com/mthamil107/agent-memory-protocol"
+url: "https://github.com/mthamil107/memwire"
+repository-code: "https://github.com/mthamil107/memwire"
 license: Apache-2.0
 keywords:
   - agent
   - memory
-  - protocol
+  - wire-format
   - vendor-neutral
   - governance
   - RAG
   - vector-store
   - MCP
 abstract: >-
-  Agent Memory Protocol (AMP) is a vendor-neutral wire format and reference
-  implementation for agent memory operations. It defines five operations
-  (remember, recall, forget, merge, expire) over four memory types (semantic,
-  episodic, procedural, emotional), a `MemoryStore` protocol that any backend
-  can implement, and an optional governance channel for human-in-the-loop
-  diff-and-approve review of writes. AMP composes above existing memory
-  frameworks (mem0, Letta, Cognee, Zep, sqlite-vec, pgvector) rather than
-  replacing them, with a memory router that fans operations across stores and
-  fuses recall results via Reciprocal Rank Fusion (k=60) with an optional
-  one-hop graph boost.
+  memwire is a vendor-neutral wire format and reference implementation for agent
+  memory operations. It defines five operations (remember, recall, forget, merge,
+  expire) over four memory types (semantic, episodic, procedural, emotional), a
+  `MemoryStore` protocol that any backend can implement, and an optional
+  governance channel for human-in-the-loop diff-and-approve review of writes.
+  memwire composes above existing memory frameworks (mem0, Letta, Cognee, Zep,
+  sqlite-vec, pgvector) rather than replacing them, with a memory router that
+  fans operations across stores and fuses recall results via Reciprocal Rank
+  Fusion (k=60) with an optional one-hop graph boost.
 references:
   - type: article
     title: "LongMemEval: Benchmarking Chat Assistants on Long-Term Interactive Memory"
@@ -97,13 +96,13 @@ references:
         description: "arXiv preprint identifier (per docs/kickoff/FINDINGS-CONTEXT.md; verify on arXiv before publication)"
     notes: >-
       Citation transcribed from project kickoff notes. The diff-and-approve
-      workflow in AMP's governance channel draws on the Co-memorize HITL pattern
-      surfaced in this paper.
+      workflow in memwire's governance channel draws on the Co-memorize HITL
+      pattern surfaced in this paper.
   - type: software
     title: "Model Context Protocol (MCP)"
     authors:
       - name: "Anthropic and the Model Context Protocol community"
     url: "https://modelcontextprotocol.io"
     notes: >-
-      AMP follows the cross-vendor wire-format pattern established by MCP for
-      agent tool use; AMP applies the same shape to agent memory.
+      memwire follows the cross-vendor wire-format pattern established by MCP for
+      agent tool use; memwire applies the same shape to agent memory.

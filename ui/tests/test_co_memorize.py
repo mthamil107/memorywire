@@ -7,7 +7,7 @@ from typing import Any
 
 import httpx
 import pytest
-from amp_ui import services
+from memwire_ui import services
 
 
 def _make_old(seeded_db: Any, memory_id: str, days_old: int = 120) -> None:

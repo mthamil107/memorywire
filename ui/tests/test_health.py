@@ -6,9 +6,9 @@ from typing import Any
 
 import httpx
 import pytest
-from amp_ui import services
+from memwire_ui import services
 
-from amp.models import MemoryType
+from memwire.models import MemoryType
 
 
 @pytest.mark.anyio

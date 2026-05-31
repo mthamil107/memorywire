@@ -1,17 +1,17 @@
-"""LongMemEval harness for AMP — paper §5 numbers source.
+"""LongMemEval harness for memwire â€” paper Â§5 numbers source.
 
-This script runs AMP against LongMemEval (Wu et al., 2024 —
+This script runs memwire against LongMemEval (Wu et al., 2024 â€”
 `github.com/xiaowu0162/LongMemEval`) and produces the
-mean ± 95% paired-bootstrap CI with Holm-Bonferroni-corrected p-values
-for inclusion in paper §5.
+mean Â± 95% paired-bootstrap CI with Holm-Bonferroni-corrected p-values
+for inclusion in paper Â§5.
 
 Per-question isolation invariant
 --------------------------------
-For each (seed, qid) pair we construct a *fresh* :class:`amp.api.Memory`
+For each (seed, qid) pair we construct a *fresh* :class:`memwire.api.Memory`
 instance with a unique ``agent_id`` of the form ``f"lme-{condition}-{seed}-{qid}"``.
 This guarantees that question N's recall never sees question N-1's
-ingested turns — without this invariant the harness silently cross-
-contaminates and the paper §5 numbers measure the wrong thing. The
+ingested turns â€” without this invariant the harness silently cross-
+contaminates and the paper Â§5 numbers measure the wrong thing. The
 underlying sqlite-vec store is the same file per condition, but every
 row carries the question-scoped ``agent_id`` so the adapter's row-level
 filter keeps results disjoint. ``Memory.close()`` is invoked after each
@@ -33,14 +33,14 @@ Five task types, each measuring a different facet of long-term memory:
 
 The benchmark ships with a GPT-4 grader prompt; we use that grader by
 default (configurable via ``--grader-model``). BEAM is covered by the
-same machinery if/when its dataset becomes available — drop a manifest
+same machinery if/when its dataset becomes available â€” drop a manifest
 into ``~/.cache/amp/beam/`` and add ``--dataset beam``.
 
 What this script does
 ---------------------
 For each (task_type, seed) pair:
 
-1. Build a fresh :class:`amp.api.Memory` instance over the stores given
+1. Build a fresh :class:`memwire.api.Memory` instance over the stores given
    by ``--stores``.
 2. Ingest the LongMemEval session history via :meth:`Memory.remember`,
    one memory per turn. Metadata carries ``session_id`` and ``turn_ix``
@@ -51,7 +51,7 @@ For each (task_type, seed) pair:
 4. Construct a candidate answer. v0 uses a simple template
    ("Based on the memories: <context>; the answer is: <top hit
    content>"); the eval is about *retrieval*, not generation, so this
-   is honest — we're measuring whether the right facts surfaced.
+   is honest â€” we're measuring whether the right facts surfaced.
    ``--grader-model`` then judges the candidate vs the gold answer.
 5. Score per LongMemEval rubric (0..1 per question). Aggregate per
    task_type and per seed.
@@ -60,16 +60,16 @@ After all seeds finish:
 
 * Paired bootstrap (default 10k resamples) per condition vs the
   reference baseline (the first ``--stores`` entry treated as the
-  baseline; subsequent entries are AMP configurations).
+  baseline; subsequent entries are memwire configurations).
 * Holm-Bonferroni correction across task types within a comparison.
 * JSON / CSV / optional matplotlib plot.
 
 Pipeline gates
 --------------
-* ``--dry-run``: runs the AMP pipeline (ingest + recall) but skips the
+* ``--dry-run``: runs the memwire pipeline (ingest + recall) but skips the
   grader entirely; useful to verify wiring without an API key.
 * ``OPENAI_API_KEY`` is read at runtime; missing key + no ``--dry-run``
-  → fail fast with a clear message.
+  â†’ fail fast with a clear message.
 * Cost estimate is printed before the run kicks off so the user can
   Ctrl-C if the bill looks too high.
 
@@ -83,7 +83,7 @@ Usage
     # Full LongMemEval run, 5 seeds, default sqlite-vec backend:
     OPENAI_API_KEY=sk-... python scripts/run_longmemeval.py --seeds 5
 
-    # AMP fusion across two backends vs single-backend baseline:
+    # memwire fusion across two backends vs single-backend baseline:
     python scripts/run_longmemeval.py --stores \\
         sqlite-vec://./lme.db,letta://localhost:8283
 """
@@ -108,7 +108,7 @@ _REPO_ROOT = Path(__file__).resolve().parent.parent
 if str(_REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(_REPO_ROOT))
 
-from amp import Memory, MemoryType  # noqa: E402
+from memwire import Memory, MemoryType  # noqa: E402
 from scripts.lib.eval_common import (  # noqa: E402
     EvalConfig,
     GraderProtocol,
@@ -199,7 +199,7 @@ def _load_longmemeval_from_disk(root: Path) -> list[LMEQuestion]:
 
     The upstream repo ships ``data/longmemeval_*.json`` files (one per
     difficulty tier). We accept any subset present, concatenate them,
-    and assume a ``task_type`` field on each row. Missing fields → the
+    and assume a ``task_type`` field on each row. Missing fields â†’ the
     row is skipped with a stderr warning so a half-staged dataset
     doesn't silently truncate the run.
     """
@@ -353,7 +353,7 @@ class _NoOpGrader:
 
     Lets ``--dry-run`` produce a meaningful (if approximate) score
     without burning a paid API call. Substring match is crude on purpose
-    — the real grader is the only honest path; this just verifies the
+    â€” the real grader is the only honest path; this just verifies the
     pipeline wiring.
     """
 
@@ -382,11 +382,11 @@ async def _run_condition(
     grader: GraderProtocol,
     dry_run: bool,
 ) -> list[PerQuestionResult]:
-    """Run one AMP configuration across all (question, seed) pairs.
+    """Run one memwire configuration across all (question, seed) pairs.
 
     Per-question isolation
     ----------------------
-    We construct a *fresh* :class:`amp.api.Memory` with a unique
+    We construct a *fresh* :class:`memwire.api.Memory` with a unique
     ``agent_id`` per (seed, qid) **and** a per-question SQLite file when
     the store URL is ``sqlite-vec://...``. The per-question DB matters:
     sqlite-vec's vec0 ANN runs ``MATCH ... AND k=N`` *before* the
@@ -448,7 +448,7 @@ async def _run_condition(
 
                 context = build_grader_context(hits)
                 # v0 candidate answer: just feed the recall context as
-                # "what AMP retrieved" to the grader. The grader sees
+                # "what memwire retrieved" to the grader. The grader sees
                 # both the gold answer and this candidate and decides
                 # whether the right facts surfaced. This is the LongMemEval
                 # protocol's contract: retrieval quality is graded, not
@@ -464,7 +464,7 @@ async def _run_condition(
                         rubric=q.rubric,
                     )
                 else:
-                    # Real grader path — keep cache_hit metadata when available.
+                    # Real grader path â€” keep cache_hit metadata when available.
                     if isinstance(grader, LLMGrader):
                         meta = grader.grade_with_meta(
                             question=q.question,
@@ -541,7 +541,7 @@ def _pair_scores(
 
 def _format_text(result: LongMemEvalResult) -> str:
     lines: list[str] = []
-    lines.append("AMP LongMemEval harness")
+    lines.append("memwire LongMemEval harness")
     lines.append("=" * 76)
     lines.append(f"  dataset            : {result.dataset}")
     lines.append(f"  questions          : {result.n_questions}")
@@ -566,7 +566,7 @@ def _format_text(result: LongMemEvalResult) -> str:
         lines.append("")
         lines.append("Pairwise comparisons (paired bootstrap, Holm-Bonferroni corrected)")
         lines.append("-" * 76)
-        lines.append(f"{'A vs B':<48}{'Δmean':>10}{'95% CI':>22}{'p_corr':>10}{'reject':>8}")
+        lines.append(f"{'A vs B':<48}{'Î”mean':>10}{'95% CI':>22}{'p_corr':>10}{'reject':>8}")
         for cmp in result.pairwise_comparisons:
             ci = f"[{cmp['ci_low']:+.3f}, {cmp['ci_high']:+.3f}]"
             label = f"{cmp['a']} vs {cmp['b']}"
@@ -605,7 +605,7 @@ def _try_plot(result: LongMemEvalResult, plot_path: Path) -> str | None:
         ax.set_xticklabels(task_types, rotation=20, ha="right")
         ax.set_ylim(0, 1.05)
         ax.set_ylabel("grader score (mean)")
-        ax.set_title("AMP LongMemEval — per-task means")
+        ax.set_title("memwire LongMemEval â€” per-task means")
         ax.grid(True, axis="y", alpha=0.3)
         ax.legend(loc="best", fontsize=8)
         fig.tight_layout()
@@ -705,10 +705,10 @@ async def _run(args: argparse.Namespace) -> LongMemEvalResult:
     # ---- Conditions -----------------------------------------------------
     # Single condition per store URL: each URL is one "configuration".
     # If the user passed N URLs, we treat the first as the baseline and
-    # each subsequent URL as an AMP variant. To compare AMP-with-all-
+    # each subsequent URL as an memwire variant. To compare memwire-with-all-
     # stores-fused vs single-store baseline, the user should pass the
     # full comma-separated URL list as one condition; but that's a v0.2
-    # ergonomics knob — for the paper we expose one URL = one condition.
+    # ergonomics knob â€” for the paper we expose one URL = one condition.
     conditions = [(url, url) for url in config.stores]
 
     # ---- Grader ---------------------------------------------------------
@@ -870,13 +870,13 @@ async def _run(args: argparse.Namespace) -> LongMemEvalResult:
 def _build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(
         prog="run_longmemeval",
-        description="AMP LongMemEval harness (paper §5 numbers source).",
+        description="memwire LongMemEval harness (paper Â§5 numbers source).",
     )
     p.add_argument(
         "--stores",
         type=str,
         default="sqlite-vec://./lme.db",
-        help="Comma-separated AMP store URLs. Each URL = one condition; first is the baseline.",
+        help="Comma-separated memwire store URLs. Each URL = one condition; first is the baseline.",
     )
     p.add_argument(
         "--seeds", type=int, default=5, help="Number of seeds per condition (default: 5)."
@@ -908,7 +908,7 @@ def _build_parser() -> argparse.ArgumentParser:
     p.add_argument(
         "--dry-run",
         action="store_true",
-        help="Run AMP pipeline + synthetic dataset, no grader API calls.",
+        help="Run memwire pipeline + synthetic dataset, no grader API calls.",
     )
     p.add_argument(
         "--json",

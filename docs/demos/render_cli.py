@@ -5,7 +5,7 @@ canonical path is ``charmbracelet/vhs`` (see ``cli.tape``), but VHS depends
 on ``ttyd``'s PTY behavior, which is unreliable on Windows. Rather than
 ship a flaky GIF, this script renders a fully deterministic terminal
 demo from a small storyboard. It is intentionally read-only: it never
-touches ``src/amp/`` or ``tests/`` and the lines it "types" are real CLI
+touches ``src/memwire/`` or ``tests/`` and the lines it "types" are real CLI
 output captured by hand (see ``# captured`` markers below).
 
 Output: ``docs/demos/cli.gif`` (~20s, ~900x560 @ 14fps).
@@ -30,16 +30,16 @@ from PIL import Image, ImageDraw, ImageFont
 
 BG = (30, 30, 46)            # base
 FG = (205, 214, 244)         # text
-DIM = (108, 112, 134)        # surface2 — comments / dim text
-PROMPT = (203, 166, 247)     # mauve — $ prompt
-CMD = (137, 180, 250)        # blue — command name (amp, pip, python)
-ARG = (249, 226, 175)        # yellow — string args
-FLAG = (148, 226, 213)       # teal — --flags
-NUM = (250, 179, 135)        # peach — numbers / ids
-OK = (166, 227, 161)         # green — success markers
-KEY = (245, 194, 231)        # pink — key=value keys in recall output
-CHROME = (49, 50, 68)        # surface0 — title-bar background
-CHROME_FG = (147, 153, 178)  # subtext0 — title-bar text
+DIM = (108, 112, 134)        # surface2 â€” comments / dim text
+PROMPT = (203, 166, 247)     # mauve â€” $ prompt
+CMD = (137, 180, 250)        # blue â€” command name (amp, pip, python)
+ARG = (249, 226, 175)        # yellow â€” string args
+FLAG = (148, 226, 213)       # teal â€” --flags
+NUM = (250, 179, 135)        # peach â€” numbers / ids
+OK = (166, 227, 161)         # green â€” success markers
+KEY = (245, 194, 231)        # pink â€” key=value keys in recall output
+CHROME = (49, 50, 68)        # surface0 â€” title-bar background
+CHROME_FG = (147, 153, 178)  # subtext0 â€” title-bar text
 RED_DOT = (243, 139, 168)    # red
 YEL_DOT = (249, 226, 175)    # yellow
 GRN_DOT = (166, 227, 161)    # green
@@ -62,7 +62,7 @@ TITLE_FONT_PATH = r"C:\Windows\Fonts\segoeui.ttf"
 # Frame timing
 FPS = 12                # 12 fps keeps GIF small while feeling smooth
 FRAME_MS = int(round(1000 / FPS))   # ~83 ms per frame
-TYPE_CPS = 36           # chars per second when "typing" — slightly faster than VHS default
+TYPE_CPS = 36           # chars per second when "typing" â€” slightly faster than VHS default
 
 # Animation segments use frame counts derived from FPS.
 def ms(t: float) -> int:
@@ -189,8 +189,8 @@ def styled_id_line(text: str) -> Line:
 
 
 # ---------------------------------------------------------------------------
-# Storyboard — list of (action, payload, frames_after) tuples.
-# action ∈ {"type", "instant", "blank", "wait", "clear"}
+# Storyboard â€” list of (action, payload, frames_after) tuples.
+# action âˆˆ {"type", "instant", "blank", "wait", "clear"}
 # ---------------------------------------------------------------------------
 
 PS = "$ "
@@ -209,14 +209,14 @@ def storyboard() -> list[tuple[str, object, int]]:
     """
     s: list[tuple[str, object, int]] = []
 
-    # ---- Section 1: install (faked — real pip install would be >30s) -----
+    # ---- Section 1: install (faked â€” real pip install would be >30s) -----
     s.append(("instant", styled_comment("# Install with three day-1 backends"), ms(600)))
     s.append(("type", styled_command(PS, 'pip install "agent-memory-protocol[sqlite-vec,mem0,letta]"'), ms(500)))
     s.append(("instant", styled_plain("Successfully installed agent-memory-protocol-0.1.0", OK), ms(900)))
     s.append(("blank", None, 1))
 
     # ---- Section 2: import works ------------------------------------------
-    s.append(("type", styled_command(PS, 'python -c "from amp import Memory, MemoryType; print(Memory)"'), ms(400)))
+    s.append(("type", styled_command(PS, 'python -c "from memwire import Memory, MemoryType; print(Memory)"'), ms(400)))
     s.append(("instant", styled_plain("<class 'amp.memory.Memory'>", FG), ms(900)))
     s.append(("blank", None, 1))
 
@@ -241,7 +241,7 @@ def storyboard() -> list[tuple[str, object, int]]:
         # Highlight numeric scores inside the captured output.
         if "score=" in text and color is FG:
             line = Line()
-            # Split on score=… so we can colour the number.
+            # Split on score=â€¦ so we can colour the number.
             head, _, tail = text.partition("score=")
             line.spans.append(Span(head, FG))
             line.spans.append(Span("score=", KEY))
@@ -342,7 +342,7 @@ def render() -> Path:
     def emit_frame(blink_on: bool) -> None:
         """Snapshot the current terminal state into a new frame."""
         img = Image.new("RGB", (WIDTH, HEIGHT), BG)
-        draw_chrome(img, "agent-memory-protocol — quickstart", title_font)
+        draw_chrome(img, "agent-memory-protocol â€” quickstart", title_font)
         d = ImageDraw.Draw(img)
         # Scroll: keep only the last `max_lines` lines visible.
         visible = list(buffer)
@@ -409,7 +409,7 @@ def render() -> Path:
             raise ValueError(f"unknown action: {action}")
 
     # Build a single shared palette from the first frame so all subsequent
-    # frames quantize against the *same* indices — this is what lets the GIF
+    # frames quantize against the *same* indices â€” this is what lets the GIF
     # delta-encoder skip unchanged pixels between frames, which is the
     # difference between a 300 KB GIF and a 3 MB GIF.
     palette_source = frames[0].quantize(colors=32, method=Image.Quantize.MEDIANCUT, dither=Image.Dither.NONE)

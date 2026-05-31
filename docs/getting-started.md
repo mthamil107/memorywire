@@ -1,24 +1,24 @@
 # Getting started
 
-> **WIP** — full quickstart lands with `examples/01_quickstart.py` in Phase 5.
+> **WIP** â€” full quickstart lands with `examples/01_quickstart.py` in Phase 5.
 
 ## Install
 
 Once published to PyPI:
 
 ```bash
-pip install agent-memory-protocol
+pip install memwire
 # with sqlite-vec backend
-pip install "agent-memory-protocol[sqlite-vec]"
+pip install "memwire[sqlite-vec]"
 # with everything
-pip install "agent-memory-protocol[all]"
+pip install "memwire[all]"
 ```
 
 From source (until first release):
 
 ```bash
-git clone https://github.com/mthamil107/agent-memory-protocol.git
-cd agent-memory-protocol
+git clone https://github.com/mthamil107/memwire.git
+cd memwire
 uv venv
 uv pip install -e ".[sqlite-vec]"
 ```
@@ -27,7 +27,7 @@ uv pip install -e ".[sqlite-vec]"
 
 ```python
 import asyncio
-from amp import Memory, MemoryType
+from memwire import Memory, MemoryType
 
 async def main() -> None:
     mem = Memory(

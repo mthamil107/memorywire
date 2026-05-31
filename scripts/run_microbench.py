@@ -1,4 +1,4 @@
-"""AMP v0 recall microbenchmark — one honest number for the launch blog post.
+"""memwire v0 recall microbenchmark â€” one honest number for the launch blog post.
 
 This script ingests a hand-authored 100-fact corpus and runs a 50-query
 recall pass, measuring per-call latency and labelled recall@k. It is the
@@ -10,15 +10,15 @@ Why a microbenchmark and not LongMemEval?
 
 * LongMemEval requires a gated dataset plus a paid GPT-4 grader.
 * LoCoMo similarly requires a grader and hours of model time.
-* For a "shape" number — "AMP recalls 50k memories in <N>ms at recall@5
-  = <X>" — a hand-authored corpus is honest and reproducible on a
+* For a "shape" number â€” "memwire recalls 50k memories in <N>ms at recall@5
+  = <X>" â€” a hand-authored corpus is honest and reproducible on a
   laptop. v0.2 wires LongMemEval properly with a grader budget.
 
 What this exercises
 
-* The real :class:`amp.api.Memory` facade over the real
-  :class:`amp.store.sqlite_vec.SqliteVecStore` adapter (sqlite-vec ANN
-  fused with FTS5 keyword via intra-store RRF, per spec §5).
+* The real :class:`memwire.api.Memory` facade over the real
+  :class:`memwire.store.sqlite_vec.SqliteVecStore` adapter (sqlite-vec ANN
+  fused with FTS5 keyword via intra-store RRF, per spec Â§5).
 * By default the real ``sentence-transformers/all-MiniLM-L6-v2`` embedder.
   If sentence-transformers isn't installed (or the model can't load),
   falls back to a sha256-derived deterministic 384-d "fake" embedder.
@@ -28,18 +28,18 @@ What this exercises
 
 CLI surface
 
-* ``--queries N`` — limit query count for a smoke run (default: all 50).
-* ``--k N`` — top-k passed to :meth:`Memory.recall` (default: 5).
-* ``--embedder {real,fake}`` — force the embedder (default: ``real``
+* ``--queries N`` â€” limit query count for a smoke run (default: all 50).
+* ``--k N`` â€” top-k passed to :meth:`Memory.recall` (default: 5).
+* ``--embedder {real,fake}`` â€” force the embedder (default: ``real``
   when sentence-transformers loads, else ``fake``).
-* ``--json`` — emit structured JSON instead of human-readable text.
-* ``--target {single,fusion}`` — ``single`` (default) uses one
+* ``--json`` â€” emit structured JSON instead of human-readable text.
+* ``--target {single,fusion}`` â€” ``single`` (default) uses one
   sqlite-vec store; ``fusion`` uses two stores so the router exercises
-  inter-store RRF (helps the "AMP improves recall with fusion" story).
+  inter-store RRF (helps the "memwire improves recall with fusion" story).
 
 Exit codes
 
-* ``0`` on success (regardless of recall@5 floor — the pytest harness
+* ``0`` on success (regardless of recall@5 floor â€” the pytest harness
   asserts the floor).
 * Non-zero if the dataset, store, or embedder choice errors out.
 
@@ -67,13 +67,13 @@ from pathlib import Path
 from typing import Any
 
 # Make ``tests.benchmarks.dataset`` importable when the script is run
-# from anywhere — the repo root is the parent of this script's dir.
+# from anywhere â€” the repo root is the parent of this script's dir.
 _REPO_ROOT = Path(__file__).resolve().parent.parent
 if str(_REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(_REPO_ROOT))
 
-from amp import Memory, MemoryType  # noqa: E402
-from amp.store.sqlite_vec import SqliteVecStore  # noqa: E402
+from memwire import Memory, MemoryType  # noqa: E402
+from memwire.store.sqlite_vec import SqliteVecStore  # noqa: E402
 from tests.benchmarks.dataset import FACTS, QUERIES  # noqa: E402
 
 EmbedderFn = Callable[[str], list[float]]
@@ -261,7 +261,7 @@ async def _run(args: argparse.Namespace) -> BenchmarkResult:
             if not gold:
                 # No-match probe: any hit is a false positive. Score 1.0 if
                 # we returned nothing, else 0.0. Don't pollute the recall@k
-                # mean — track separately so the headline number stays clean.
+                # mean â€” track separately so the headline number stays clean.
                 no_match_total += 1
                 if not hits:
                     no_match_correct += 1
@@ -334,7 +334,7 @@ async def _run(args: argparse.Namespace) -> BenchmarkResult:
 def _format_text(result: BenchmarkResult) -> str:
     """Pretty human-readable report. Each section maps to a blog-post line."""
     lines: list[str] = []
-    lines.append("AMP v0 recall microbenchmark")
+    lines.append("memwire v0 recall microbenchmark")
     lines.append("=" * 70)
     lines.append(f"  embedder           : {result.embedder}")
     if result.fallback_reason:
@@ -398,7 +398,7 @@ def _build_parser() -> argparse.ArgumentParser:
     """Construct the argparse parser; factored out so tests can introspect it."""
     p = argparse.ArgumentParser(
         prog="run_microbench",
-        description="AMP v0 recall microbenchmark.",
+        description="memwire v0 recall microbenchmark.",
     )
     p.add_argument(
         "--queries",

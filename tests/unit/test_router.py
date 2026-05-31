@@ -1,6 +1,6 @@
-"""Tests for :class:`amp.router.MemoryRouter` (Phase 4).
+"""Tests for :class:`memwire.router.MemoryRouter` (Phase 4).
 
-The router is the centrepiece of AMP's "any-backend" promise (spec §5).
+The router is the centrepiece of memwire's "any-backend" promise (spec Â§5).
 These tests use a small in-test ``FakeStore`` helper to inject prepared
 :class:`RecallResponse` rows and capability sets so we can assert fusion
 math and per-operation routing without spinning up a real adapter.
@@ -14,7 +14,7 @@ from typing import Any
 
 import pytest
 
-from amp.models import (
+from memwire.models import (
     ExpireAction,
     ExpirePolicy,
     ExpireRequest,
@@ -33,8 +33,8 @@ from amp.models import (
     RememberRequest,
     RememberResponse,
 )
-from amp.router import MemoryRouter, Neighborable
-from amp.store import Capability, MemoryStore
+from memwire.router import MemoryRouter, Neighborable
+from memwire.store import Capability, MemoryStore
 
 # ---------------------------------------------------------------------------
 # Test helpers
@@ -362,7 +362,7 @@ async def test_remember_no_eligible_stores_raises() -> None:
 
 
 # ---------------------------------------------------------------------------
-# 3. recall — RRF + max + weighted
+# 3. recall â€” RRF + max + weighted
 # ---------------------------------------------------------------------------
 
 
@@ -378,7 +378,7 @@ async def test_recall_rrf_disjoint_six_items() -> None:
 
     ids = {hit.id for hit in resp.results}
     assert ids == {"a1", "a2", "a3", "b1", "b2", "b3"}
-    # Top-ranked from each store: 1 / (60 + 0) ≈ 0.016667.
+    # Top-ranked from each store: 1 / (60 + 0) â‰ˆ 0.016667.
     top = next(h for h in resp.results if h.id == "a1")
     assert math.isclose(top.score, 1.0 / 60, rel_tol=1e-9)
 
@@ -438,7 +438,7 @@ async def test_recall_fusion_weighted() -> None:
 
 
 # ---------------------------------------------------------------------------
-# 4. recall — k limiting, types filter, empty + error paths
+# 4. recall â€” k limiting, types filter, empty + error paths
 # ---------------------------------------------------------------------------
 
 
@@ -494,7 +494,7 @@ async def test_recall_store_error_degrades_gracefully() -> None:
     router = MemoryRouter([s_bad, s_good])
     resp = await router.recall(RecallRequest(agent_id="a", query="q", k=5))
     assert [h.id for h in resp.results] == ["ok"]
-    # Both stores still appear in stores_queried — they were queried.
+    # Both stores still appear in stores_queried â€” they were queried.
     assert set(resp.stores_queried) == {"bad", "good"}
 
 
@@ -510,7 +510,7 @@ async def test_recall_no_eligible_stores_returns_empty() -> None:
 
 
 # ---------------------------------------------------------------------------
-# 5. recall — graph-hop boost
+# 5. recall â€” graph-hop boost
 # ---------------------------------------------------------------------------
 
 
@@ -520,7 +520,7 @@ async def test_recall_graph_boost_skipped_when_no_graph_store() -> None:
     router = MemoryRouter([s])
     # Pre-compute RRF-only scores so we can verify nothing got boosted.
     resp = await router.recall(RecallRequest(agent_id="a", query="q", k=10, hops=1))
-    # rrf(rank=0) ≈ 0.016667 ; rrf(rank=1) ≈ 0.016393
+    # rrf(rank=0) â‰ˆ 0.016667 ; rrf(rank=1) â‰ˆ 0.016393
     assert math.isclose(resp.results[0].score, 1.0 / 60, rel_tol=1e-9)
     assert math.isclose(resp.results[1].score, 1.0 / 61, rel_tol=1e-9)
 
@@ -560,11 +560,11 @@ async def test_recall_graph_boost_promotes_underdog() -> None:
     """A weak item that's a neighbor of a strong anchor moves up after boost.
 
     Two graph-capable stores, with one item appearing at rank 0 in the first
-    (``anchor`` — very strong) and a different item at rank 1 (``promote``).
+    (``anchor`` â€” very strong) and a different item at rank 1 (``promote``).
     The graph store reports ``promote`` as a neighbor of ``anchor`` with a
     small hop distance, so the boost should narrow the gap. We don't try to
     make ``promote`` overtake ``anchor`` (it would take an unrealistic factor)
-    — we just verify the boost is observable in the score.
+    â€” we just verify the boost is observable in the score.
     """
     hits = [_hit("anchor"), _hit("promote")]
     graph_store = FakeGraphStore(
@@ -728,7 +728,7 @@ async def test_expire_no_recall_in_days_skips_stores_without_capability() -> Non
 
 
 async def test_health_all_ok() -> None:
-    """All children healthy → router reports ``ok``."""
+    """All children healthy â†’ router reports ``ok``."""
     s1 = FakeStore(backend_name="s1", health_status="ok")
     s2 = FakeStore(backend_name="s2", health_status="ok")
     router = MemoryRouter([s1, s2])
@@ -739,7 +739,7 @@ async def test_health_all_ok() -> None:
 
 
 async def test_health_one_error_is_degraded() -> None:
-    """Mixed health → ``degraded``."""
+    """Mixed health â†’ ``degraded``."""
     s1 = FakeStore(backend_name="s1", health_status="ok")
     s2 = FakeStore(backend_name="s2", health_status="error")
     router = MemoryRouter([s1, s2])
@@ -748,7 +748,7 @@ async def test_health_one_error_is_degraded() -> None:
 
 
 async def test_health_all_error_is_error() -> None:
-    """All children unhealthy (including raises) → ``error``."""
+    """All children unhealthy (including raises) â†’ ``error``."""
     s1 = FakeStore(backend_name="s1", raise_on={"health"})
     s2 = FakeStore(backend_name="s2", health_status="error")
     router = MemoryRouter([s1, s2])
@@ -794,7 +794,7 @@ async def test_router_of_routers_capabilities_union() -> None:
 
 
 async def test_recall_runs_stores_concurrently() -> None:
-    """Fan-out uses ``asyncio.gather`` — slow stores don't serialize."""
+    """Fan-out uses ``asyncio.gather`` â€” slow stores don't serialize."""
 
     class SlowStore(FakeStore):
         async def recall(self, req: RecallRequest) -> RecallResponse:
@@ -810,7 +810,7 @@ async def test_recall_runs_stores_concurrently() -> None:
     resp = await router.recall(RecallRequest(agent_id="a", query="q", k=10))
     elapsed = loop.time() - started
 
-    # Two stores each sleeping 50ms — concurrent execution should finish in
+    # Two stores each sleeping 50ms â€” concurrent execution should finish in
     # well under 100ms wallclock. Use a generous bound to keep CI happy.
     assert elapsed < 0.18
     assert {h.id for h in resp.results} == {"a", "b"}

@@ -1,0 +1,54 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://memwire.dev/schemas/v0/operations/recall.response",
+  "title": "AMP recall response",
+  "description": "Response payload returned by the recall operation, including fused result hits and router diagnostics.",
+  "type": "object",
+  "required": ["results", "fusion_used", "stores_queried", "latency_ms"],
+  "properties": {
+    "results": {
+      "type": "array",
+      "description": "Fused result hits ordered best-first.",
+      "items": {
+        "type": "object",
+        "required": ["id", "type", "content", "score"],
+        "properties": {
+          "id":         { "type": "string", "minLength": 1 },
+          "type":       { "enum": ["semantic", "episodic", "procedural", "emotional"] },
+          "content":    {
+            "description": "The memory content. String for semantic/episodic/emotional; object (FSM) for procedural.",
+            "type": ["string", "object"]
+          },
+          "score":      { "type": "number" },
+          "metadata":   { "type": "object", "additionalProperties": true },
+          "created_at": { "type": "integer", "description": "Unix epoch ms" },
+          "supporting": {
+            "type": "array",
+            "description": "Related memory ids contributing to the score.",
+            "items": { "type": "string" }
+          },
+          "source_store": {
+            "type": "string",
+            "description": "Name of the backend store that produced this hit."
+          }
+        },
+        "additionalProperties": true
+      }
+    },
+    "fusion_used": {
+      "enum": ["rrf", "max", "weighted"],
+      "description": "Fusion algorithm actually used to combine per-store results."
+    },
+    "stores_queried": {
+      "type": "array",
+      "description": "Names of the backend stores that were queried.",
+      "items": { "type": "string" }
+    },
+    "latency_ms": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "End-to-end recall latency in milliseconds."
+    }
+  },
+  "additionalProperties": false
+}

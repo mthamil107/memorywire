@@ -1,9 +1,9 @@
-"""Unit tests for :class:`amp.store.cognee_adapter.CogneeStore`.
+"""Unit tests for :class:`memwire.store.cognee_adapter.CogneeStore`.
 
 These tests use :class:`unittest.mock.AsyncMock` / :class:`MagicMock` to
-stand in for the real ``cognee`` module — the Cognee SDK is never
-touched. The goal is to prove the adapter translates AMP requests into
-the right Cognee calls and maps the mocked responses back into the AMP
+stand in for the real ``cognee`` module â€” the Cognee SDK is never
+touched. The goal is to prove the adapter translates memwire requests into
+the right Cognee calls and maps the mocked responses back into the memwire
 response models.
 
 Integration tests that exercise the real SDK live under
@@ -20,7 +20,7 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from amp.models import (
+from memwire.models import (
     ExpireAction,
     ExpirePolicy,
     ExpireRequest,
@@ -31,8 +31,8 @@ from amp.models import (
     RecallRequest,
     RememberRequest,
 )
-from amp.store import Capability, MemoryStore
-from amp.store.cognee_adapter import (
+from memwire.store import Capability, MemoryStore
+from memwire.store.cognee_adapter import (
     CogneeStore,
     _unwrap_content,
     _wrap_content,
@@ -57,7 +57,7 @@ def _make_module(**overrides: Any) -> MagicMock:
     module.search = AsyncMock(return_value=[])
     module.recall = AsyncMock(return_value=[])
     module.forget = AsyncMock(return_value={"status": "ok"})
-    # SearchType enum surface — adapter passes the GRAPH_COMPLETION value.
+    # SearchType enum surface â€” adapter passes the GRAPH_COMPLETION value.
     module.SearchType = MagicMock()
     module.SearchType.GRAPH_COMPLETION = "GRAPH_COMPLETION"
     # datasets namespace for health probes.
@@ -101,11 +101,11 @@ def test_cogneestore_is_a_memory_store() -> None:
     assert isinstance(store, MemoryStore)
 
 
-def test_from_url_default_resolves_to_amp_dataset() -> None:
-    """``cognee://default`` resolves to dataset='amp'."""
+def test_from_url_default_resolves_to_memwire_dataset() -> None:
+    """``cognee://default`` resolves to dataset='memwire'."""
     store = CogneeStore.from_url("cognee://default", client=_make_module())
     assert isinstance(store, CogneeStore)
-    assert store.dataset == "amp"
+    assert store.dataset == "memwire"
 
 
 def test_from_url_custom_dataset() -> None:
@@ -142,7 +142,7 @@ def test_backend_name_constant() -> None:
 
 
 def test_wrap_and_unwrap_round_trip() -> None:
-    """An AMP-wrapped blob decodes back into its original overlay + content."""
+    """An memwire-wrapped blob decodes back into its original overlay + content."""
     payload = {
         "id": "cog:abc",
         "agent_id": "agent-a",
@@ -157,7 +157,7 @@ def test_wrap_and_unwrap_round_trip() -> None:
 
 
 def test_unwrap_passes_through_unmarked_blob() -> None:
-    """Text ingested outside the adapter has no header — returned verbatim."""
+    """Text ingested outside the adapter has no header â€” returned verbatim."""
     overlay, content = _unwrap_content("just a fact without a header")
     assert overlay == {}
     assert content == "just a fact without a header"
@@ -169,7 +169,7 @@ def test_unwrap_passes_through_unmarked_blob() -> None:
 
 
 async def test_remember_calls_module_remember_with_wrapped_content() -> None:
-    """``remember`` prepends the AMP header and dispatches to module.remember."""
+    """``remember`` prepends the memwire header and dispatches to module.remember."""
     module = _make_module()
     store = CogneeStore(client=module, dataset="amp")
 
@@ -200,14 +200,14 @@ async def test_remember_calls_module_remember_with_wrapped_content() -> None:
     assert overlay["metadata"] == {"channel": "support"}
     assert rest == "Alice prefers email over phone"
 
-    # Adapter-synthesised id is stable and AMP-prefixed.
+    # Adapter-synthesised id is stable and memwire-prefixed.
     assert response.id.startswith("cog:")
     assert response.stores == ["cognee"]
     assert response.pending_approval is False
 
 
 async def test_remember_with_approval_required_skips_module() -> None:
-    """``approval_required=True`` short-circuits — no Cognee call."""
+    """``approval_required=True`` short-circuits â€” no Cognee call."""
     module = _make_module()
     store = CogneeStore(client=module)
 
@@ -389,7 +389,7 @@ async def test_recall_handles_pydantic_model_dump_style_entry() -> None:
 
 
 async def test_forget_without_ids_or_filter_raises() -> None:
-    """No-scope mass-delete protection (spec §3.3): must raise ``ValueError``."""
+    """No-scope mass-delete protection (spec Â§3.3): must raise ``ValueError``."""
     store = CogneeStore(client=_make_module())
     with pytest.raises(ValueError, match=r"ids.*filter"):
         await store.forget(ForgetRequest(agent_id="agent-a"))
@@ -574,7 +574,7 @@ async def test_expire_older_than_days_forget_deletes_only_old_rows() -> None:
 
 
 async def test_expire_no_recall_in_days_unsupported() -> None:
-    """``no_recall_in_days`` MUST raise — Cognee lacks last-recalled-at tracking."""
+    """``no_recall_in_days`` MUST raise â€” Cognee lacks last-recalled-at tracking."""
     store = CogneeStore(client=_make_module())
     with pytest.raises(ValueError, match="no_recall_in_days"):
         await store.expire(

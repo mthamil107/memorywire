@@ -22,13 +22,13 @@ https://arxiv.org/abs/<ARXIV_ID>
 ## 2/6
 
 ```
-AMP = Agent Memory Protocol. 
+memwire is the layer above storage frameworks.
 
 5 operations (remember / recall / forget / merge / expire).
 4 memory types (semantic / episodic / procedural / emotional).
 5 day-1 backend adapters (sqlite-vec, mem0, Letta, Cognee, pgvector).
 
-It's the "MCP for memory" — a layer above storage, not a competitor.
+Designed to compose with what you ship, not compete with it.
 ```
 
 ## 3/6
@@ -36,18 +36,17 @@ It's the "MCP for memory" — a layer above storage, not a competitor.
 ```
 Empirical numbers in the paper:
 
-• Microbench: recall@5 = 1.000 / ingest p50 37.8 ms / recall p50 40.6 ms
-• Adversarial fusion: RRF holds 1.000 across full 1-of-N rank-0 attack; MAX collapses to 0.500
-• Conformance: 16 scenarios × 5 adapters → 68/12/0 PASS/SKIP/FAIL
-• Preliminary LongMemEval + LoCoMo numbers in §5.6
+â€¢ Microbench: recall@5 = 1.000 / ingest p50 37.8 ms / recall p50 40.6 ms
+â€¢ Conformance: 16 scenarios Ã— 5 adapters â†’ 68/12/0 PASS/SKIP/FAIL
+â€¢ Preliminary LongMemEval + LoCoMo numbers in Â§5.6
 ```
 
 ## 4/6
 
 ```
-The genuinely novel piece is the governance UI: every remember() can stage behind a human-review queue with a structured diff against current memory state. The Co-memorize / Governed Memory pattern, productized.
+The piece I leaned on most: every remember() can stage behind a human-review queue with a structured diff against current memory state. The Co-memorize / Governed Memory pattern, productized.
 
-Full threat model in the paper §6 — 6 adversaries mapped to OWASP + CWE.
+Full threat model in the paper Â§6 â€” 6 adversaries mapped to OWASP + CWE.
 ```
 
 ## 5/6
@@ -55,7 +54,7 @@ Full threat model in the paper §6 — 6 adversaries mapped to OWASP + CWE.
 ```
 This is a companion paper to my earlier arxiv:2604.18248 (Prompt Injection Detection).
 
-Same threat-class lens, different vector: prompt-side injection vs memory-side injection. AMP's THREATS.md §3.1 names malicious memory injection as adversary 1.
+Same threat-class lens, different vector: prompt-side injection vs memory-side injection. memwire's THREATS.md Â§3.1 names malicious memory injection as adversary 1.
 
 Memory is where prompt injection becomes persistent.
 ```
@@ -65,11 +64,11 @@ Memory is where prompt injection becomes persistent.
 ```
 Code, datasets, conformance suite, threat model, deployment scaffold, paper source: 
 
-https://github.com/mthamil107/agent-memory-protocol
+https://github.com/mthamil107/memwire
 
 Discussion on HN: <HN_URL>
 
-Curious what @charlespacker @taranjeetio @vasilije1990 think — AMP composes with your frameworks, not against them.
+Curious what @charlespacker @taranjeetio @vasilije1990 think â€” memwire composes with your frameworks, not against them.
 ```
 
 ---
@@ -78,19 +77,19 @@ Curious what @charlespacker @taranjeetio @vasilije1990 think — AMP composes wi
 
 ### 1/3
 ```
-New arXiv preprint: AMP — a vendor-neutral wire format for agent memory operations. 5 operations, 4 types, 5 backend adapters, a router, and a governance UI for diff-and-approve workflows on what agents remember.
+New arXiv preprint: memwire â€” a vendor-neutral wire format for agent memory operations. 5 operations, 4 types, 5 backend adapters, a router, and a governance UI for diff-and-approve workflows on what agents remember.
 
 https://arxiv.org/abs/<ARXIV_ID>
 ```
 
 ### 2/3
 ```
-Headline: every agent-memory framework today stores memories in its own format, and none ship a human-review surface for memory writes. AMP fixes the protocol gap and ships a reference implementation with five adapters (sqlite-vec, mem0, Letta, Cognee, pgvector).
+Headline: every agent-memory framework today stores memories in its own format, and none ship a human-review surface for memory writes. memwire fixes the protocol gap and ships a reference implementation with five adapters (sqlite-vec, mem0, Letta, Cognee, pgvector).
 ```
 
 ### 3/3
 ```
-Code + datasets + threat model + 16-scenario conformance suite: https://github.com/mthamil107/agent-memory-protocol
+Code + datasets + threat model + 16-scenario conformance suite: https://github.com/mthamil107/memwire
 
 Show HN: <HN_URL>
 

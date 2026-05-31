@@ -1,4 +1,4 @@
-"""Record an animated GIF of the AMP Governance UI diff-and-approve flow.
+"""Record an animated GIF of the memwire Governance UI diff-and-approve flow.
 
 Boots ``amp_ui`` against the seeded ``demo-ui.db`` under uvicorn, drives
 the browser with Playwright at 1280x800, captures PNG frames at ~7 fps,
@@ -8,7 +8,7 @@ Run from the repo root (after ``seed_demo_db.py``)::
 
     .venv/Scripts/python.exe docs/demos/record_ui.py
 
-The script is intentionally idempotent — it deletes prior frames and
+The script is intentionally idempotent â€” it deletes prior frames and
 GIFs at the start of every run, picks a free localhost port, and tears
 the server subprocess down even on error paths.
 """
@@ -35,7 +35,7 @@ FRAMES_DIR = DEMOS_DIR / "frames"
 OUTPUT_GIF = DEMOS_DIR / "ui.gif"
 
 VIEWPORT = {"width": 1280, "height": 800}
-# Pre-quantize-to-128-colors target size — 1024x640 keeps text crisp at ~1.5MB.
+# Pre-quantize-to-128-colors target size â€” 1024x640 keeps text crisp at ~1.5MB.
 RESIZE_TO = (1024, 640)
 FRAME_DURATION_MS = 140  # ~7 fps
 AGENT_ID = "customer-bot"
@@ -54,7 +54,7 @@ def _free_port() -> int:
 
 
 def _wait_for_http(url: str, *, timeout_s: float = 20.0) -> None:
-    """Poll ``url`` until it returns a 2xx — fail loudly if it never does."""
+    """Poll ``url`` until it returns a 2xx â€” fail loudly if it never does."""
     deadline = time.monotonic() + timeout_s
     last_exc: Exception | None = None
     while time.monotonic() < deadline:
@@ -62,7 +62,7 @@ def _wait_for_http(url: str, *, timeout_s: float = 20.0) -> None:
             with urllib.request.urlopen(url, timeout=1.5) as resp:
                 if 200 <= resp.status < 300:
                     return
-        except Exception as exc:  # noqa: BLE001 — we re-raise after the loop
+        except Exception as exc:  # noqa: BLE001 â€” we re-raise after the loop
             last_exc = exc
         time.sleep(0.25)
     raise RuntimeError(f"UI did not come up at {url}: {last_exc}")
@@ -70,15 +70,15 @@ def _wait_for_http(url: str, *, timeout_s: float = 20.0) -> None:
 
 def _start_ui(port: int) -> subprocess.Popen[bytes]:
     env = os.environ.copy()
-    env["AMP_UI_DB_PATH"] = str(DB_PATH)
-    env["AMP_UI_AGENT_ID"] = AGENT_ID
-    env["AMP_UI_HOST"] = "127.0.0.1"
-    env["AMP_UI_PORT"] = str(port)
+    env["MEMWIRE_UI_DB_PATH"] = str(DB_PATH)
+    env["MEMWIRE_UI_AGENT_ID"] = AGENT_ID
+    env["MEMWIRE_UI_HOST"] = "127.0.0.1"
+    env["MEMWIRE_UI_PORT"] = str(port)
     # Pin the CSRF secret so the per-process random secret doesn't
     # change between subprocesses (it doesn't matter for the demo, but
     # makes the recorder deterministic if reused across sessions).
     env.setdefault(
-        "AMP_UI_CSRF_SECRET",
+        "MEMWIRE_UI_CSRF_SECRET",
         "ZGVtby1jc3JmLXNlY3JldC1zaG91bGQtYmUtMzItYnl0ZXMtbG9uZw==",
     )
     return subprocess.Popen(
@@ -147,7 +147,7 @@ async def _record(base_url: str) -> int:
 
             # ----- Scene 1: pending approvals -----
             await page.goto(f"{base_url}/", wait_until="networkidle")
-            # Disable the HTMX 10s poller so the recorder is deterministic —
+            # Disable the HTMX 10s poller so the recorder is deterministic â€”
             # otherwise an auto-refresh swap could collide with our click.
             await page.evaluate(
                 """() => {
@@ -189,7 +189,7 @@ async def _record(base_url: str) -> int:
 
             # Wait until the list has only one row left (one of two pending
             # memories was just approved). The HTMX swap is synchronous w.r.t.
-            # the server but the DOM update is async — give it a generous
+            # the server but the DOM update is async â€” give it a generous
             # ceiling but settle as soon as the count drops.
             try:
                 await page.wait_for_function(
@@ -264,7 +264,7 @@ def _assemble_gif(frames_dir: Path, out_path: Path) -> tuple[int, int]:
 def main() -> None:
     if not DB_PATH.exists():
         sys.exit(
-            f"[record] {DB_PATH} not found — run seed_demo_db.py first."
+            f"[record] {DB_PATH} not found â€” run seed_demo_db.py first."
         )
 
     port = _free_port()

@@ -1,4 +1,4 @@
-"""Unit tests for :class:`amp.store.pgvector_adapter.PgVectorStore`.
+"""Unit tests for :class:`memwire.store.pgvector_adapter.PgVectorStore`.
 
 These tests use :class:`unittest.mock.AsyncMock` to stand in for the
 ``asyncpg.Pool`` / connection that the adapter would otherwise reach. The
@@ -22,7 +22,7 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from amp.models import (
+from memwire.models import (
     ExpireAction,
     ExpirePolicy,
     ExpireRequest,
@@ -33,8 +33,8 @@ from amp.models import (
     RecallRequest,
     RememberRequest,
 )
-from amp.store import Capability, MemoryStore
-from amp.store.pgvector_adapter import (
+from memwire.store import Capability, MemoryStore
+from memwire.store.pgvector_adapter import (
     BACKEND_NAME,
     DEFAULT_EMBEDDING_DIM,
     PENDING_APPROVAL_DELETED_AT,
@@ -118,7 +118,7 @@ def test_pgvectorstore_is_a_memory_store() -> None:
 
 
 def test_constructor_requires_dsn_or_pool() -> None:
-    """Neither ``dsn`` nor ``pool`` → :class:`ValueError`."""
+    """Neither ``dsn`` nor ``pool`` â†’ :class:`ValueError`."""
     with pytest.raises(ValueError, match="dsn"):
         PgVectorStore()
 
@@ -182,7 +182,7 @@ def test_from_url_default_reads_database_url_env(monkeypatch: pytest.MonkeyPatch
 
 
 def test_from_url_default_without_env_raises(monkeypatch: pytest.MonkeyPatch) -> None:
-    """``pgvector://default`` with no ``DATABASE_URL`` → :class:`ValueError`."""
+    """``pgvector://default`` with no ``DATABASE_URL`` â†’ :class:`ValueError`."""
     monkeypatch.delenv("DATABASE_URL", raising=False)
     with pytest.raises(ValueError, match="DATABASE_URL"):
         PgVectorStore.from_url("pgvector://default")
@@ -206,11 +206,11 @@ async def test_ensure_schema_runs_create_statements_once() -> None:
     # Each DDL statement is one ``conn.execute`` call.
     first_calls = conn.execute.call_count
     assert first_calls >= 5
-    # Capture the SQL that was issued — must include extension/schema/table.
+    # Capture the SQL that was issued â€” must include extension/schema/table.
     sqls = "\n".join(str(call.args[0]) for call in conn.execute.call_args_list)
     assert "CREATE EXTENSION IF NOT EXISTS vector" in sqls
-    assert "CREATE SCHEMA IF NOT EXISTS amp" in sqls
-    assert "CREATE TABLE IF NOT EXISTS amp.memories" in sqls
+    assert "CREATE SCHEMA IF NOT EXISTS memwire" in sqls
+    assert "CREATE TABLE IF NOT EXISTS memwire.memories" in sqls
     assert "vector(384)" in sqls
     assert "ivfflat" in sqls
 
@@ -249,7 +249,7 @@ async def test_remember_issues_parameterised_insert() -> None:
 
     # First N execute calls are DDL; find the INSERT into memories.
     insert_call = next(
-        c for c in conn.execute.call_args_list if "INSERT INTO amp.memories" in str(c.args[0])
+        c for c in conn.execute.call_args_list if "INSERT INTO memwire.memories" in str(c.args[0])
     )
     sql = insert_call.args[0]
     params = insert_call.args[1:]
@@ -293,7 +293,7 @@ async def test_remember_with_approval_required_writes_pending_sentinel() -> None
         )
     )
     insert_call = next(
-        c for c in conn.execute.call_args_list if "INSERT INTO amp.memories" in str(c.args[0])
+        c for c in conn.execute.call_args_list if "INSERT INTO memwire.memories" in str(c.args[0])
     )
     params = insert_call.args[1:]
     assert params[12] == PENDING_APPROVAL_DELETED_AT  # deleted_at slot
@@ -316,7 +316,7 @@ async def test_remember_procedural_writes_procedures_row() -> None:
         )
     )
     proc_call = next(
-        c for c in conn.execute.call_args_list if "INSERT INTO amp.procedures" in str(c.args[0])
+        c for c in conn.execute.call_args_list if "INSERT INTO memwire.procedures" in str(c.args[0])
     )
     params = proc_call.args[1:]
     # name pulled from FSM, current too.
@@ -380,7 +380,7 @@ async def test_recall_types_filter_passed_as_text_array() -> None:
         )
     )
     select_call = next(
-        c for c in conn.fetch.call_args_list if "FROM amp.memories" in str(c.args[0])
+        c for c in conn.fetch.call_args_list if "FROM memwire.memories" in str(c.args[0])
     )
     sql = select_call.args[0]
     params = select_call.args[1:]
@@ -438,7 +438,7 @@ async def test_forget_by_ids_soft_deletes() -> None:
     update_call = next(
         c
         for c in conn.execute.call_args_list
-        if "SET deleted_at" in str(c.args[0]) and "amp.memories" in str(c.args[0])
+        if "SET deleted_at" in str(c.args[0]) and "memwire.memories" in str(c.args[0])
     )
     assert "deleted_at = $1" in update_call.args[0]
     assert update_call.args[2] == ["m1", "m2"]
@@ -455,7 +455,7 @@ async def test_forget_hard_delete_issues_delete() -> None:
     store = PgVectorStore(pool=pool, embedder=fake_embedder)
     await store.forget(ForgetRequest(agent_id="agent-a", ids=["m1"], hard_delete=True))
     delete_call = next(
-        c for c in conn.execute.call_args_list if "DELETE FROM amp.memories" in str(c.args[0])
+        c for c in conn.execute.call_args_list if "DELETE FROM memwire.memories" in str(c.args[0])
     )
     assert "DELETE" in delete_call.args[0]
     assert delete_call.args[1] == ["m1"]
@@ -480,7 +480,7 @@ async def test_forget_by_filter_runs_select_then_update() -> None:
 
 
 async def test_forget_without_ids_or_filter_raises() -> None:
-    """No-scope mass delete must raise per spec §3.3 Editor's note."""
+    """No-scope mass delete must raise per spec Â§3.3 Editor's note."""
     store, _ = _make_store()
     with pytest.raises(ValueError, match="ids` or `filter"):
         await store.forget(ForgetRequest(agent_id="agent-a"))
@@ -623,7 +623,7 @@ async def test_merge_content_writes_concatenated_survivor() -> None:
 
 
 async def test_expire_empty_policy_raises() -> None:
-    """Spec §3.5: empty policy must raise so it can't mass-delete."""
+    """Spec Â§3.5: empty policy must raise so it can't mass-delete."""
     store, _ = _make_store()
     with pytest.raises(ValueError, match="non-empty policy"):
         await store.expire(ExpireRequest(agent_id="agent-a", policy=ExpirePolicy()))
@@ -693,7 +693,7 @@ async def test_health_returns_expected_shape() -> None:
     h = await store.health()
     assert h["status"] == "ok"
     assert h["backend"] == BACKEND_NAME
-    assert h["schema"] == "amp"
+    assert h["schema"] == "memwire"
     assert h["pg_version"] == "PostgreSQL 16.0"
     assert h["memory_count"] == 42
     assert "schema_version" in h

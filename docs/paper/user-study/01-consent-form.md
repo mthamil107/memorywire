@@ -1,6 +1,6 @@
-# Informed Consent — AMP Governance UI Usability Study
+# Informed Consent â€” memwire Governance UI Usability Study
 
-> Version: v0 — last updated 2026-05-28.
+> Version: v0 â€” last updated 2026-05-28.
 > Read this form before agreeing to participate. The researcher will
 > walk you through the key points at the start of your session.
 
@@ -8,7 +8,7 @@
 
 ## Study title
 
-Usability evaluation of the AMP Governance UI: a diff-and-approve
+Usability evaluation of the memwire Governance UI: a diff-and-approve
 interface for AI-agent memory writes.
 
 ## Investigator
@@ -51,7 +51,7 @@ If you agree to participate, you will:
 
 You will be **video and audio recorded** during the session, with your
 screen captured. If you would prefer not to be recorded, the session
-can still proceed and the researcher will take written notes — please
+can still proceed and the researcher will take written notes â€” please
 let the researcher know at the start of the session.
 
 ## Voluntary participation and withdrawal
@@ -62,7 +62,7 @@ reason, without penalty. If you withdraw before completing the
 session, you will still receive the full compensation if you wish, and
 all recordings collected up to that point will be deleted within 7
 days. Withdrawal will not affect any current or future relationship
-with the researcher, the institution, or the AMP open-source project.
+with the researcher, the institution, or the memwire open-source project.
 
 ## Risks
 
@@ -70,7 +70,7 @@ The risks of participating are minimal. The interface tasks may
 occasionally feel frustrating if a task is unclear; please remember
 that the interface, not you, is being evaluated. The researcher will
 not judge your performance, and there are no "wrong" answers in the
-human sense — the study is measuring how well the interface conveys
+human sense â€” the study is measuring how well the interface conveys
 information, not how well you perform.
 
 There is also a small risk that recordings, despite our safeguards,
@@ -113,10 +113,10 @@ practitioners use HITL governance interfaces for AI agents.
 
 ## Conflict-of-interest disclosure
 
-The researcher is the author and primary maintainer of the AMP
+The researcher is the author and primary maintainer of the memwire
 open-source project that includes the interface being evaluated. You
 should know this so you can factor it into your participation. The
-researcher is genuinely interested in negative feedback — please be
+researcher is genuinely interested in negative feedback â€” please be
 honest about anything confusing or frustrating. The paper will report
 all findings, not only favourable ones.
 
@@ -141,7 +141,7 @@ the start of the session), you confirm that:
   understand the study.
 - [ ] You agree to participate voluntarily.
 - [ ] You agree to be video, audio, and screen recorded for the
-  duration of the session. *(Optional — leave unchecked to participate
+  duration of the session. *(Optional â€” leave unchecked to participate
   without recording.)*
 - [ ] You agree that de-identified quotations from your think-aloud may
   appear in the published paper.

@@ -1,5 +1,5 @@
-# Anything not strictly needed inside the image. Keep this in sync with
-# .gitignore — the runtime image is a stripped subset of the source tree.
+﻿# Anything not strictly needed inside the image. Keep this in sync with
+# .gitignore â€” the runtime image is a stripped subset of the source tree.
 
 # Version control
 .git/
@@ -23,7 +23,7 @@ __pycache__/
 *$py.class
 *.egg-info/
 
-# Tests + examples — not part of the runtime image
+# Tests + examples â€” not part of the runtime image
 tests/
 examples/
 
@@ -34,6 +34,7 @@ examples/
 *.db-journal
 *.db-wal
 *.db-shm
+memwire-cli.db
 amp-cli.db
 demo-ui.db
 
@@ -94,7 +95,7 @@ desktop.ini
 !.env.example
 .claude/
 
-# The deploy bundle itself — we copy the bits we need explicitly via
+# The deploy bundle itself â€” we copy the bits we need explicitly via
 # COPY deploy/seed-on-boot.py rather than dragging the whole directory in.
 deploy/README.md
 deploy/deploy-on-tag.yml

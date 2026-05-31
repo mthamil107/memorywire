@@ -4,7 +4,7 @@
 > instrument. This is the **raw** form (six 20-step bipolar ratings)
 > plus the 15-comparison pairwise weighting procedure to compute the
 > weighted overall workload score. The Raw TLX variant (unweighted)
-> may also be reported alongside the weighted score; see §3 below.
+> may also be reported alongside the weighted score; see Â§3 below.
 
 ---
 
@@ -14,7 +14,7 @@
 > finished. Think about all five tasks combined, not any one task in
 > isolation. For each of the six dimensions below, mark the point on
 > the scale that best represents how you experienced the session.
-> The scale runs from "Very Low" to "Very High" in 20 steps — pick
+> The scale runs from "Very Low" to "Very High" in 20 steps â€” pick
 > the step that matches your experience.
 >
 > There are no right answers. The goal is to capture how the work
@@ -22,10 +22,10 @@
 
 ---
 
-## Part 1 — Raw ratings (6 items, 20-step bipolar scale each)
+## Part 1 â€” Raw ratings (6 items, 20-step bipolar scale each)
 
 For each item, mark **one** value from 0 (Very Low) to 100 (Very High)
-in 5-point increments — i.e. one of {0, 5, 10, 15, 20, 25, 30, 35, 40,
+in 5-point increments â€” i.e. one of {0, 5, 10, 15, 20, 25, 30, 35, 40,
 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100}.
 
 ### M1. Mental demand
@@ -41,7 +41,7 @@ Score: ____
 
 > How physically demanding was the task? How much pushing, pulling,
 > turning, controlling, activating, etc.? (Usually low for desk-bound
-> UI tasks — captured anyway for completeness.)
+> UI tasks â€” captured anyway for completeness.)
 
 `Very Low  |0|5|10|15|20|25|30|35|40|45|50|55|60|65|70|75|80|85|90|95|100|  Very High`
 
@@ -61,7 +61,7 @@ Score: ____
 > How successful were you in accomplishing what you were asked to do?
 > How satisfied were you with your performance?
 >
-> NOTE: the scale here is **reversed** — "Very Low" means "very
+> NOTE: the scale here is **reversed** â€” "Very Low" means "very
 > successful / very satisfied" and "Very High" means "very
 > unsuccessful / dissatisfied". `analyze.py` reverses this dimension
 > before summing.
@@ -90,7 +90,7 @@ Score: ____
 
 ---
 
-## Part 2 — Pairwise weighting (15 comparisons)
+## Part 2 â€” Pairwise weighting (15 comparisons)
 
 For each pair below, **circle the item that contributed more to the
 workload** during the session you just finished. The 15 pairs cover
@@ -144,7 +144,7 @@ weighted_overall = sum(weight[i] * raw_score[i]) / sum(weight[i])
                  = sum(weight[i] * raw_score[i]) / 15
 ```
 
-…where `raw_score[i]` for the Performance dimension is **first
+â€¦where `raw_score[i]` for the Performance dimension is **first
 reversed**: `raw_score_perf = 100 - raw_marked_perf`.
 
 The **raw (unweighted) TLX** is the simple average of the six raw
@@ -157,7 +157,7 @@ Both scores range 0-100; lower is better.
 ### Interpretation thresholds (for context only)
 
 These come from Grier (2015), *How High Is High? A Meta-Analysis of
-NASA-TLX Global Workload Scores* — meta-analytic norms across 1,173
+NASA-TLX Global Workload Scores* â€” meta-analytic norms across 1,173
 NASA-TLX administrations:
 
 - 0-9: very low workload (uncommon outside trivial tasks).
@@ -167,7 +167,7 @@ NASA-TLX administrations:
 - 80-100: very high.
 
 Software-interface evaluations typically land in the 30-50 range. Our
-target for the AMP governance UI is **< 50** (medium), and ideally
+target for the memwire governance UI is **< 50** (medium), and ideally
 **< 40**.
 
 ---

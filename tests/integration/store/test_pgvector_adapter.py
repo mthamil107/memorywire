@@ -1,4 +1,4 @@
-"""Integration test for :class:`amp.store.pgvector_adapter.PgVectorStore`.
+"""Integration test for :class:`memwire.store.pgvector_adapter.PgVectorStore`.
 
 This test exercises the **real** Postgres + ``pgvector`` stack end-to-end:
 
@@ -29,13 +29,13 @@ import os
 
 import pytest
 
-from amp.models import (
+from memwire.models import (
     ForgetRequest,
     MemoryType,
     RecallRequest,
     RememberRequest,
 )
-from amp.store.pgvector_adapter import DEFAULT_EMBEDDING_DIM, PgVectorStore
+from memwire.store.pgvector_adapter import DEFAULT_EMBEDDING_DIM, PgVectorStore
 
 
 def _fake_embedder(text: str) -> list[float]:
@@ -74,7 +74,7 @@ async def test_remember_recall_forget_against_real_postgres() -> None:
         assert write.pending_approval is False
         assert write.id
 
-        # recall (vector distance against the same fake embedder → exact hit).
+        # recall (vector distance against the same fake embedder â†’ exact hit).
         read = await store.recall(
             RecallRequest(
                 agent_id="amp-itest-agent",
@@ -86,7 +86,7 @@ async def test_remember_recall_forget_against_real_postgres() -> None:
         ids = [hit.id for hit in read.results]
         assert write.id in ids
 
-        # forget — soft-delete by id.
+        # forget â€” soft-delete by id.
         result = await store.forget(ForgetRequest(agent_id="amp-itest-agent", ids=[write.id]))
         assert result.forgotten_ids == [write.id]
 

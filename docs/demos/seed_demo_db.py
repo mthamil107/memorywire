@@ -28,12 +28,12 @@ import sys
 import time
 from pathlib import Path
 
-# Make `src/amp` importable when invoked directly via `python docs/demos/...`.
+# Make `src/memwire` importable when invoked directly via `python docs/demos/...`.
 REPO_ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(REPO_ROOT / "src"))
 
-from amp.models import MemoryType, RememberRequest  # noqa: E402
-from amp.store.sqlite_vec import SqliteVecStore  # noqa: E402
+from memwire.models import MemoryType, RememberRequest  # noqa: E402
+from memwire.store.sqlite_vec import SqliteVecStore  # noqa: E402
 
 DB_PATH = REPO_ROOT / "docs" / "demos" / "demo-ui.db"
 AGENT_ID = "customer-bot"
@@ -43,7 +43,7 @@ USER_ID = "alice@acme.com"
 def _fake_embedder(text: str) -> list[float]:
     """Deterministic 16-dim float vector derived from sha256(text).
 
-    Lets us seed without pulling sentence-transformers — the demo only
+    Lets us seed without pulling sentence-transformers â€” the demo only
     cares about the SQLite rows, never about ANN recall quality.
     """
     digest = hashlib.sha256(text.encode("utf-8")).digest()

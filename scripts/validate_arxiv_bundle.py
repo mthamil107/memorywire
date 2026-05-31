@@ -25,8 +25,8 @@ from pathlib import Path
 import bibtexparser
 
 ROOT = Path(__file__).resolve().parents[1] / "docs" / "paper" / "arxiv-submission"
-TEX = ROOT / "amp-paper.tex"
-BIB = ROOT / "amp.bib"
+TEX = ROOT / "memwire-paper.tex"
+BIB = ROOT / "memwire.bib"
 
 
 def main() -> int:
@@ -36,7 +36,7 @@ def main() -> int:
     line = "=" * 70
     print(line)
     print(f"Bundle: {ROOT}")
-    print(f"Sizes : amp-paper.tex={len(tex):,} chars | amp.bib={len(bib_text):,} chars")
+    print(f"Sizes : memwire-paper.tex={len(tex):,} chars | memwire.bib={len(bib_text):,} chars")
     print(line)
 
     failures: list[str] = []

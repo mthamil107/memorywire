@@ -1,6 +1,6 @@
-# AMP — Architecture
+# AMP â€” Architecture
 
-**Generated:** 2026-05-26 · **Status:** locked for v0 sprint. Re-litigate only with a measurement that contradicts the table at the bottom.
+**Generated:** 2026-05-26 Â· **Status:** locked for v0 sprint. Re-litigate only with a measurement that contradicts the table at the bottom.
 
 ---
 
@@ -9,7 +9,7 @@
 | Concern | Choice | Why |
 |---|---|---|
 | **Language** | Python 3.11+ | Async-first, dominant in agent / memory ecosystem, all target adapters (mem0, Letta, Cognee) are Python |
-| **Build tool** | `uv` for dev/lock/install | Passed Poetry on PyPI downloads in 2026; 10-100× faster |
+| **Build tool** | `uv` for dev/lock/install | Passed Poetry on PyPI downloads in 2026; 10-100Ã— faster |
 | **Build backend** | `hatchling` (PEP 517) | Most stable; what FastAPI / Pydantic / Polars use |
 | **Versioning** | `hatch-vcs` from git tags | Single source of truth |
 | **Spec format** | JSON Schema Draft 2020-12 | Standard for cross-language schemas; tooling mature |
@@ -88,76 +88,76 @@ markers = [
 
 ```
 agent-memory-protocol/
-├── README.md, LICENSE, NOTICE, CHANGELOG.md
-├── CODE_OF_CONDUCT.md, CONTRIBUTING.md, SECURITY.md
-├── pyproject.toml, uv.lock
-├── .github/workflows/{ci,wheels,release,docs}.yml
-│
-├── docs/
-│   ├── index.md
-│   ├── getting-started.md
-│   ├── spec/
-│   │   └── v0.md                    # the published AMP spec
-│   ├── adapters.md                  # how to write a new MemoryStore adapter
-│   ├── governance-ui.md
-│   └── benchmarks.md                # LongMemEval / LoCoMo / BEAM results
-│
-├── src/
-│   └── amp/
-│       ├── __init__.py
-│       ├── api.py                   # public surface — Memory class
-│       ├── models.py                # pydantic schemas matching the spec
-│       ├── schemas/                 # JSON Schema files
-│       │   ├── operations/
-│       │   │   ├── remember.json
-│       │   │   ├── recall.json
-│       │   │   ├── forget.json
-│       │   │   ├── merge.json
-│       │   │   └── expire.json
-│       │   └── types/
-│       │       ├── semantic.json
-│       │       ├── episodic.json
-│       │       ├── procedural.json
-│       │       └── emotional.json
-│       ├── store/
-│       │   ├── base.py              # MemoryStore Protocol class
-│       │   ├── sqlite_vec.py
-│       │   ├── mem0_adapter.py
-│       │   ├── letta_adapter.py
-│       │   ├── cognee_adapter.py
-│       │   └── pgvector_adapter.py
-│       ├── router.py                # memory-router (fan + RRF fuse)
-│       ├── procedural.py            # FSM backend via pytransitions
-│       ├── transformer.py           # STM<->LTM consolidator (async background)
-│       ├── governance/              # diff/approve, health, audit
-│       │   ├── diff.py
-│       │   ├── health.py
-│       │   └── audit.py
-│       └── cli.py
-│
-├── ui/                              # governance UI (separate sub-package)
-│   ├── pyproject.toml
-│   ├── src/amp_ui/
-│   │   ├── app.py                   # Starlette + HTMX
-│   │   ├── routes/
-│   │   ├── templates/
-│   │   └── static/
-│   └── tests/
-│
-├── examples/
-│   ├── 01_quickstart.py             # end-to-end one-page demo
-│   ├── 02_multi_backend.py
-│   ├── 03_procedural_fsm.py
-│   └── 04_governance_ui.py
-│
-├── tests/
-│   ├── unit/                        # mocks, no real backends, <2s total
-│   ├── integration/                 # real backends, <60s
-│   └── benchmarks/                  # LongMemEval / LoCoMo runners
-│
-└── scripts/
-    ├── run_benchmarks.py
-    └── verify_spec.py               # JSON-Schema-validate examples
+â”œâ”€â”€ README.md, LICENSE, NOTICE, CHANGELOG.md
+â”œâ”€â”€ CODE_OF_CONDUCT.md, CONTRIBUTING.md, SECURITY.md
+â”œâ”€â”€ pyproject.toml, uv.lock
+â”œâ”€â”€ .github/workflows/{ci,wheels,release,docs}.yml
+â”‚
+â”œâ”€â”€ docs/
+â”‚   â”œâ”€â”€ index.md
+â”‚   â”œâ”€â”€ getting-started.md
+â”‚   â”œâ”€â”€ spec/
+â”‚   â”‚   â””â”€â”€ v0.md                    # the published AMP spec
+â”‚   â”œâ”€â”€ adapters.md                  # how to write a new MemoryStore adapter
+â”‚   â”œâ”€â”€ governance-ui.md
+â”‚   â””â”€â”€ benchmarks.md                # LongMemEval / LoCoMo / BEAM results
+â”‚
+â”œâ”€â”€ src/
+â”‚   â””â”€â”€ amp/
+â”‚       â”œâ”€â”€ __init__.py
+â”‚       â”œâ”€â”€ api.py                   # public surface â€” Memory class
+â”‚       â”œâ”€â”€ models.py                # pydantic schemas matching the spec
+â”‚       â”œâ”€â”€ schemas/                 # JSON Schema files
+â”‚       â”‚   â”œâ”€â”€ operations/
+â”‚       â”‚   â”‚   â”œâ”€â”€ remember.json
+â”‚       â”‚   â”‚   â”œâ”€â”€ recall.json
+â”‚       â”‚   â”‚   â”œâ”€â”€ forget.json
+â”‚       â”‚   â”‚   â”œâ”€â”€ merge.json
+â”‚       â”‚   â”‚   â””â”€â”€ expire.json
+â”‚       â”‚   â””â”€â”€ types/
+â”‚       â”‚       â”œâ”€â”€ semantic.json
+â”‚       â”‚       â”œâ”€â”€ episodic.json
+â”‚       â”‚       â”œâ”€â”€ procedural.json
+â”‚       â”‚       â””â”€â”€ emotional.json
+â”‚       â”œâ”€â”€ store/
+â”‚       â”‚   â”œâ”€â”€ base.py              # MemoryStore Protocol class
+â”‚       â”‚   â”œâ”€â”€ sqlite_vec.py
+â”‚       â”‚   â”œâ”€â”€ mem0_adapter.py
+â”‚       â”‚   â”œâ”€â”€ letta_adapter.py
+â”‚       â”‚   â”œâ”€â”€ cognee_adapter.py
+â”‚       â”‚   â””â”€â”€ pgvector_adapter.py
+â”‚       â”œâ”€â”€ router.py                # memory-router (fan + RRF fuse)
+â”‚       â”œâ”€â”€ procedural.py            # FSM backend via pytransitions
+â”‚       â”œâ”€â”€ transformer.py           # STM<->LTM consolidator (async background)
+â”‚       â”œâ”€â”€ governance/              # diff/approve, health, audit
+â”‚       â”‚   â”œâ”€â”€ diff.py
+â”‚       â”‚   â”œâ”€â”€ health.py
+â”‚       â”‚   â””â”€â”€ audit.py
+â”‚       â””â”€â”€ cli.py
+â”‚
+â”œâ”€â”€ ui/                              # governance UI (separate sub-package)
+â”‚   â”œâ”€â”€ pyproject.toml
+â”‚   â”œâ”€â”€ src/amp_ui/
+â”‚   â”‚   â”œâ”€â”€ app.py                   # Starlette + HTMX
+â”‚   â”‚   â”œâ”€â”€ routes/
+â”‚   â”‚   â”œâ”€â”€ templates/
+â”‚   â”‚   â””â”€â”€ static/
+â”‚   â””â”€â”€ tests/
+â”‚
+â”œâ”€â”€ examples/
+â”‚   â”œâ”€â”€ 01_quickstart.py             # end-to-end one-page demo
+â”‚   â”œâ”€â”€ 02_multi_backend.py
+â”‚   â”œâ”€â”€ 03_procedural_fsm.py
+â”‚   â””â”€â”€ 04_governance_ui.py
+â”‚
+â”œâ”€â”€ tests/
+â”‚   â”œâ”€â”€ unit/                        # mocks, no real backends, <2s total
+â”‚   â”œâ”€â”€ integration/                 # real backends, <60s
+â”‚   â””â”€â”€ benchmarks/                  # LongMemEval / LoCoMo runners
+â”‚
+â””â”€â”€ scripts/
+    â”œâ”€â”€ run_benchmarks.py
+    â””â”€â”€ verify_spec.py               # JSON-Schema-validate examples
 ```
 
 ---
@@ -310,7 +310,7 @@ async def recall(query: str, k: int = 5, hops: int = 1) -> list[Recall]:
     return sorted(fused.values(), key=lambda x: x.score, reverse=True)[:k]
 ```
 
-Graph boost is applied in Python after RRF — recursive CTE in SQLite is too slow at scale.
+Graph boost is applied in Python after RRF â€” recursive CTE in SQLite is too slow at scale.
 
 ---
 
@@ -341,7 +341,7 @@ Procedures persist as JSON blobs (`states`, `transitions`, `current`). Replayabl
 
 ---
 
-## 7. STM↔LTM transformer module
+## 7. STMâ†”LTM transformer module
 
 Always-on async background task that:
 
@@ -370,11 +370,11 @@ await t.start()  # runs forever in background
 
 Server-rendered HTMX + Tailwind for v0. Five screens:
 
-1. **Pending Approvals** — list of `remember()` calls awaiting human review with diff against current state
-2. **Memory Health Dashboard** — staleness, drift, contradictions, coverage by memory type
-3. **Audit Log** — every operation, filterable, exportable as JSON/CSV
-4. **Co-memorize Bulk Review** — periodic batch view of forget/merge candidates with model-generated reasoning
-5. **Approval Patterns** — learned approve/reject rules, "auto-allow?" recommendations
+1. **Pending Approvals** â€” list of `remember()` calls awaiting human review with diff against current state
+2. **Memory Health Dashboard** â€” staleness, drift, contradictions, coverage by memory type
+3. **Audit Log** â€” every operation, filterable, exportable as JSON/CSV
+4. **Co-memorize Bulk Review** â€” periodic batch view of forget/merge candidates with model-generated reasoning
+5. **Approval Patterns** â€” learned approve/reject rules, "auto-allow?" recommendations
 
 Architecture: Starlette + Jinja2 + HTMX. No SPA framework. State server-side.
 
@@ -384,12 +384,12 @@ Architecture: Starlette + Jinja2 + HTMX. No SPA framework. State server-side.
 
 GitHub Actions workflows:
 
-- `ci.yml` — lint (ruff, mypy) + unit tests on ubuntu/macos/windows × Python 3.11/3.12/3.13
-- `wheels.yml` — cibuildwheel on tag (pure Python = simple, no native deps in core)
-- `release.yml` — release-please + PyPI OIDC publish
-- `docs.yml` — MkDocs Material → gh-pages
+- `ci.yml` â€” lint (ruff, mypy) + unit tests on ubuntu/macos/windows Ã— Python 3.11/3.12/3.13
+- `wheels.yml` â€” cibuildwheel on tag (pure Python = simple, no native deps in core)
+- `release.yml` â€” release-please + PyPI OIDC publish
+- `docs.yml` â€” MkDocs Material â†’ gh-pages
 
-Day-1 wheel matrix: pure Python source dist + wheel (no native compilation needed — all native deps are in optional extras).
+Day-1 wheel matrix: pure Python source dist + wheel (no native compilation needed â€” all native deps are in optional extras).
 
 ---
 
@@ -401,7 +401,7 @@ Day-1 wheel matrix: pure Python source dist + wheel (no native compilation neede
 | Single `recall()` (k=5, 2 stores fused) | <300ms p50 | RRF fusion + graph boost |
 | `recall()` against 100k memories in sqlite-vec | <500ms p50 | Brute-force ANN is fine at this scale |
 | FSM `procedural.store()` | <30ms p50 | One JSON write |
-| STM→LTM consolidation (100 STM items) | <2s | Async background, not user-blocking |
+| STMâ†’LTM consolidation (100 STM items) | <2s | Async background, not user-blocking |
 | Governance UI page load | <200ms p50 | Server-rendered, no SPA |
 
 Benchmark these in `tests/benchmarks/` using `pytest-benchmark`. Publish results in `docs/benchmarks.md` as part of the launch blog post.
@@ -412,8 +412,8 @@ Benchmark these in `tests/benchmarks/` using `pytest-benchmark`. Publish results
 
 These are deliberately not locked. Spike in week 1, update this doc with decisions:
 
-- **Embedding model** — local (sentence-transformers) vs hosted (OpenAI embeddings). Default local. Decide based on quality on LongMemEval.
-- **Audit log durability** — append-only SQLite vs separate jsonl file. SQLite WAL is probably sufficient.
-- **Schema migrations** — alembic-style migrations vs single schema.sql. For v0, single schema.sql is fine.
-- **Procedural memory: pytransitions vs xstate-python** — pytransitions is more mature in Python; xstate-python is newer but matches XState spec better. Decide based on community ergonomics.
-- **Pro tier license** — fair-source vs source-available vs proprietary. Likely Functional Source License (FSL) for the UI; keeps it visible while protecting the revenue path.
+- **Embedding model** â€” local (sentence-transformers) vs hosted (OpenAI embeddings). Default local. Decide based on quality on LongMemEval.
+- **Audit log durability** â€” append-only SQLite vs separate jsonl file. SQLite WAL is probably sufficient.
+- **Schema migrations** â€” alembic-style migrations vs single schema.sql. For v0, single schema.sql is fine.
+- **Procedural memory: pytransitions vs xstate-python** â€” pytransitions is more mature in Python; xstate-python is newer but matches XState spec better. Decide based on community ergonomics.
+- **Pro tier license** â€” fair-source vs source-available vs proprietary. Likely Functional Source License (FSL) for the UI; keeps it visible while protecting the revenue path.

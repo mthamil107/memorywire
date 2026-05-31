@@ -1,6 +1,6 @@
-# Agent Memory Protocol (AMP) — Specification v0
+# Agent Memory Protocol (AMP) â€” Specification v0
 
-**Version:** 0.1.0-draft · **Status:** DRAFT — subject to change · **Generated:** 2026-05-26
+**Version:** 0.1.0-draft Â· **Status:** DRAFT â€” subject to change Â· **Generated:** 2026-05-26
 
 > This document is the wire-format specification for AMP. It defines operations, memory types, and the data shapes that flow between memory clients, the memory router, and backend memory stores. Reference implementation lives at `src/amp/`. Schemas use JSON Schema Draft 2020-12.
 
@@ -229,7 +229,7 @@ class MemoryStore(Protocol):
     def capabilities(self) -> set[str]: ...
 ```
 
-`capabilities` is a set of strings declaring what the backend supports — `{"semantic", "episodic", "fts", "vector", "graph", "procedural"}` etc. The router uses this to skip stores that don't support a given operation.
+`capabilities` is a set of strings declaring what the backend supports â€” `{"semantic", "episodic", "fts", "vector", "graph", "procedural"}` etc. The router uses this to skip stores that don't support a given operation.
 
 ---
 
@@ -245,7 +245,7 @@ Fusion algorithms:
 
 - **`rrf`** (default): Reciprocal Rank Fusion, k=60
   ```
-  score(item) = Σ (1 / (60 + rank_i(item)))  for each store i
+  score(item) = Î£ (1 / (60 + rank_i(item)))  for each store i
   ```
 - **`max`**: take the highest score per item across stores (no aggregation)
 - **`weighted`**: per-store weights from config; sum weighted scores
@@ -379,8 +379,8 @@ asyncio.run(main())
 ## 9. Spec versioning & evolution
 
 - AMP v0 is **draft**. Breaking changes allowed until v0.5.
-- v0.5 → v1.0: stabilization. Operations and schemas frozen.
-- v1.0 → publish as IETF Internet-Draft for cross-language adoption.
+- v0.5 â†’ v1.0: stabilization. Operations and schemas frozen.
+- v1.0 â†’ publish as IETF Internet-Draft for cross-language adoption.
 
 Backwards compatibility rules:
 
@@ -395,11 +395,11 @@ Backwards compatibility rules:
 
 These are deliberately not yet decided:
 
-- **Embedding metadata** — should `remember()` accept a pre-computed embedding? Or always compute server-side?
-- **Cross-agent sharing** — should AMP define a `share` operation for inter-agent memory transfer? Likely v0.2.
-- **Streaming `recall`** — `recall_stream()` for very large k? Defer to v1.
-- **Privacy-intent flags** — the "Layer 3 gap" from Module 11. Should `remember()` carry `privacy_intent: {"retain": "30d", "share_with": ["agent-x"], "user_consent_id": "..."}`? Likely v0.2.
-- **Federated memory** — multi-tenant scoping primitives. Defer to v1.
+- **Embedding metadata** â€” should `remember()` accept a pre-computed embedding? Or always compute server-side?
+- **Cross-agent sharing** â€” should AMP define a `share` operation for inter-agent memory transfer? Likely v0.2.
+- **Streaming `recall`** â€” `recall_stream()` for very large k? Defer to v1.
+- **Privacy-intent flags** â€” the "Layer 3 gap" from Module 11. Should `remember()` carry `privacy_intent: {"retain": "30d", "share_with": ["agent-x"], "user_consent_id": "..."}`? Likely v0.2.
+- **Federated memory** â€” multi-tenant scoping primitives. Defer to v1.
 
 ---
 
@@ -408,16 +408,16 @@ These are deliberately not yet decided:
 Standards we're modeling after:
 
 - [JSON Schema 2020-12](https://json-schema.org/draft/2020-12/release-notes)
-- [Model Context Protocol](https://modelcontextprotocol.io) — for the cross-vendor, MCP-shaped pattern
-- [OpenTelemetry semconv](https://opentelemetry.io/docs/specs/semconv/) — for stable identifier patterns
-- [GenAI Semantic Conventions](https://opentelemetry.io/docs/specs/semconv/gen-ai/) — for cross-tool tracing
+- [Model Context Protocol](https://modelcontextprotocol.io) â€” for the cross-vendor, MCP-shaped pattern
+- [OpenTelemetry semconv](https://opentelemetry.io/docs/specs/semconv/) â€” for stable identifier patterns
+- [GenAI Semantic Conventions](https://opentelemetry.io/docs/specs/semconv/gen-ai/) â€” for cross-tool tracing
 
 Memory research informing the design:
 
 - LongMemEval benchmark
 - LoCoMo benchmark
 - BEAM benchmark
-- "Remember Me, Refine Me" — procedural memory
-- "Governed Memory" arXiv 2603.17787 — Co-memorize HITL
+- "Remember Me, Refine Me" â€” procedural memory
+- "Governed Memory" arXiv 2603.17787 â€” Co-memorize HITL
 - Mem0 architecture writeup
 - Letta (MemGPT) hierarchical memory paper

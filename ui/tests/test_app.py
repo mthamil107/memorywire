@@ -1,4 +1,4 @@
-"""Smoke tests for the Starlette factory + top-level routing."""
+﻿"""Smoke tests for the Starlette factory + top-level routing."""
 
 from __future__ import annotations
 
@@ -8,9 +8,9 @@ from typing import Any
 
 import httpx
 import pytest
-from amp_ui.__main__ import _assert_safe_public_config, _load_csrf_secret_from_env
-from amp_ui.app import create_app
-from amp_ui.middleware import CSRF_COOKIE_NAME, CSRF_HEADER_NAME
+from memwire_ui.__main__ import _assert_safe_public_config, _load_csrf_secret_from_env
+from memwire_ui.app import create_app
+from memwire_ui.middleware import CSRF_COOKIE_NAME, CSRF_HEADER_NAME
 
 
 @pytest.mark.anyio
@@ -33,7 +33,7 @@ async def test_boot_against_empty_db(tmp_path: Path) -> None:
     Before the fix, ``ensure_schema`` only created ``approval_patterns``;
     the OSS schema (``memories``, ``audit_log``, ...) was missing on a
     DB that the OSS adapter had not yet written to, so every page 500'd
-    against the default ``./amp-cli.db`` on first boot.
+    against the default ``./memwire-cli.db`` on first boot.
     """
     db_path = tmp_path / "empty.db"
     app = create_app(db_path=str(db_path), agent_id="empty")
@@ -120,7 +120,7 @@ async def test_csrf_required_on_post(
     app = app_for_path(seeded_db.db_path)
     transport = httpx.ASGITransport(app=app)
     async with httpx.AsyncClient(transport=transport, base_url="http://test") as client:
-        # No CSRF cookie + no header → 403.
+        # No CSRF cookie + no header Ã¢â€ â€™ 403.
         no_csrf = await client.post("/approvals/x/approve", data={"reviewer": "a"})
         assert no_csrf.status_code == 403, no_csrf.text[:200]
 
@@ -133,7 +133,7 @@ async def test_csrf_required_on_post(
             data={"reviewer": "a"},
             headers={CSRF_HEADER_NAME: token},
         )
-        # 403 means CSRF failed — that's what we *don't* want here. 404 is
+        # 403 means CSRF failed Ã¢â‚¬â€ that's what we *don't* want here. 404 is
         # fine (the memory id is bogus, but CSRF accepted the request).
         assert with_csrf.status_code != 403, with_csrf.text[:200]
 
@@ -187,7 +187,7 @@ async def test_csrf_token_exposed_to_template(
 
 
 # ---------------------------------------------------------------------------
-# AMP_UI_CSRF_SECRET env-var handling
+# MEMWIRE_UI_CSRF_SECRET env-var handling
 # ---------------------------------------------------------------------------
 
 
@@ -197,7 +197,7 @@ async def test_csrf_secret_from_env_var(
     app_for_path: Any,
 ) -> None:
     """Two apps built with the same pinned CSRF secret must accept each
-    other's tokens — proving the env-var path bypasses the per-process
+    other's tokens Ã¢â‚¬â€ proving the env-var path bypasses the per-process
     random default and keeps sessions stable across restarts."""
     raw_secret = b"x" * 32
     encoded = base64.b64encode(raw_secret).decode("ascii")
@@ -229,7 +229,7 @@ async def test_csrf_secret_from_env_var(
         )
         # 403 would mean app_b rejected the CSRF token minted by app_a;
         # any other status means it accepted the token (the memory id is
-        # bogus on purpose — we don't care whether the handler 404s).
+        # bogus on purpose Ã¢â‚¬â€ we don't care whether the handler 404s).
         assert response.status_code != 403, response.text[:200]
 
     # And the negative control: a *different* secret must reject the
@@ -271,7 +271,7 @@ def test_csrf_secret_env_unset_returns_none() -> None:
 
 
 def test_assert_safe_public_config_loopback_no_token_passes() -> None:
-    """Loopback bind (127.0.0.1) without a token is fine — nothing off-box reaches it."""
+    """Loopback bind (127.0.0.1) without a token is fine Ã¢â‚¬â€ nothing off-box reaches it."""
     # No exception expected.
     _assert_safe_public_config("127.0.0.1", None, False)
     _assert_safe_public_config("localhost", None, False)
@@ -289,13 +289,13 @@ def test_assert_safe_public_config_public_no_token_exits() -> None:
 
 
 def test_assert_safe_public_config_public_with_token_passes() -> None:
-    """Public bind with a non-empty token is the production path — must succeed."""
+    """Public bind with a non-empty token is the production path Ã¢â‚¬â€ must succeed."""
     _assert_safe_public_config("0.0.0.0", "tok", False)
     _assert_safe_public_config("203.0.113.10", "another-token", False)
 
 
 def test_assert_safe_public_config_explicit_opt_out_passes() -> None:
-    """``AMP_UI_ALLOW_UNAUTHENTICATED_PUBLIC=1`` must bypass the check."""
+    """``MEMWIRE_UI_ALLOW_UNAUTHENTICATED_PUBLIC=1`` must bypass the check."""
     # No exception even with a public host and no token, because the
     # operator explicitly accepted the risk.
     _assert_safe_public_config("0.0.0.0", None, True)

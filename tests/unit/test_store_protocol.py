@@ -1,7 +1,7 @@
-"""Tests for the :class:`amp.store.MemoryStore` Protocol.
+"""Tests for the :class:`memwire.store.MemoryStore` Protocol.
 
-We define a tiny in-memory ``MockStore`` here (not in ``src/`` — adapters
-under ``src/amp/store/`` are Phase 3 deliverables) and use it both to
+We define a tiny in-memory ``MockStore`` here (not in ``src/`` â€” adapters
+under ``src/memwire/store/`` are Phase 3 deliverables) and use it both to
 sanity-check the Protocol's structural shape and to exercise the
 round-trip path through the request/response models.
 """
@@ -14,7 +14,7 @@ from typing import Any
 
 import pytest
 
-from amp.models import (
+from memwire.models import (
     ExpireRequest,
     ExpireResponse,
     ForgetRequest,
@@ -29,11 +29,11 @@ from amp.models import (
     RememberRequest,
     RememberResponse,
 )
-from amp.store import Capability, MemoryStore
+from memwire.store import Capability, MemoryStore
 
 
 def _now_ms() -> int:
-    """Return the current Unix time in milliseconds (AMP timestamp format)."""
+    """Return the current Unix time in milliseconds (memwire timestamp format)."""
     return int(time.time() * 1000)
 
 
@@ -42,7 +42,7 @@ class MockStore:
 
     Used only inside the test suite. The store keeps records in a flat dict
     keyed by id and runs naive substring matching for ``recall``. It is
-    deliberately small — adapters under :mod:`amp.store` carry the real
+    deliberately small â€” adapters under :mod:`memwire.store` carry the real
     semantics.
     """
 
@@ -58,7 +58,7 @@ class MockStore:
     async def remember(self, req: RememberRequest) -> RememberResponse:
         """Store one memory and return the response.
 
-        Uses :func:`uuid.uuid4` for ids — spec-gap: uuid7 is preferred for
+        Uses :func:`uuid.uuid4` for ids â€” spec-gap: uuid7 is preferred for
         time-ordered ids but is not in the Python stdlib yet (added in
         3.14). When the runtime is 3.14+ the implementation should switch
         to ``uuid.uuid7``.
@@ -119,14 +119,14 @@ class MockStore:
             results=hits,
             fusion_used=req.fusion
             if req.fusion is not None
-            else __import__("amp.models", fromlist=["FusionAlgorithm"]).FusionAlgorithm.RRF,
+            else __import__("memwire.models", fromlist=["FusionAlgorithm"]).FusionAlgorithm.RRF,
             stores_queried=[self.BACKEND_NAME],
             latency_ms=max(_now_ms() - started_ms, 0),
         )
 
     async def forget(self, req: ForgetRequest) -> ForgetResponse:
         """Remove records by id or by a flat key/value filter."""
-        from amp.models import ForgetStoreResult
+        from memwire.models import ForgetStoreResult
 
         target_ids: list[str] = []
         if req.ids:
@@ -151,7 +151,7 @@ class MockStore:
 
     async def merge(self, req: MergeRequest) -> MergeResponse:
         """Stub: drop the duplicates, keep the canonical id."""
-        from amp.models import MergeStrategy
+        from memwire.models import MergeStrategy
 
         removed = 0
         for dup_id in req.duplicates:
@@ -167,7 +167,7 @@ class MockStore:
 
     async def expire(self, req: ExpireRequest) -> ExpireResponse:
         """Stub: count matching rows, perform no mutation."""
-        from amp.models import ExpireAction
+        from memwire.models import ExpireAction
 
         matched = sum(
             1
@@ -195,7 +195,7 @@ class MockStore:
 
 
 # ---------------------------------------------------------------------------
-# Filter helpers — pulled out of MockStore for readability.
+# Filter helpers â€” pulled out of MockStore for readability.
 # ---------------------------------------------------------------------------
 
 
@@ -333,7 +333,7 @@ async def test_health_reports_status() -> None:
 @pytest.mark.parametrize("strategy_value", ["keep_canonical", "merge_content"])
 async def test_merge_drops_duplicates(strategy_value: str) -> None:
     """``merge`` removes duplicate rows and reports the strategy used."""
-    from amp.models import MergeStrategy
+    from memwire.models import MergeStrategy
 
     store = MockStore()
     write_a = await store.remember(

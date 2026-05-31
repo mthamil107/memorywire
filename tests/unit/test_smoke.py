@@ -6,30 +6,30 @@ import subprocess
 import sys
 
 
-def test_import_amp() -> None:
-    import amp
+def test_import_memwire() -> None:
+    import memwire
 
-    assert isinstance(amp.__version__, str)
-    assert amp.__version__
+    assert isinstance(memwire.__version__, str)
+    assert memwire.__version__
 
 
 def test_cli_help_exits_zero() -> None:
     result = subprocess.run(
-        [sys.executable, "-m", "amp.cli", "--help"],
+        [sys.executable, "-m", "memwire.cli", "--help"],
         capture_output=True,
         text=True,
         check=False,
     )
     assert result.returncode == 0
-    assert "amp" in result.stdout.lower()
+    assert "memwire" in result.stdout.lower()
 
 
 def test_cli_version_exits_zero() -> None:
     result = subprocess.run(
-        [sys.executable, "-m", "amp.cli", "--version"],
+        [sys.executable, "-m", "memwire.cli", "--version"],
         capture_output=True,
         text=True,
         check=False,
     )
     assert result.returncode == 0
-    assert "amp" in result.stdout.lower()
+    assert "memwire" in result.stdout.lower()

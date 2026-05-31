@@ -1,4 +1,4 @@
-"""AMP quickstart — end-to-end demo using the :class:`amp.Memory` facade.
+"""memwire quickstart â€” end-to-end demo using the :class:`memwire.Memory` facade.
 
 This script ingests 50 short facts, runs a few recalls, deletes one user's
 records by filter, and prints final aggregate stats. It exists primarily
@@ -7,10 +7,10 @@ public operations.
 
 Embedding note
 --------------
-The default :class:`amp.store.sqlite_vec.SqliteVecStore` lazy-loads
+The default :class:`memwire.store.sqlite_vec.SqliteVecStore` lazy-loads
 ``sentence-transformers/all-MiniLM-L6-v2`` on first embed call. To keep
-this example runnable anywhere — CI, a fresh laptop, a Docker image
-without ML wheels — we inject a tiny deterministic fake embedder
+this example runnable anywhere â€” CI, a fresh laptop, a Docker image
+without ML wheels â€” we inject a tiny deterministic fake embedder
 (sha256-derived 384-d vectors). The embedder is *not* representative of
 real recall quality; it exists to make the storage layer exercise its
 ANN path without pulling sentence-transformers.
@@ -28,11 +28,11 @@ import hashlib
 import os
 import tempfile
 
-from amp import Memory, MemoryType
-from amp.store.sqlite_vec import SqliteVecStore
+from memwire import Memory, MemoryType
+from memwire.store.sqlite_vec import SqliteVecStore
 
 # ---------------------------------------------------------------------------
-# Fake embedder — sha256-derived 384-d deterministic vector
+# Fake embedder â€” sha256-derived 384-d deterministic vector
 # ---------------------------------------------------------------------------
 
 
@@ -51,7 +51,7 @@ def fake_embedder(text: str) -> list[float]:
 
 
 # ---------------------------------------------------------------------------
-# Seed data — 50 small facts
+# Seed data â€” 50 small facts
 # ---------------------------------------------------------------------------
 
 # Each entry is (content, user_id) so we can demonstrate per-user filtering.
@@ -129,7 +129,7 @@ def _section(title: str) -> None:
 async def main() -> None:
     """Run the full quickstart end-to-end."""
     # Use a temp file path so the demo also exercises the on-disk path.
-    # An in-memory db works just as well — toggle the line below if needed.
+    # An in-memory db works just as well â€” toggle the line below if needed.
     tmp_dir = tempfile.mkdtemp(prefix="amp-quickstart-")
     db_path = os.path.join(tmp_dir, "quickstart.db")
 

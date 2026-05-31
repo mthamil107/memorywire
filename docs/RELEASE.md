@@ -1,8 +1,8 @@
-# Release runbook
+﻿# Release runbook
 
-This runbook covers how `agent-memory-protocol` is cut to PyPI. Releases are
+This runbook covers how `memwire` is cut to PyPI. Releases are
 automated by `release-please` and published via **PyPI Trusted Publisher**
-(OIDC) — there are no long-lived API tokens stored in the repo or in GitHub
+(OIDC) Ã¢â‚¬â€ there are no long-lived API tokens stored in the repo or in GitHub
 Actions secrets.
 
 ## 1. One-time setup (~5 minutes, done once per project)
@@ -13,7 +13,7 @@ Actions secrets.
 release workflow fails with `GitHub Actions is not permitted to create or
 approve pull requests`.
 
-1. Open **GitHub repo → Settings → Actions → General**.
+1. Open **GitHub repo Ã¢â€ â€™ Settings Ã¢â€ â€™ Actions Ã¢â€ â€™ General**.
 2. Scroll to **Workflow permissions**.
 3. Check **"Allow GitHub Actions to create and approve pull requests"**.
 4. Save.
@@ -25,15 +25,15 @@ is on.
 ### 1b. Configure the PyPI Trusted Publisher
 
 1. Sign in to <https://pypi.org/> as the project owner.
-2. Open **"Your projects" → Trusted Publisher Management**
+2. Open **"Your projects" Ã¢â€ â€™ Trusted Publisher Management**
    (or visit <https://pypi.org/manage/account/publishing/>).
-3. Click **"Add a new publisher" → GitHub** and paste:
+3. Click **"Add a new publisher" Ã¢â€ â€™ GitHub** and paste:
 
    | Field                       | Value                          |
    | --------------------------- | ------------------------------ |
-   | PyPI Project Name           | `agent-memory-protocol`        |
+   | PyPI Project Name           | `memwire`        |
    | Owner                       | `mthamil107`                   |
-   | Repository name             | `agent-memory-protocol`        |
+   | Repository name             | `memwire`        |
    | Workflow filename           | `release.yml`                  |
    | Environment name            | `pypi`                         |
 
@@ -48,18 +48,18 @@ is on.
 
 ### 1c. Configure GitHub Environments
 
-In **GitHub repo → Settings → Environments**, create two environments:
+In **GitHub repo Ã¢â€ â€™ Settings Ã¢â€ â€™ Environments**, create two environments:
 
-- **`pypi`** — for production releases. Optionally add `mthamil107` as a
+- **`pypi`** Ã¢â‚¬â€ for production releases. Optionally add `mthamil107` as a
   required reviewer so every production publish needs a final click.
-- **`testpypi`** — for pre-release dry runs; no reviewers required.
+- **`testpypi`** Ã¢â‚¬â€ for pre-release dry runs; no reviewers required.
 
 No GitHub Actions *secrets* need to be created. OIDC handles authentication.
 
 ### 1d. (Optional) Wire Zenodo for DOIs
 
 1. Sign in to <https://zenodo.org> with your GitHub account.
-2. Toggle ON the `agent-memory-protocol` repo in Zenodo's GitHub panel.
+2. Toggle ON the `memwire` repo in Zenodo's GitHub panel.
 3. Update `CITATION.cff`'s `doi:` field with the concept DOI Zenodo returns.
 
 ## 2. Cutting a release (every time)
@@ -72,14 +72,14 @@ The full happy-path flow:
    derived from Conventional Commits since the last release.
 3. **Review and merge** that PR. The merge:
    - Updates `.github/.release-please-manifest.json` to `X.Y.Z`.
-   - Updates `CITATION.cff` and `src/amp/__init__.py`.
+   - Updates `CITATION.cff` and `src/memwire/__init__.py`.
    - Rewrites `CHANGELOG.md`.
    - Creates a GitHub release with tag `vX.Y.Z`.
 4. **The GitHub release publication** triggers `release.yml`, which:
-   - Builds the AMP wheel + sdist with `uv build`.
+   - Builds the memwire wheel + sdist with `uv build`.
    - Builds the UI wheel (FSL-licensed; attached as an artifact, **not**
      published to PyPI).
-   - Publishes the AMP wheel + sdist to PyPI via Trusted Publisher (OIDC).
+   - Publishes the memwire wheel + sdist to PyPI via Trusted Publisher (OIDC).
    - Attaches all wheels + the sdist to the GitHub release.
 
    The workflow fires on **`release: published`** (emitted by
@@ -87,13 +87,13 @@ The full happy-path flow:
    of any `v*` tag. Both trigger the same build + publish chain. The
    dual trigger exists because the `vX.Y.Z` tag is created with the
    default `GITHUB_TOKEN`, and GitHub's anti-recursion rule prevents
-   that tag-push event from firing downstream workflows — so we listen
+   that tag-push event from firing downstream workflows Ã¢â‚¬â€ so we listen
    for the release event as well to guarantee the first publish runs.
 5. **Verify install**:
 
    ```bash
    python -m venv /tmp/amp-verify && source /tmp/amp-verify/bin/activate
-   pip install agent-memory-protocol==X.Y.Z
+   pip install memwire==X.Y.Z
    amp --version
    ```
 
@@ -105,7 +105,7 @@ The full happy-path flow:
 If the release-please action is down or you need to ship an out-of-band patch:
 
 ```bash
-# 1. Bump CHANGELOG.md + CITATION.cff + src/amp/__init__.py by hand.
+# 1. Bump CHANGELOG.md + CITATION.cff + src/memwire/__init__.py by hand.
 git commit -am "chore: release X.Y.Z"
 
 # 2. Tag and push.
@@ -133,17 +133,17 @@ Verify with:
 ```bash
 pip install --index-url https://test.pypi.org/simple/ \
   --extra-index-url https://pypi.org/simple/ \
-  agent-memory-protocol==0.2.0rc1
+  memwire==0.2.0rc1
 ```
 
-You can also trigger TestPyPI manually via **Actions → Release → Run workflow →
+You can also trigger TestPyPI manually via **Actions Ã¢â€ â€™ Release Ã¢â€ â€™ Run workflow Ã¢â€ â€™
 testpypi: true** from a feature branch.
 
 ## 5. Yanking a release
 
 If a published release has a critical bug:
 
-1. Open <https://pypi.org/manage/project/agent-memory-protocol/releases/> and
+1. Open <https://pypi.org/manage/project/memwire/releases/> and
    click **Yank** on the affected version. Yanking hides the release from
    resolvers without deleting it (existing pinned installs keep working).
 2. Cut a follow-up release with the fix.
@@ -158,6 +158,6 @@ PyPI **Delete** action on that specific version and rotate the secret.
 ```
 
 `scripts/bump_version.py` (idempotent, read-only by default) prints the current
-version derived from `src/amp/__init__.py`, validates monotonic increase, and
+version derived from `src/memwire/__init__.py`, validates monotonic increase, and
 lists what release-please will rewrite on the next merge. It does not modify
 any files unless `--write` is passed.

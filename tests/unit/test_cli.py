@@ -1,12 +1,12 @@
-"""Tests for the ``amp`` CLI.
+﻿"""Tests for the ``amp`` CLI.
 
 Two flavours of coverage:
 
 * ``--version`` / ``--help`` already covered by ``test_smoke.py``; not
   duplicated here (kept green by leaving the subparser top-level intact).
 * Subcommand happy-paths and error paths use a patched
-  :func:`amp.api._build_store` so the CLI runs against an in-process
-  :class:`MockStore` — no sqlite-vec / mem0 deps required.
+  :func:`memwire.api._build_store` so the CLI runs against an in-process
+  :class:`MockStore` Ã¢â‚¬â€ no sqlite-vec / mem0 deps required.
 """
 
 from __future__ import annotations
@@ -21,7 +21,7 @@ from urllib.parse import urlparse
 
 import pytest
 
-from amp import (
+from memwire import (
     Capability,
     ExpireAction,
     FusionAlgorithm,
@@ -30,7 +30,7 @@ from amp import (
     MergeStrategy,
     RecallHit,
 )
-from amp.models import (
+from memwire.models import (
     ExpireRequest,
     ExpireResponse,
     ForgetRequest,
@@ -45,7 +45,7 @@ from amp.models import (
 )
 
 # ---------------------------------------------------------------------------
-# CLI MockStore — keyed by URL so multiple --store flags share state across
+# CLI MockStore Ã¢â‚¬â€ keyed by URL so multiple --store flags share state across
 # Memory() instantiations within a single CLI invocation.
 # ---------------------------------------------------------------------------
 
@@ -162,7 +162,7 @@ class CliMockStore:
         return {"status": "ok", "backend": self.BACKEND_NAME}
 
     def close(self) -> None:
-        # Don't drop the registry entry — recall/forget invocations in a
+        # Don't drop the registry entry Ã¢â‚¬â€ recall/forget invocations in a
         # later test step depend on remember's state surviving.
         pass
 
@@ -205,13 +205,13 @@ def _mock_build_store(url: str) -> MemoryStore:
 
 @pytest.fixture(autouse=True)
 def _patch_build_store(monkeypatch: pytest.MonkeyPatch) -> None:
-    """Replace :func:`amp.api._build_store` with the in-process mock.
+    """Replace :func:`memwire.api._build_store` with the in-process mock.
 
     ``autouse`` so every CLI test in this module runs hermetically. We
     also clear the per-URL registry so tests are isolated.
     """
     _MOCK_REGISTRY.clear()
-    monkeypatch.setattr("amp.api._build_store", _mock_build_store)
+    monkeypatch.setattr("memwire.api._build_store", _mock_build_store)
 
 
 # ---------------------------------------------------------------------------
@@ -220,9 +220,9 @@ def _patch_build_store(monkeypatch: pytest.MonkeyPatch) -> None:
 
 
 def _run_cli(args: list[str]) -> tuple[int, str, str]:
-    """Run ``amp.cli.main(args)`` in-process; capture stdout + stderr."""
+    """Run ``memwire.cli.main(args)`` in-process; capture stdout + stderr."""
     # Reimport inside the helper so monkeypatch is in effect.
-    from amp import cli
+    from memwire import cli
 
     out = io.StringIO()
     err = io.StringIO()
@@ -239,19 +239,19 @@ def _run_cli(args: list[str]) -> tuple[int, str, str]:
 def test_cli_version_subprocess() -> None:
     """``amp --version`` exits 0 and prints a recognisable banner."""
     result = subprocess.run(
-        [sys.executable, "-m", "amp.cli", "--version"],
+        [sys.executable, "-m", "memwire.cli", "--version"],
         capture_output=True,
         text=True,
         check=False,
     )
     assert result.returncode == 0
-    assert "amp" in result.stdout.lower()
+    assert "memwire" in result.stdout.lower()
 
 
 def test_cli_help_subprocess() -> None:
-    """``amp --help`` exits 0 — exercise the full entry point too."""
+    """``amp --help`` exits 0 Ã¢â‚¬â€ exercise the full entry point too."""
     result = subprocess.run(
-        [sys.executable, "-m", "amp.cli", "--help"],
+        [sys.executable, "-m", "memwire.cli", "--help"],
         capture_output=True,
         text=True,
         check=False,
@@ -341,7 +341,7 @@ def test_cli_remember_with_bad_metadata_exits_one() -> None:
 def test_cli_unknown_subcommand_is_non_zero() -> None:
     """``amp bogus`` exits with a non-zero status (argparse rejects it)."""
     result = subprocess.run(
-        [sys.executable, "-m", "amp.cli", "bogus-command"],
+        [sys.executable, "-m", "memwire.cli", "bogus-command"],
         capture_output=True,
         text=True,
         check=False,
