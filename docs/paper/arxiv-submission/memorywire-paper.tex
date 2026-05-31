@@ -53,7 +53,7 @@
 \author{
   Thamilvendhan Munirathinam\thanks{\texttt{mthamil107@gmail.com}}\\
   Independent Researcher\\
-  \small{Repository: \url{https://github.com/mthamil107/agent-memory-protocol}}
+  \small{Repository: \url{https://github.com/mthamil107/memorywire}}
 }
 \date{}
 
@@ -246,7 +246,7 @@ Excluding \texttt{recall} from the default governance surface is a v0 trade-off.
 \subsection{Spec versioning and backwards-compatibility rules}
 \label{sec:spec-versioning}
 
-memorywire v0 is a draft. Breaking changes are allowed through v0.5; v0.5 stabilizes; v1.0 freezes. The rules are: new \emph{optional} fields are allowed at any time; new \emph{required} fields require a minor version bump with a deprecation period; \emph{removed} fields require a major version bump only; new memory types require a minor version bump. The intent is to publish memorywire v0.5 as an IETF Internet-Draft (\texttt{draft-<name>-agent-memory-protocol-00}) and, in parallel, propose adoption as an MCP extension (\texttt{mcp.memory.v0} or similar; see \Cref{sec:mcp}). Both outcomes are acceptable; neither is committed.
+memorywire v0 is a draft. Breaking changes are allowed through v0.5; v0.5 stabilizes; v1.0 freezes. The rules are: new \emph{optional} fields are allowed at any time; new \emph{required} fields require a minor version bump with a deprecation period; \emph{removed} fields require a major version bump only; new memory types require a minor version bump. The intent is to publish memorywire v0.5 as an IETF Internet-Draft (\texttt{draft-<name>-memorywire-00}) and, in parallel, propose adoption as an MCP extension (\texttt{mcp.memory.v0} or similar; see \Cref{sec:mcp}). Both outcomes are acceptable; neither is committed.
 
 \section{Reference Implementation}
 \label{sec:impl}
@@ -571,7 +571,7 @@ memorywire is a draft. The roadmap below lists the concrete deliverables we have
 
 \textbf{v0.2 spec tightenings.} Three spec tightenings the v0 evaluation directly motivates: (a) a \texttt{privacy\_intent} block on \texttt{RememberRequest} so operators can require approval by \texttt{source}, \texttt{type}, or content predicate without instrumenting every caller; (b) multi-tenant \texttt{agent\_id} scoping in the UI (per-operator allowed-\texttt{agent\_id} ACL and SSO-shaped reviewer identity); (c) a required \texttt{expire(policy=\{\})} empty-policy guard on every adapter (the \Cref{sec:eval-conformance} conformance run surfaced this as the highest-priority spec tightening). Additional v0.2 hardening from \texttt{docs/THREATS.md}: signed \texttt{RecallHit} envelopes per backend; Merkle-chained audit rows; per-\texttt{agent\_id} recall budgets; stable per-record id surfaced from every backend's write primitive.
 
-\textbf{v0.5 spec freeze and standards engagement.} v0.5 is the freeze point: wire format stable, breaking changes prohibited. In parallel with v0.5: file an MCP RFC proposing memory as an extension primitive with memorywire as the candidate reference; submit memorywire v0.5 as an IETF Internet-Draft (\texttt{draft-<name>-agent-memory-protocol-00}). Both outcomes --- acceptance as an MCP extension and stabilization as a parallel standard --- are acceptable.
+\textbf{v0.5 spec freeze and standards engagement.} v0.5 is the freeze point: wire format stable, breaking changes prohibited. In parallel with v0.5: file an MCP RFC proposing memory as an extension primitive with memorywire as the candidate reference; submit memorywire v0.5 as an IETF Internet-Draft (\texttt{draft-<name>-memorywire-00}). Both outcomes --- acceptance as an MCP extension and stabilization as a parallel standard --- are acceptable.
 
 \textbf{v1.0 stable.} Frozen wire format; federated multi-tenant primitives (a cross-agent \texttt{share} operation under discussion); enterprise governance (SSO, role-based ACLs, signed audit exports); production-grade adapters for the long tail of backends not in v0.
 

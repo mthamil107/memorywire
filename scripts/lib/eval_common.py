@@ -130,7 +130,7 @@ def paired_bootstrap_ci(
     Notes
     -----
     Pure-stdlib implementation â€” no NumPy dependency, because the eval
-    harness must run on a fresh ``pip install agent-memory-protocol``
+    harness must run on a fresh ``pip install memorywire``
     without numpy/scipy.
 
     References

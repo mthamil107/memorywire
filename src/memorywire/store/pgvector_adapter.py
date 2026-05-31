@@ -10,7 +10,7 @@ translated to the Postgres dialect, with the ANN index served by ``pgvector``'s
 Design notes
 ------------
 * The ``asyncpg`` + ``pgvector`` packages are *optional extras* (``pip install
-  agent-memory-protocol[postgres]``). The imports live behind ``TYPE_CHECKING``
+  memorywire[postgres]``). The imports live behind ``TYPE_CHECKING``
   and inside :meth:`PgVectorStore._get_pool` so this module loads cleanly even
   without the extras installed â€” unit tests use ``unittest.mock.AsyncMock`` and
   never need a running Postgres.
@@ -307,7 +307,7 @@ class PgVectorStore:
         except ImportError as exc:  # pragma: no cover - exercised by integration
             raise RuntimeError(
                 "PgVectorStore requires asyncpg. "
-                "Install with `pip install 'agent-memory-protocol[postgres]'`."
+                "Install with `pip install 'memorywire[postgres]'`."
             ) from exc
 
         # ``self._dsn is None`` is impossible here because the constructor
@@ -433,7 +433,7 @@ class PgVectorStore:
         except ImportError as exc:  # pragma: no cover - exercised by integration
             raise RuntimeError(
                 "PgVectorStore default embedder requires sentence-transformers. "
-                "Install with `pip install 'agent-memory-protocol[sqlite-vec]'` "
+                "Install with `pip install 'memorywire[sqlite-vec]'` "
                 "or pass an explicit `embedder=` callable to the constructor."
             ) from exc
 

@@ -53,7 +53,7 @@ checks = [
     ("Author: Munirathinam",             "Munirathinam"),
     ("Affiliation: Independent",         "Independent Researcher"),
     ("Email: mthamil107@gmail",          "mthamil107@gmail"),
-    ("Repository URL",                   "github.com/mthamil107/agent-memory-protocol"),
+    ("Repository URL",                   "github.com/mthamil107/memorywire"),
     ("Abstract opener",                  "Agent-memory frameworks"),
     ("Microbench number",                "recall@5 = 1.000"),
     ("Adversarial number",               "0.500"),

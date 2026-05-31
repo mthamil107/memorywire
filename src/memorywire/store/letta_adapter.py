@@ -9,7 +9,7 @@ embeddings + a passage index.
 Design notes
 ------------
 * The ``letta-client`` package is an *optional extra* (``pip install
-  agent-memory-protocol[letta]``). The import lives behind ``TYPE_CHECKING``
+  memorywire[letta]``). The import lives behind ``TYPE_CHECKING``
   and inside :meth:`LettaStore._get_client` so this module loads cleanly
   even without the SDK installed â€” unit tests use ``unittest.mock`` and
   never need the real SDK.

@@ -10,7 +10,7 @@ search.
 Design notes
 ------------
 * The ``cognee`` package is an *optional extra* (``pip install
-  agent-memory-protocol[cognee]``). The import lives behind
+  memorywire[cognee]``). The import lives behind
   ``TYPE_CHECKING`` and inside :meth:`CogneeStore._get_module` so this
   module loads cleanly even without cognee installed â€” unit tests mock
   the module via :mod:`unittest.mock` and never need the real SDK.

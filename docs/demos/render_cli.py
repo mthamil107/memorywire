@@ -211,8 +211,8 @@ def storyboard() -> list[tuple[str, object, int]]:
 
     # ---- Section 1: install (faked â€” real pip install would be >30s) -----
     s.append(("instant", styled_comment("# Install with three day-1 backends"), ms(600)))
-    s.append(("type", styled_command(PS, 'pip install "agent-memory-protocol[sqlite-vec,mem0,letta]"'), ms(500)))
-    s.append(("instant", styled_plain("Successfully installed agent-memory-protocol-0.1.0", OK), ms(900)))
+    s.append(("type", styled_command(PS, 'pip install "memorywire[sqlite-vec,mem0,letta]"'), ms(500)))
+    s.append(("instant", styled_plain("Successfully installed memorywire-0.1.0", OK), ms(900)))
     s.append(("blank", None, 1))
 
     # ---- Section 2: import works ------------------------------------------
@@ -342,7 +342,7 @@ def render() -> Path:
     def emit_frame(blink_on: bool) -> None:
         """Snapshot the current terminal state into a new frame."""
         img = Image.new("RGB", (WIDTH, HEIGHT), BG)
-        draw_chrome(img, "agent-memory-protocol â€” quickstart", title_font)
+        draw_chrome(img, "memorywire â€” quickstart", title_font)
         d = ImageDraw.Draw(img)
         # Scroll: keep only the last `max_lines` lines visible.
         visible = list(buffer)

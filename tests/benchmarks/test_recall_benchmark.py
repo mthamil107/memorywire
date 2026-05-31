@@ -39,7 +39,7 @@ pytestmark = [
     pytest.mark.skipif(
         not _HAS_ST,
         reason="sentence-transformers not installed; install with `pip install "
-        "'agent-memory-protocol[sqlite-vec]'` to run recall microbenchmark.",
+        "'memorywire[sqlite-vec]'` to run recall microbenchmark.",
     ),
 ]
 

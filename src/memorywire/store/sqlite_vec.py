@@ -287,7 +287,7 @@ class SqliteVecStore:
         except ImportError as exc:  # pragma: no cover - exercised by integration
             raise RuntimeError(
                 "SqliteVecStore default embedder requires sentence-transformers. "
-                "Install with `pip install 'agent-memory-protocol[sqlite-vec]'` "
+                "Install with `pip install 'memorywire[sqlite-vec]'` "
                 "or pass an explicit `embedder=` callable to the constructor."
             ) from exc
 

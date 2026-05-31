@@ -9,7 +9,7 @@ returns natural-language fact strings extracted from raw messages.
 Design notes
 ------------
 * The ``mem0`` package is an *optional extra* (``pip install
-  agent-memory-protocol[mem0]``). The import lives behind ``TYPE_CHECKING``
+  memorywire[mem0]``). The import lives behind ``TYPE_CHECKING``
   and inside :meth:`Mem0Store._get_client` so this module loads cleanly even
   without mem0 installed â€” unit tests use ``unittest.mock`` and never need
   the real SDK.
