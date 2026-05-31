@@ -1,49 +1,109 @@
-# LinkedIn long-form post
+# LinkedIn launch post — corrected framing
 
-LinkedIn rewards posts in the 1,200-1,800 character range
-(roughly 200-300 words). The version below is ~290 words /
-1,750 chars. Substitute `<ARXIV_ID>` before posting.
+This version is post-AI-feedback (May 31 review). The earlier draft
+implied research novelty on the adversarial-fusion experiment;
+Byzantine-robust aggregation is a real, well-developed field
+(Lamport/Pease/Shostak 1982, Blanchard et al. 2017's Krum,
+Yin et al. 2018, Pillutla et al. 2022) that AMP's §5.2 measures
+*within* rather than discovers. So this post leads with the
+engineering / tool framing — "tool I needed and couldn't find" —
+and saves the protocol-as-published-artifact claim for the closing
+line where it can stand on its own.
 
-LinkedIn does NOT auto-render markdown. Paste as plain text
-with one blank line between paragraphs. Hyperlinks in plain
-text are auto-detected.
+Length: ~290 words, ~1,950 characters. Pure ASCII. No em-dashes
+that LinkedIn renders as `?`.
 
----
+## Step 1 — Open the LinkedIn composer
 
-## Post body
+Click "Start a post" on the LinkedIn home feed.
+
+## Step 2 — Attach the GIF
+
+Click the image-attach icon and upload:
 
 ```
-New arXiv preprint: AMP — a vendor-neutral wire format for agent memory operations.
+D:/Repo/agent-memory/docs/demos/amp-explainer.gif
+```
 
-The problem: every agent-memory framework I tested (mem0 51k★, Letta 21.7k★, Cognee, Zep, MemoryOS) ships its own SDK, storage layout, and operational vocabulary. There is no shared wire format. Every migration rebuilds memory from scratch. And no framework ships a governance surface — a place where a human reviews what the agent is about to remember, BEFORE it enters long-term storage.
+The GIF (~1 MB, 1080x1080, ~6 seconds, loops) shows the islanded-
+frameworks-then-AMP-layer-then-governance-UI storyboard in plain
+visual terms.
 
-AMP is the protocol layer above storage. Five operations (remember, recall, forget, merge, expire) over four memory types (semantic, episodic, procedural, emotional), with a MemoryStore interface, a fan-out router that fuses results via Reciprocal Rank Fusion, and an optional human-in-the-loop diff-and-approve channel.
+## Step 3 — Paste this verbatim into the text field
 
-The preprint ships a reference Python implementation with five day-1 backend adapters (sqlite-vec, mem0, Letta, Cognee, pgvector); a microbench showing recall@5 = 1.000 on a labelled corpus; an adversarial-fusion experiment where RRF holds against a 1-of-N rank-0 injection attack across the full sweep; a 16-scenario cross-adapter conformance suite (68/80 PASS); a six-adversary threat model mapped to OWASP and CWE; and preliminary LongMemEval + LoCoMo numbers.
+```
+Just open-sourced AMP — a vendor-neutral wire format for agent memory operations.
 
-The contribution is not a new algorithm — RRF, FSMs, STM/LTM consolidation are all prior art — it's a venue-neutral protocol with an empirically validated reference, positioned to compose with MCP rather than compete with it.
+Every framework I tried to use across multiple agent projects — mem0, Letta, Cognee, Zep, MemoryOS — ships its own SDK, its own storage layout, and its own operational vocabulary. There is no shared wire format. Every migration rebuilds memory from scratch. And none of them ship a governance surface where a human can review what the agent is about to remember BEFORE it enters long-term storage.
 
-Companion to my earlier arxiv:2604.18248 (Prompt Injection Detection). Same threat-class lens, applied to memory-side injection.
+This is not a novel-research claim. It is a tool I needed for a real project and could not find. So I built it.
 
-Paper: https://arxiv.org/abs/<ARXIV_ID>
-Code (Apache-2.0): https://github.com/mthamil107/agent-memory-protocol
+What ships today:
 
-Curious what folks at memory-framework teams and the MCP working group think — AMP composes with what you're shipping, not against it.
+- Five memory operations (remember, recall, forget, merge, expire) over four memory types (semantic, episodic, procedural, emotional), specified as JSON Schema 2020-12.
+- A Python reference implementation (~15k lines, 380+ tests) with five day-1 backend adapters: sqlite-vec, mem0, Letta, Cognee, and pgvector.
+- A fan-out memory router that fuses results across N backends via Reciprocal Rank Fusion (k=60).
+- A governance UI (Starlette + HTMX) for the diff-and-approve workflow.
+- A six-adversary threat model mapped to OWASP and CWE.
+
+A 9,760-word arXiv preprint covers all of it. The public arXiv ID lands Monday US-evening when the announcement window opens; until then the paper source lives in the repo at /docs/paper/.
+
+This is a companion to my earlier arXiv:2604.18248 (Prompt Injection Detection) — same threat-class lens applied to memory-side injection.
+
+Code (Apache-2.0 for the protocol; FSL for the governance UI):
+https://github.com/mthamil107/agent-memory-protocol
+
+Curious what folks at memory-framework teams and the MCP working group make of it. AMP is designed to compose with what you ship, not against it.
 
 #AI #AgentMemory #OpenSource #Protocols #Security
 ```
 
+## Step 4 — Click Post
+
+That's it. No external URL preview tricks, no hashtag stuffing
+past five.
+
 ---
 
-## Notes
+## Why this version is different from v1
 
-- Lead with "New arXiv preprint" — LinkedIn's first 200 chars
-  determine the See-More cutoff; you want the hook above the
-  fold.
-- The 5 hashtags at the end are the LinkedIn max-effective
-  set. Beyond 5 the algorithm de-weights.
-- DO NOT include external image attachments. LinkedIn
-  de-prioritizes posts with images that link off-platform.
-  Plain text + arXiv link is the right choice here.
-- DO post during US business hours (10 AM - 2 PM Eastern) on
-  Tuesday / Wednesday / Thursday. Mon AM and Fri PM are dead.
+| Change | Why |
+|---|---|
+| Drops the word "novel" entirely | AI feedback (May 31): Byzantine-robust aggregation is the prior-art field for §5.2; "novel" overclaimed |
+| Adds "It is not a novel-research claim. It is a tool I needed for a real project and could not find. So I built it." as the second paragraph | Disarms the reviewer reflex; reframes contribution as engineering / OSS, not research; sells better on LinkedIn anyway |
+| Removes the "Adversarial-fusion experiment showing RRF holds" bullet | The implicit research framing on §5.2 is gone; the result still lives in the paper but doesn't need to lead on LinkedIn |
+| Keeps the Conformance / Threat-model / Microbench bullets | These are honest engineering deliverables; the conformance suite IS genuinely useful as protocol-validation evidence |
+| Closing line emphasises "compose with, not against" | Honest positioning on AMP-vs-MCP and AMP-vs-frameworks; consistent with docs/MCP-RELATIONSHIP.md |
+
+## Optional follow-up comment
+
+Once the post is live, add this as the first comment from your own
+account within five minutes. LinkedIn's algorithm boosts posts
+where the author engages within the first hour.
+
+```
+For folks who want the technical deep-dive:
+
+- docs/spec/v0.md in the repo is the full JSON Schema specification
+- docs/THREATS.md is the threat model with line-level mitigation citations
+- docs/MCP-RELATIONSHIP.md is the AMP-vs-MCP positioning if you want the answer to "why not just an MCP extension?" before clicking through
+
+The AMP-MCP relationship doc and the threat model are the two artifacts I'd point a reviewer at first.
+```
+
+## Best posting time
+
+Tuesday / Wednesday / Thursday, 10 AM – 2 PM US Eastern. Friday
+afternoon and weekend posts underperform on LinkedIn by ~50% per
+LinkedIn's own algorithm bias. If you post outside that window
+anyway, it still works — just expect roughly half the reach.
+
+## After posting
+
+Set a 90-minute timer. LinkedIn rewards author replies to comments
+in the first 90 minutes. Reply to every comment with at least one
+sentence — even "Thanks, will follow up via DM" counts. The
+algorithm uses "reply rate" as a signal for "post quality".
+
+Paste the live post URL back to the orchestrator after posting and
+the next platform (Twitter thread) gets wired up to reference it.
