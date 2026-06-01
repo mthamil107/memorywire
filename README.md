@@ -9,16 +9,16 @@
   <a href="LICENSE"><img alt="License" src="https://img.shields.io/badge/license-Apache--2.0-blue.svg"></a>
   <a href="https://www.python.org"><img alt="Python" src="https://img.shields.io/badge/python-3.11%20%7C%203.12%20%7C%203.13-blue.svg"></a>
   <img alt="Status" src="https://img.shields.io/badge/status-v0%20draft-orange.svg">
-  <img alt="Tests" src="https://img.shields.io/badge/tests-437%20passing-brightgreen.svg">
+  <img alt="Tests" src="https://img.shields.io/badge/tests-412%20passing-brightgreen.svg">
   <img alt="Adapters" src="https://img.shields.io/badge/adapters-5-brightgreen.svg">
 </p>
 
 <p align="center">
-  <a href="https://memorywire-governance-demo.fly.dev">Try the governance UI live</a>
-  &nbsp;&middot;&nbsp;
   <a href="docs/spec/v0.md">Read the spec</a>
   &nbsp;&middot;&nbsp;
   <a href="docs/MCP-RELATIONSHIP.md">How memorywire relates to MCP</a>
+  &nbsp;&middot;&nbsp;
+  <a href="SECURITY.md">Security</a>
 </p>
 
 ---
@@ -41,7 +41,7 @@ memorywire's edge is **position**, not feature count. Four things set it apart f
 
 **1. It's an interop layer, not a silo.** memorywire defines five operations (`remember`, `recall`, `forget`, `merge`, `expire`) as a stable JSON-Schema wire format, and routes them across pluggable backends &mdash; sqlite-vec, mem0, Letta, Cognee, and pgvector on day one. Every other project asks you to adopt _its_ store and _its_ format. memorywire lets you keep what you have and talk to all of it through one surface.
 
-**2. Governance is built in &mdash; and almost no one else has it.** When `approval_required` is set, a `remember` call _stages_ instead of commits. The governance UI shows a structured diff against current state; a reviewer approves or rejects; the decision is audit-logged. Controlling and auditing what an agent is _allowed_ to remember is a real production need that the major memory frameworks simply don't address. This is memorywire's single strongest differentiator.
+**2. Governance is built in.** When `approval_required` is set on a write, a `remember` call _stages_ instead of commits. The governance UI shows a structured diff against current state; a reviewer approves or rejects; the decision is audit-logged. Controlling and auditing what an agent is allowed to remember is a production need that the major open-source memory frameworks don't ship today &mdash; this is where memorywire earns its keep.
 
 **3. Routers compose.** The memory router itself implements the `MemoryStore` protocol, so a router can be a backend for another router. Fan-out, fusion, and graph-boost all nest cleanly &mdash; an architectural property most memory systems don't have.
 
@@ -78,11 +78,11 @@ Reproduce: [`docs/demos/README.md`](docs/demos/README.md).
 | FSM procedural memory (`transitions` library) | shipped |
 | STM&harr;LTM async transformer | shipped |
 | `memorywire` CLI (`remember` / `recall` / `forget`) | shipped |
-| Governance UI (Starlette + HTMX, Pro tier) | shipped, see [`ui/`](ui/) |
+| Governance UI (Starlette + HTMX, FSL-licensed) | shipped, see [`ui/`](ui/) |
 | LongMemEval / LoCoMo benchmark | v0.2 (microbench live &mdash; see [Benchmarks](#benchmarks)) |
 | IETF Internet-Draft | v0.5 |
 
-Spec and reference implementation are Apache-2.0. The governance UI is source-available under FSL (becomes Apache-2.0 after 2 years).
+Spec and reference implementation are Apache-2.0. The governance UI is source-available under FSL and auto-converts to Apache-2.0 two years after each release.
 
 ## Install
 
@@ -142,39 +142,39 @@ End-to-end demos that actually run: [`examples/01_quickstart.py`](examples/01_qu
 
 memorywire stays out of the way. The user talks to the agent; the agent makes the memorywire calls. Two clarifications that come up before anything else:
 
-**The user never picks "short-term vs long-term."** Everything lands in short-term first. A background task (the STM&harr;LTM transformer) scores items by recency, recall frequency, and confidence on a timer, promotes the important ones to long-term, and ages the rest out. Automatic. Nobody tags each message.
+**The user never picks "short-term vs long-term."** Everything lands in short-term first. A background task (the STM&harr;LTM transformer) scores items on importance, recency, and recall frequency on a timer, promotes the important ones to long-term, and ages the rest out. Automatic. Nobody tags each message.
 
-**Approval is opt-in, not per-response.** `approval_required` is `false` by default. When you do turn it on, you scope it &mdash; "only review memories tagged `sensitive`," or "only writes from this source" &mdash; so a human sees the 5% of writes that matter (preferences, PII, anything you'd regret storing wrong), not every passing message. The gate is for the writes that count, not a tollbooth.
+**Approval is opt-in, not per-response.** Gating is off by default &mdash; writes commit straight through. When you do turn it on (by setting `approval_required` on the writes you want reviewed), you scope it &mdash; "only review memories tagged `sensitive`," or "only writes from this source" &mdash; so a human sees the 5% of writes that matter (preferences, PII, anything you'd regret storing wrong), not every passing message. The gate is for the writes that count, not a tollbooth.
 
 ### The two lanes &mdash; what the user feels vs what memorywire does
 
 ```
    What the user / agent experiences          What memorywire does under the hood
-   ─────────────────────────────────────      ───────────────────────────────────────
-   1. User asks: "what does Alice avoid?" ──▶ mem.recall(query, k=5, hops=1)
+   -------------------------------------      ---------------------------------------
+   1. User asks: "what does Alice avoid?" --> mem.recall(query, k=5, hops=1)
                                                 fans out to every configured store,
                                                 RRF-fuses results, returns top-K hits
 
-   2. Agent reads the recall context      ──▶ (no memorywire call — agent's own prompt)
+   2. Agent reads the recall context      --> (no memorywire call -- agent's own prompt)
 
-   3. Agent generates a reply             ──▶ (no memorywire call — model inference)
+   3. Agent generates a reply             --> (no memorywire call -- model inference)
 
    4. Agent decides to write a fact:          mem.remember(content, type=SEMANTIC,
-      "Alice mentioned a peanut allergy" ──▶                   approval_required=?)
-                                                if approval_required is false (default):
+      "Alice mentioned a peanut allergy" -->                   approval_required=?)
+                                                if approval_required is unset (default):
                                                    committed, returns memory_id
-                                                if true:
+                                                if approval_required is true:
                                                    staged with PENDING sentinel,
                                                    surfaces in governance UI as a diff,
                                                    committed only after a human approves
 
-   5. Background, on a timer              ──▶ STM↔LTM transformer
-      (user and agent both do nothing)       scores items by recency/recall-count/
-                                                confidence, promotes important ones to
-                                                long-term, evicts the rest
+   5. Background, on a timer              --> STM<->LTM transformer
+      (user and agent both do nothing)       scores items by importance/recency/
+                                                recall-count, promotes important ones
+                                                to long-term, evicts the rest
 
-   6. User switches frameworks later      ──▶ same wire format,
-      (e.g. swaps mem0 for Letta)              same MemoryStore Protocol —
+   6. User switches frameworks later      --> same wire format,
+      (e.g. swaps mem0 for Letta)              same MemoryStore Protocol --
                                                 the agent's memory travels with it
 ```
 
@@ -204,22 +204,22 @@ The user never picked a tier, never approved a routine event, and the agent neve
 ```
                           +----------------------+
                           |  Governance UI       |
-                          |  approvals . audit   |  Pro tier (FSL)
+                          |  approvals . audit   |  FSL-licensed
                           |  health . patterns   |
                           +----------+-----------+
                                      | same SQLite DB
                                      v
-   +------------------+      +-------------------+      +---------------------+
-   |  Agent / SDK     | ---> |  Memory router    | ---> |  MemoryStore        |
-   |  memorywire CLI     |      |  RRF k=60         |      |  sqlite-vec | mem0  |
-   |  memorywire.Memory  |      |  + graph boost    |      |  letta | (your own) |
-   +------------------+      +-------------------+      +---------------------+
+   +---------------------+   +-------------------+   +---------------------+
+   |  Agent / SDK        |-->|  Memory router    |-->|  MemoryStore        |
+   |  memorywire CLI     |   |  RRF k=60         |   |  sqlite-vec | mem0  |
+   |  memorywire.Memory  |   |  + graph boost    |   |  letta | (your own) |
+   +---------------------+   +-------------------+   +---------------------+
                                      |
                           +----------+----------+
                           v          v          v
                     procedural   STM<->LTM   governance
-                    FSM (FSM     transformer   channel
-                    via transitions)         (HITL approve)
+                    FSM (via     transformer   channel
+                    transitions)             (HITL approve)
 ```
 
 ## Concepts
@@ -242,7 +242,7 @@ The full surface is one page: [`docs/spec/v0.md`](docs/spec/v0.md).
 
 ## Benchmarks
 
-> Recall@5 = **1.000** on 42 labelled queries, ingest p50 **37.8 ms**, recall p50 **40.6 ms** &mdash; `sentence-transformers/all-MiniLM-L6-v2` + `sqlite-vec` &lcub;`:memory:`&rcub;, CPU-only.
+> Recall@5 = **1.000** on 42 gold-id queries (50 total; 8 no-match probes excluded), ingest p50 **37.8 ms**, recall p50 **40.6 ms** &mdash; `sentence-transformers/all-MiniLM-L6-v2` + `sqlite-vec` &lcub;`:memory:`&rcub;, CPU-only.
 
 This is a microbench, not LongMemEval/LoCoMo (deferred to v0.2). 100 hand-authored facts, 50 labelled queries (paraphrase / exact-match / multi-hit / no-match). Reproduce with `python scripts/run_microbench.py`. Full methodology and caveats in [`docs/benchmarks.md`](docs/benchmarks.md).
 
@@ -270,14 +270,14 @@ Memory storage is saturated. Memory operations, governance, and the cross-vendor
 ```
 src/memorywire/          # protocol + reference implementation (Apache-2.0)
   schemas/            # JSON Schema 2020-12 files (operations + types)
-  store/              # MemoryStore adapters (sqlite-vec, mem0, letta)
+  store/              # MemoryStore adapters (sqlite-vec, mem0, letta, cognee, pgvector)
   governance/         # diff / health / audit helpers
 ui/                   # governance UI (Starlette + HTMX, FSL)
 docs/                 # spec + adapter guide + benchmarks
   spec/v0.md          # the memorywire wire format
   kickoff/            # origin story, architecture, findings
 examples/             # runnable end-to-end demos
-tests/                # unit (380) / integration (env-gated) / benchmarks (opt-in)
+tests/                # unit / conformance / integration (env-gated) / benchmarks (opt-in)
 scripts/              # verify_spec, run_microbench
 ```
 
@@ -290,6 +290,10 @@ scripts/              # verify_spec, run_microbench
 **v1.0 (Q1 2027)** &mdash; Stable wire format, federated multi-tenant primitives, enterprise governance (SSO / RBAC), W3C Community Group.
 
 Kill triggers and pivots: [`docs/kickoff/PROJECT-PLAN.md`](docs/kickoff/PROJECT-PLAN.md).
+
+## Security
+
+memorywire is in early v0 development. Report vulnerabilities privately via GitHub's "Report a vulnerability" feature on the repo Security tab, or via the contact in [`SECURITY.md`](SECURITY.md) &mdash; not through public issues. Scope, supported versions, and disclosure timing are documented there. The host application is responsible for authentication and transport security; memorywire delegates these by design.
 
 ## Contributing
 
@@ -318,4 +322,4 @@ The diff-and-approve workflow draws on the Co-memorize HITL pattern surfaced in 
 
 This project was originally drafted as "AMP &mdash; Agent Memory Protocol" in May 2026. A prior project named AMP exists at [github.com/akshayaggarwal99/amp](https://github.com/akshayaggarwal99/amp) (an MCP-native memory server, created Dec 2025) &mdash; a different shape than this one. We renamed to `memorywire` before launch to avoid confusion. Full context: [`docs/PRIOR-WORK.md`](docs/PRIOR-WORK.md).
 
-<sub>Made for the upcoming wave of agent-memory infrastructure. Honest about what it is: a wire format + reference + UI, not an algorithmic invention.</sub>
+<sub>What memorywire is: a wire format, a reference implementation, and a governance UI. What it is not: an algorithmic invention.</sub>
