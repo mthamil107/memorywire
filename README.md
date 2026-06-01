@@ -138,6 +138,67 @@ asyncio.run(main())
 
 End-to-end demos that actually run: [`examples/01_quickstart.py`](examples/01_quickstart.py) (50 facts &rarr; recall &rarr; forget) and [`examples/03_procedural_fsm.py`](examples/03_procedural_fsm.py) (FSM procedural memory).
 
+## How it feels to use
+
+memorywire stays out of the way. The user talks to the agent; the agent makes the memorywire calls. Two clarifications that come up before anything else:
+
+**The user never picks "short-term vs long-term."** Everything lands in short-term first. A background task (the STM&harr;LTM transformer) scores items by recency, recall frequency, and confidence on a timer, promotes the important ones to long-term, and ages the rest out. Automatic. Nobody tags each message.
+
+**Approval is opt-in, not per-response.** `approval_required` is `false` by default. When you do turn it on, you scope it &mdash; "only review memories tagged `sensitive`," or "only writes from this source" &mdash; so a human sees the 5% of writes that matter (preferences, PII, anything you'd regret storing wrong), not every passing message. The gate is for the writes that count, not a tollbooth.
+
+### The two lanes &mdash; what the user feels vs what memorywire does
+
+```
+   What the user / agent experiences          What memorywire does under the hood
+   ─────────────────────────────────────      ───────────────────────────────────────
+   1. User asks: "what does Alice avoid?" ──▶ mem.recall(query, k=5, hops=1)
+                                                fans out to every configured store,
+                                                RRF-fuses results, returns top-K hits
+
+   2. Agent reads the recall context      ──▶ (no memorywire call — agent's own prompt)
+
+   3. Agent generates a reply             ──▶ (no memorywire call — model inference)
+
+   4. Agent decides to write a fact:          mem.remember(content, type=SEMANTIC,
+      "Alice mentioned a peanut allergy" ──▶                   approval_required=?)
+                                                if approval_required is false (default):
+                                                   committed, returns memory_id
+                                                if true:
+                                                   staged with PENDING sentinel,
+                                                   surfaces in governance UI as a diff,
+                                                   committed only after a human approves
+
+   5. Background, on a timer              ──▶ STM↔LTM transformer
+      (user and agent both do nothing)       scores items by recency/recall-count/
+                                                confidence, promotes important ones to
+                                                long-term, evicts the rest
+
+   6. User switches frameworks later      ──▶ same wire format,
+      (e.g. swaps mem0 for Letta)              same MemoryStore Protocol —
+                                                the agent's memory travels with it
+```
+
+Three pre-empted questions, one per row people fixate on:
+
+- **Row 4 &mdash; "Do I have to approve everything?"** No. Default off; scope it when on.
+- **Row 5 &mdash; "Do I tag short-term vs long-term per message?"** No. The transformer does it.
+- **Across rows &mdash; "Isn't this only for multi-agent setups?"** No. The entire left lane is one person talking to one agent. The cross-vendor part is multiple _stores_, not multiple agents.
+
+### Worked scenario &mdash; customer support bot
+
+A support agent for an e-commerce site running two backends: `sqlite-vec://` for fast local recall and `mem0://` for the team's shared customer-profile store. The operator has scoped approval to writes tagged `health`.
+
+**Turn 1.** Customer says _"I'm allergic to peanuts and I want to reorder my usual."_ Agent issues `mem.recall("what does this customer usually order?", user_id="alice@...")`. Both stores return hits; RRF fuses them; the agent sees order history. Agent replies with the reorder. Agent then writes two memories:
+
+- `"Alice is allergic to peanuts"` (`type=SEMANTIC`, tagged `health`, `approval_required=true`)
+- `"On 2026-03-10 Alice reordered her usual cart"` (`type=EPISODIC`, no approval &mdash; ordinary event)
+
+The episodic write commits immediately. The semantic one stages as pending and shows up in the governance UI as a diff against current state (no prior allergy facts on file). The operator approves it; it commits with an audit-logged decision.
+
+**Turn 14, three weeks later.** Customer says _"send me my usual."_ `recall()` returns the long-term semantic fact (the peanut allergy) plus three recent episodic events (cart history). The peanut-snack item is filtered out before the agent suggests it. By now the STM&harr;LTM transformer has expired half a dozen low-importance episodic items from turns 2&ndash;13 that nobody recalled and that scored low on recency.
+
+The user never picked a tier, never approved a routine event, and the agent never lost the safety-critical fact.
+
 ## Architecture
 
 ```
