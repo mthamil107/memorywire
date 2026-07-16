@@ -223,9 +223,13 @@ Authentication is opt-in via the `MEMORYWIRE_UI_TOKEN` environment variable. Whe
 
 The UI's full authorization model is one global bearer token; per-`agent_id` ACLs are tracked for v0.2 (Ã‚Â§8.3). Per-row authorization is enforced at the SQL layer: every state-changing handler runs against `WHERE id = ? AND agent_id = ? AND deleted_at = ?` with the sentinel value, so an attacker who guesses a row id but does not control the matching `agent_id` cannot pivot across tenants (Ã‚Â§6.5).
 
+### 4.6 Recovery tooling
+
+The reference implementation ships a recovery capability (`memorywire recover` CLI and `memorywire.recovery.Recoverer`) for cleaning a poisoned store after the fact. It purges memories from untrusted `source` values via `forget`, quarantines trusted-source entries whose content matches a directive heuristic (or a pluggable detector, including OWASP Agent Memory Guard's) via soft-`forget`, and optionally drops low-confidence rows via `expire`. A `--dry-run` mode previews every action; purges are restorable soft-deletes by default. Recovery reuses the existing operation set with no new store primitives, which is what lets it work across every adapter. Its effectiveness is evaluated in Section 5.4.
+
 ## 5. Evaluation
 
-The evaluation has three parts. Section 5.1 reports a microbenchmark on a labelled corpus to establish baseline recall and latency. Section 5.2 reports an adversarial-fusion experiment that quantifies the robustness premium RRF provides over MAX and weighted fusion under a 1-of-N rank-0 injection attack. Section 5.3 reports a cross-adapter conformance suite that empirically validates the protocol's vendor-neutrality claim. Section 5.4 enumerates threats to validity.
+The evaluation has four parts. Section 5.1 reports a microbenchmark on a labelled corpus to establish baseline recall and latency. Section 5.2 reports an adversarial-fusion experiment that quantifies the robustness premium RRF provides over MAX and weighted fusion under a 1-of-N rank-0 injection attack. Section 5.3 reports a cross-adapter conformance suite that empirically validates the protocol's vendor-neutrality claim. Section 5.4 evaluates recovery from memory poisoning using an external benchmark. Section 5.5 enumerates threats to validity.
 
 ### 5.1 Microbenchmark
 
@@ -310,7 +314,13 @@ Every non-skipped cell passes; zero scenarios fail on any adapter.
 
 These three spec-tightening signals are exactly the kind of finding a conformance suite is supposed to produce. They are not bugs in the suite or in the adapters; they are real gaps in the v0 spec that the suite makes visible, and the v0.2 spec resolves them by raising the floor.
 
-### 5.4 Threats to validity
+### 5.4 Recovery from memory poisoning
+
+Section 6.1 notes that memorywire makes malicious writes auditable but cannot prevent a trusted, prompt-injected agent from planting one. We therefore ask whether memorywire's `forget` / `expire` operations can *recover* a store once it is poisoned. We evaluate this with PurgeBench (Munirathinam, 2026), an external, reproducible benchmark that poisons an agent memory store with 30 adversarial entries across five classes (direct, laundered, entangled, dormant, procedural), applies a recovery procedure, and scores the result on Recovery-Completeness -- the balanced combination of eradication (ER), utility retention (UR), and re-emergence resistance (RR), RC = HarmonicMean(ER, UR) x RR, where doing nothing and wiping the store both score zero by construction.
+
+Run over the reference sqlite-vec store, a procedure that purges entries by untrusted `source` -- memorywire's own provenance field driving `forget` -- is the strongest of seven procedures tested (RC 0.64), eradicating the direct, laundered, dormant, and procedural classes. memorywire's per-entry provenance is thus not only an audit aid but the most effective recovery lever measured. Two limits are equally clear. First, the *entangled* class -- a directive embedded inside an otherwise-legitimate, trusted-source memory -- defeats every automatic procedure (zero eradication for all non-destructive methods), because removing it also destroys the benign fact it rides with; the `recover` tool (Section 4.6) handles this by quarantining such entries for human review rather than deleting them. Second, content-anomaly detection alone is insufficient: running the OWASP Agent Memory Guard content detectors as a recovery procedure scores RC 0.036 (near the do-nothing baseline) on this *semantic* poison, since those detectors target injection signatures and secret leakage, not plausible-sounding malicious facts. Provenance and rollback, not content anomaly detection, are the levers that recover semantic memory poisoning.
+
+### 5.5 Threats to validity
 
 The evaluation has several limitations we want named explicitly.
 
@@ -332,7 +342,7 @@ The threat model below is condensed from `docs/THREATS.md`, which is the canonic
 
 **Capability.** Submits `remember()` calls Ã¢â‚¬â€ as the agent itself (prompt-injected upstream) or as an upstream system feeding the agent. **Motivation.** Plant adversarial "facts" that subsequent `recall()` surfaces Ã¢â‚¬â€ the memory analogue of prompt injection. **Preconditions.** Can influence any string the agent passes through `remember()`. memorywire cannot tell a real fact from a planted one.
 
-**Current mitigation.** `approval_required=true` on `RememberRequest` stages the row behind the `PENDING_APPROVAL_DELETED_AT = -1` sentinel in `memories.deleted_at` (`src/memorywire/store/sqlite_vec.py:88-98, 440`). All recall paths filter `deleted_at IS NULL`, so pending rows cannot influence retrieval until a human approves. `confidence` is a first-class field; every `remember()` is journaled with the inserted `memory_id`, so a poisoned memory is traceable to the call that planted it. **Residual risk.** Default `approval_required` is false; the protocol guarantees only that what the agent wrote is what the agent reads back. Prompt-injected calls from a trusted agent are out of scope (Ã‚Â§6.7). **v0.2 hardening.** A `privacy_intent` block on `RememberRequest` so operators can require approval by `source`, `type`, or content predicate without instrumenting every caller.
+**Current mitigation.** `approval_required=true` on `RememberRequest` stages the row behind the `PENDING_APPROVAL_DELETED_AT = -1` sentinel in `memories.deleted_at` (`src/memorywire/store/sqlite_vec.py:88-98, 440`). All recall paths filter `deleted_at IS NULL`, so pending rows cannot influence retrieval until a human approves. `confidence` is a first-class field; every `remember()` is journaled with the inserted `memory_id`, so a poisoned memory is traceable to the call that planted it. **Residual risk.** Default `approval_required` is false; the protocol guarantees only that what the agent wrote is what the agent reads back. Prompt-injected calls from a trusted agent are out of scope (Ã‚Â§6.7). **v0.2 hardening.** A `privacy_intent` block on `RememberRequest` so operators can require approval by `source`, `type`, or content predicate without instrumenting every caller. **Recovery.** Recovery *after* such an injection -- purging the planted rows and verifying they are gone -- is evaluated in Section 5.4 and shipped as the `recover` tool (Section 4.6); the residual hard case is poison entangled with a legitimate trusted memory, which recovery quarantines for human review rather than deleting.
 
 ### 6.2 Recall exfiltration (CWE-200; OWASP A01)
 
@@ -412,6 +422,8 @@ memorywire is a draft. The roadmap below lists the concrete deliverables we have
 
 **Ã‚Â§8.5 v1.0 stable.** Frozen wire format; federated multi-tenant primitives (a cross-agent `share` operation under discussion); enterprise governance (SSO, role-based ACLs, signed audit exports); production-grade adapters for the long tail of backends not in v0.
 
+**Section 8.6 Recovery benchmarking.** The `recover` capability (Section 4.6) is evaluated in Section 5.4 against PurgeBench's five poison classes; the open frontier is the *entangled* class, where automatic eradication and utility retention are in direct tension. A promising direction is span-level revocation that excises the embedded directive while preserving the benign remainder of the entry.
+
 ## 9. Conclusion
 
 We have presented memorywire, a vendor-neutral wire format for agent memory operations: five operations, four memory types, a `MemoryStore` Protocol, a fan-out router with three fusion algorithms (with Reciprocal Rank Fusion as the defensible default under a 1-of-N malicious-backend model), and an optional human-in-the-loop governance channel. The reference implementation ships with five backend adapters covering the major open-source memory frameworks; a microbenchmark (recall@5 = 1.000 on 42 labelled queries, ingest p50 = 37.8 ms), an adversarial-fusion experiment (RRF holds recall@5 = 1.000 where MAX collapses to 0.500 with 80% leak), and a 16-scenario cross-adapter conformance suite (68 PASS / 12 SKIP / 0 FAIL out of 80 cells) establish the protocol's empirical viability.
@@ -432,6 +444,7 @@ We acknowledge the open-source projects memorywire composes with: mem0, Letta (f
 - Maharana, A., Lee, D.-H., Tulyakov, S., Bansal, M., Barbieri, F., and Fang, Y. (2024). "Evaluating Very Long-Term Conversational Memory of LLM Agents (LoCoMo)." arXiv:2402.17753.
 - Taheri, H. (2026). "Governed Memory: A Production Architecture for Multi-Agent Workflows." arXiv:2603.17787.
 - Chhikara, P., Khant, D., Aryan, S., Singh, T., and Yadav, D. (2025). "Mem0: Building Production-Ready AI Agents with Scalable Long-Term Memory." arXiv:2504.19413.
+- Munirathinam, T. (2026). "PurgeBench: A Benchmark and Metric for Adversarial Memory-Poison Recovery in LLM Agents." Zenodo. DOI:10.5281/zenodo.21379140.
 - BEAM benchmark for long-term conversational memory. *Canonical reference TBD; cited only as a future evaluation target (Ã‚Â§5.4, Ã‚Â§8.1).*
 - Model Context Protocol specification, version `2025-11-25`. modelcontextprotocol.io.
 - JSON Schema 2020-12. https://json-schema.org/draft/2020-12/release-notes.

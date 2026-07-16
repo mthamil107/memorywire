@@ -313,10 +313,15 @@ Authentication is opt-in via the \texttt{MEMORYWIRE\_UI\_TOKEN} environment vari
 
 The UI's full authorization model is one global bearer token; per-\texttt{agent\_id} ACLs are tracked for v0.2 (\Cref{sec:future}). Per-row authorization is enforced at the SQL layer: every state-changing handler runs against \texttt{WHERE id = ? AND agent\_id = ? AND deleted\_at = ?} with the sentinel value, so an attacker who guesses a row id but does not control the matching \texttt{agent\_id} cannot pivot across tenants (\Cref{sec:threats-idor}).
 
+\subsection{Recovery tooling}
+\label{sec:impl-recovery}
+
+The reference implementation ships a recovery capability (\texttt{memorywire recover} CLI and \texttt{memorywire.recovery.Recoverer}) for cleaning a poisoned store after the fact. It purges memories from untrusted \texttt{source} values via \texttt{forget}, quarantines trusted-source entries whose content matches a directive heuristic (or a pluggable detector, including OWASP Agent Memory Guard's) via soft-\texttt{forget}, and optionally drops low-confidence rows via \texttt{expire}. A \texttt{--dry-run} mode previews every action; purges are restorable soft-deletes by default. Recovery reuses the existing operation set with no new store primitives, which is what lets it work across every adapter. Its effectiveness is evaluated in \Cref{sec:eval-recovery}.
+
 \section{Evaluation}
 \label{sec:eval}
 
-The evaluation has three parts. \Cref{sec:eval-micro} reports a microbenchmark on a labelled corpus to establish baseline recall and latency. \Cref{sec:eval-adversarial} reports an adversarial-fusion experiment that quantifies the robustness premium RRF provides over MAX and weighted fusion under a 1-of-$N$ rank-0 injection attack. \Cref{sec:eval-conformance} reports a cross-adapter conformance suite that empirically validates the protocol's vendor-neutrality claim. \Cref{sec:eval-threats} enumerates threats to validity.
+The evaluation has four parts. \Cref{sec:eval-micro} reports a microbenchmark on a labelled corpus to establish baseline recall and latency. \Cref{sec:eval-adversarial} reports an adversarial-fusion experiment that quantifies the robustness premium RRF provides over MAX and weighted fusion under a 1-of-$N$ rank-0 injection attack. \Cref{sec:eval-conformance} reports a cross-adapter conformance suite that empirically validates the protocol's vendor-neutrality claim. \Cref{sec:eval-recovery} evaluates recovery from memory poisoning using an external benchmark. \Cref{sec:eval-threats} enumerates threats to validity.
 
 \subsection{Microbenchmark}
 \label{sec:eval-micro}
@@ -433,6 +438,13 @@ Every non-skipped cell passes; zero scenarios fail on any adapter.
 
 These three spec-tightening signals are exactly the kind of finding a conformance suite is supposed to produce. They are not bugs in the suite or in the adapters; they are real gaps in the v0 spec that the suite makes visible, and the v0.2 spec resolves them by raising the floor.
 
+\subsection{Recovery from memory poisoning}
+\label{sec:eval-recovery}
+
+\Cref{sec:threats-injection} notes that memorywire makes malicious writes auditable but cannot prevent a trusted, prompt-injected agent from planting one. We therefore ask whether memorywire's \texttt{forget} / \texttt{expire} operations can \emph{recover} a store once it is poisoned. We evaluate this with PurgeBench~\cite{purgebench}, an external, reproducible benchmark that poisons an agent memory store with 30 adversarial entries across five classes (direct, laundered, entangled, dormant, procedural), applies a recovery procedure, and scores the result on Recovery-Completeness --- the balanced combination of eradication (ER), utility retention (UR), and re-emergence resistance (RR), $\mathrm{RC} = \mathrm{HarmonicMean}(\mathrm{ER}, \mathrm{UR}) \times \mathrm{RR}$, where doing nothing and wiping the store both score zero by construction.
+
+Run over the reference sqlite-vec store, a procedure that purges entries by untrusted \texttt{source} --- memorywire's own provenance field driving \texttt{forget} --- is the strongest of seven procedures tested (RC 0.64), eradicating the direct, laundered, dormant, and procedural classes. memorywire's per-entry provenance is thus not only an audit aid but the most effective recovery lever measured. Two limits are equally clear. First, the \emph{entangled} class --- a directive embedded inside an otherwise-legitimate, trusted-source memory --- defeats every automatic procedure (zero eradication for all non-destructive methods), because removing it also destroys the benign fact it rides with; the \texttt{recover} tool (\Cref{sec:impl-recovery}) handles this by quarantining such entries for human review rather than deleting them. Second, content-anomaly detection alone is insufficient: running the OWASP Agent Memory Guard content detectors as a recovery procedure scores RC 0.036 (near the do-nothing baseline) on this \emph{semantic} poison, since those detectors target injection signatures and secret leakage, not plausible-sounding malicious facts. Provenance and rollback, not content anomaly detection, are the levers that recover semantic memory poisoning.
+
 \subsection{Threats to validity}
 \label{sec:eval-threats}
 
@@ -485,7 +497,7 @@ The threat model below is condensed from \texttt{docs/THREATS.md}, which is the 
 
 \textbf{Capability.} Submits \texttt{remember()} calls --- as the agent itself (prompt-injected upstream) or as an upstream system feeding the agent. \textbf{Motivation.} Plant adversarial ``facts'' that subsequent \texttt{recall()} surfaces --- the memory analogue of prompt injection. \textbf{Preconditions.} Can influence any string the agent passes through \texttt{remember()}. memorywire cannot tell a real fact from a planted one.
 
-\textbf{Current mitigation.} \texttt{approval\_required=true} on \texttt{RememberRequest} stages the row behind the \texttt{PENDING\_APPROVAL\_DELETED\_AT = -1} sentinel in \texttt{memories.deleted\_at} (\texttt{src/memorywire/store/sqlite\_vec.py:88--98, 440}). All recall paths filter \texttt{deleted\_at IS NULL}, so pending rows cannot influence retrieval until a human approves. \texttt{confidence} is a first-class field; every \texttt{remember()} is journaled with the inserted \texttt{memory\_id}, so a poisoned memory is traceable to the call that planted it. \textbf{Residual risk.} Default \texttt{approval\_required} is false; the protocol guarantees only that what the agent wrote is what the agent reads back. Prompt-injected calls from a trusted agent are out of scope (\Cref{sec:threats-residual}). \textbf{v0.2 hardening.} A \texttt{privacy\_intent} block on \texttt{RememberRequest} so operators can require approval by \texttt{source}, \texttt{type}, or content predicate without instrumenting every caller.
+\textbf{Current mitigation.} \texttt{approval\_required=true} on \texttt{RememberRequest} stages the row behind the \texttt{PENDING\_APPROVAL\_DELETED\_AT = -1} sentinel in \texttt{memories.deleted\_at} (\texttt{src/memorywire/store/sqlite\_vec.py:88--98, 440}). All recall paths filter \texttt{deleted\_at IS NULL}, so pending rows cannot influence retrieval until a human approves. \texttt{confidence} is a first-class field; every \texttt{remember()} is journaled with the inserted \texttt{memory\_id}, so a poisoned memory is traceable to the call that planted it. \textbf{Residual risk.} Default \texttt{approval\_required} is false; the protocol guarantees only that what the agent wrote is what the agent reads back. Prompt-injected calls from a trusted agent are out of scope (\Cref{sec:threats-residual}). \textbf{v0.2 hardening.} A \texttt{privacy\_intent} block on \texttt{RememberRequest} so operators can require approval by \texttt{source}, \texttt{type}, or content predicate without instrumenting every caller. \textbf{Recovery.} Recovery \emph{after} such an injection --- purging the planted rows and verifying they are gone --- is evaluated in \Cref{sec:eval-recovery} and shipped as the \texttt{recover} tool (\Cref{sec:impl-recovery}); the residual hard case is poison entangled with a legitimate trusted memory, which recovery quarantines for human review rather than deleting.
 
 \subsection{Recall exfiltration (CWE-200; OWASP A01)}
 \label{sec:threats-exfiltration}
@@ -576,6 +588,8 @@ memorywire is a draft. The roadmap below lists the concrete deliverables we have
 \textbf{v0.5 spec freeze and standards engagement.} v0.5 is the freeze point: wire format stable, breaking changes prohibited. In parallel with v0.5: file an MCP RFC proposing memory as an extension primitive with memorywire as the candidate reference; submit memorywire v0.5 as an IETF Internet-Draft (\texttt{draft-<name>-memorywire-00}). Both outcomes --- acceptance as an MCP extension and stabilization as a parallel standard --- are acceptable.
 
 \textbf{v1.0 stable.} Frozen wire format; federated multi-tenant primitives (a cross-agent \texttt{share} operation under discussion); enterprise governance (SSO, role-based ACLs, signed audit exports); production-grade adapters for the long tail of backends not in v0.
+
+\textbf{Recovery benchmarking.} The \texttt{recover} capability (\Cref{sec:impl-recovery}) is evaluated in \Cref{sec:eval-recovery} against PurgeBench's five poison classes; the open frontier is the \emph{entangled} class, where automatic eradication and utility retention are in direct tension. A promising direction is span-level revocation that excises the embedded directive while preserving the benign remainder of the entry.
 
 \section{Conclusion}
 \label{sec:conclusion}
