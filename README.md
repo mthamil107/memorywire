@@ -65,6 +65,17 @@ In the interest of an honest pitch: STM&harr;LTM consolidation and tiering are s
   <img alt="memorywire CLI quickstart" src="docs/demos/cli.gif" width="720">
 </p>
 
+**`memorywire recover` &mdash; un-poison agent memory: purge untrusted-origin poison, quarantine hidden directives for review, preserve the benign facts:**
+
+<p align="center">
+  <img alt="memorywire recover: detect, purge, quarantine, verify poisoned agent memory" src="docs/demos/recover.gif" width="720">
+</p>
+
+Recovery uses provenance as the primary lever (the strongest signal per the
+[PurgeBench](https://github.com/mthamil107/purgebench) benchmark) and is honest about the
+*entangled* case &mdash; a directive hidden in a trusted memory is quarantined for a human, not
+silently deleted. See [`docs/recovery.md`](docs/recovery.md).
+
 Reproduce: [`docs/demos/README.md`](docs/demos/README.md).
 
 ## Status
