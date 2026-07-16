@@ -84,6 +84,11 @@ def _build_parser() -> argparse.ArgumentParser:
     )
     remember.add_argument("--user", dest="user_id", default=None, help="Optional user_id scope.")
     remember.add_argument(
+        "--source", default=None,
+        help="Provenance of this memory (e.g. user, system, web_page, tool_result). "
+             "Used by `memorywire recover`.",
+    )
+    remember.add_argument(
         "--confidence",
         type=float,
         default=1.0,
@@ -135,6 +140,39 @@ def _build_parser() -> argparse.ArgumentParser:
     )
     forget.add_argument("--reason", default=None, help="Optional reason string for the audit log.")
     _add_common_flags(forget)
+
+    recover = subparsers.add_parser(
+        "recover", help="Detect and recover poisoned memory (provenance + detectors)."
+    )
+    recover.add_argument(
+        "--trusted", default="user,system",
+        help="Comma-separated trusted sources (default: user,system).",
+    )
+    recover.add_argument(
+        "--expire-low-conf", action="store_true",
+        help="Also expire low-confidence memories.",
+    )
+    recover.add_argument(
+        "--confidence-below", type=float, default=0.75,
+        help="Confidence threshold for --expire-low-conf (default: 0.75).",
+    )
+    recover.add_argument(
+        "--detectors", action="store_true",
+        help="Run built-in content detectors in addition to provenance.",
+    )
+    recover.add_argument(
+        "--no-quarantine", dest="quarantine", action="store_false",
+        help="Do not quarantine suspicious trusted-origin memories.",
+    )
+    recover.add_argument(
+        "--hard", action="store_true",
+        help="Hard-delete purged poison (default: soft-delete, restorable).",
+    )
+    recover.add_argument(
+        "--dry-run", action="store_true", help="Show what would change without doing it."
+    )
+    recover.add_argument("--json", dest="json_out", action="store_true", help="Emit JSON.")
+    _add_common_flags(recover)
 
     return parser
 
@@ -230,6 +268,7 @@ async def _handle_remember(args: argparse.Namespace) -> int:
             user_id=args.user_id,
             metadata=metadata,
             confidence=args.confidence,
+            source=args.source,
         )
     finally:
         await mem.close()
@@ -289,6 +328,33 @@ async def _handle_forget(args: argparse.Namespace) -> int:
     return 0
 
 
+async def _handle_recover(args: argparse.Namespace) -> int:
+    """Implement ``memorywire recover``."""
+    from memorywire.recovery import Recoverer
+
+    trusted = {s.strip() for s in args.trusted.split(",") if s.strip()}
+    detectors = None
+    if args.detectors:
+        from memorywire.recovery.strategies import directive_detector
+        detectors = [directive_detector]
+
+    mem = Memory(agent_id=args.agent_id, stores=_resolve_stores(args))
+    try:
+        rec = Recoverer(mem, trusted_sources=trusted, detectors=detectors)
+        report = await rec.recover(
+            expire_low_conf=args.expire_low_conf,
+            confidence_below=args.confidence_below,
+            quarantine_suspicious=args.quarantine,
+            hard_delete=args.hard,
+            dry_run=args.dry_run,
+        )
+    finally:
+        await mem.close()
+
+    print(report.to_json() if args.json_out else report.to_text())
+    return 0
+
+
 # ---------------------------------------------------------------------------
 # Entry point
 # ---------------------------------------------------------------------------
@@ -298,6 +364,7 @@ _HANDLERS = {
     "remember": _handle_remember,
     "recall": _handle_recall,
     "forget": _handle_forget,
+    "recover": _handle_recover,
 }
 
 
