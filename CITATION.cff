@@ -5,6 +5,7 @@ type: software
 authors:
   - family-names: "Munirathinam"
     given-names: "Thamilvendhan"
+    orcid: "https://orcid.org/0009-0005-5641-7424"
     email: "mthamil107@gmail.com"
 version: 0.0.0
 date-released: 2026-05-26
