@@ -124,7 +124,7 @@ def _request_is_authenticated(scope: Scope, expected_token: str) -> bool:
 class CSRFMiddleware:
     """Double-submit-cookie CSRF for browser-driven POSTs.
 
-    * On every GET response: set the ``amp_ui_csrf`` cookie if not already
+    * On every GET response: set the ``memorywire_ui_csrf`` cookie if not already
       present.
     * On every mutating request: require the ``X-CSRF-Token`` header to
       match the cookie *and* pass HMAC verification with the per-process

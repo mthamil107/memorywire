@@ -347,7 +347,7 @@ async def _run_locomo_condition(
     dry_run: bool,
 ) -> list[LoCoMoPerQuestionResult]:
     rows: list[LoCoMoPerQuestionResult] = []
-    workspace = Path(".amp-eval-dbs") / "locomo"
+    workspace = Path(".memorywire-eval-dbs") / "locomo"
     for seed in seeds:
         _ = random.Random(seed)
 

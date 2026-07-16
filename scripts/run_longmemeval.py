@@ -396,7 +396,7 @@ async def _run_condition(
     impossible. See ``scripts/lib/eval_common.per_question_store_urls``.
     """
     results: list[PerQuestionResult] = []
-    workspace = Path(".amp-eval-dbs") / "longmemeval"
+    workspace = Path(".memorywire-eval-dbs") / "longmemeval"
 
     for seed in seeds:
         # Per-seed RNG so any randomised behaviour (e.g. tie-breaking,

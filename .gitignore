@@ -62,7 +62,7 @@ memorywire-cli.db
 amp-cli.db
 
 # Eval harness per-question SQLite workspace + diag scratch.
-.amp-eval-dbs/
+.memorywire-eval-dbs/
 .diag/
 
 # Eval harness dry-run / live outputs (regenerated on every run)
