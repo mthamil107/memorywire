@@ -8,6 +8,27 @@ changes may land between minor versions per the spec evolution policy in
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-07-16
+
+### Added
+- **Memory-poison recovery** (`memorywire.recovery`, `memorywire recover`): a
+  detect → recover → verify capability for compromised agent memory.
+  - Provenance is the primary lever — memories from untrusted sources are purged
+    (soft-delete by default, `--hard` to hard-delete).
+  - A directive hidden inside a **trusted** memory (the *entangled* case) is
+    **quarantined** for human review, never silently deleted.
+  - Pluggable content detectors: a built-in directive heuristic, any callable
+    `content -> bool`, or an OWASP Agent Memory Guard detector.
+  - `--dry-run` previews without mutating; `--expire-low-conf` adds a confidence sweep.
+  - Library API: `memorywire.recovery.Recoverer`.
+- `--source` flag on `memorywire remember` so provenance is set from the CLI.
+- Docs: [`docs/recovery.md`](docs/recovery.md); concept + CLI demo GIFs.
+
+### Notes
+- Recovery is validated by the external
+  [PurgeBench](https://github.com/mthamil107/purgebench) benchmark (provenance-based
+  forget is the strongest recovery lever measured).
+
 ## [0.1.0] - 2026-06-10
 
 ### Added
