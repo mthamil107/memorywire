@@ -94,7 +94,7 @@ Reproduce: [`docs/demos/README.md`](docs/demos/README.md).
 | Memory router (RRF fusion + 1-hop graph boost) | shipped |
 | FSM procedural memory (`transitions` library) | shipped |
 | STM&harr;LTM async transformer | shipped |
-| `memorywire` CLI (`remember` / `recall` / `forget`) | shipped |
+| `memorywire` CLI (`remember` / `recall` / `forget` / `recover`) | shipped |
 | Governance UI (Starlette + HTMX, FSL-licensed) | shipped, see [`ui/`](ui/) |
 | LongMemEval / LoCoMo benchmark | v0.2 (microbench live &mdash; see [Benchmarks](#benchmarks)) |
 | IETF Internet-Draft | v0.5 |
@@ -104,19 +104,21 @@ Spec and reference implementation are Apache-2.0. The governance UI is source-av
 ## Install
 
 ```bash
-# From source until first PyPI release
+pip install "memorywire[sqlite-vec]"
+
+# with every backend
+pip install "memorywire[sqlite-vec,mem0,letta,cognee,postgres]"
+
+# then, e.g., clean a poisoned store:
+memorywire recover --agent my-agent --store sqlite-vec://./mem.db --dry-run
+```
+
+From source (for development):
+
+```bash
 git clone https://github.com/mthamil107/memorywire
 cd memorywire
 uv venv && uv pip install -e ".[sqlite-vec]"
-
-# With every backend
-uv pip install -e ".[sqlite-vec,mem0,letta,cognee,postgres]"
-```
-
-When the package lands on PyPI:
-
-```bash
-pip install "memorywire[sqlite-vec,mem0,letta,cognee,postgres]"
 ```
 
 ## Quickstart
