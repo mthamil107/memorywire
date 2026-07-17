@@ -8,6 +8,19 @@ changes may land between minor versions per the spec evolution policy in
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-07-17
+
+### Added
+- **MCP server** (`memorywire-mcp`, `memorywire.mcp`): exposes memorywire's operations —
+  `remember`, `recall`, `forget`, `merge`, `expire`, and **`recover`** — as MCP tools over stdio.
+  Any MCP-aware agent (Claude Desktop, IDE assistants, other clients) gains persistent,
+  governable, recoverable memory by adding the server to its client config; no code changes.
+  - `remember` exposes `source` (the provenance `recover` relies on).
+  - `recover` defaults to `dry_run=true` (safe preview).
+  - Configured via `MEMORYWIRE_STORE` / `MEMORYWIRE_AGENT` env vars.
+- `[mcp]` optional dependency group and the `memorywire-mcp` console entry point.
+- Docs: [`docs/mcp-server.md`](docs/mcp-server.md).
+
 ## [0.2.0] - 2026-07-16
 
 ### Added
