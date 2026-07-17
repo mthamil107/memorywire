@@ -121,6 +121,19 @@ cd memorywire
 uv venv && uv pip install -e ".[sqlite-vec]"
 ```
 
+## Use from any MCP agent
+
+memorywire ships an **MCP server**, so any MCP-aware agent (Claude Desktop, IDE assistants) gets
+persistent, recoverable memory by adding it to the client config — no code:
+
+```json
+{ "mcpServers": { "memorywire": { "command": "memorywire-mcp",
+    "env": { "MEMORYWIRE_STORE": "sqlite-vec://./mem.db", "MEMORYWIRE_AGENT": "assistant" } } } }
+```
+
+The agent gains `remember` / `recall` / `forget` / `merge` / `expire` / `recover` tools. Install
+with `pip install "memorywire[mcp,sqlite-vec]"`; see [`docs/mcp-server.md`](docs/mcp-server.md).
+
 ## Quickstart
 
 ```python

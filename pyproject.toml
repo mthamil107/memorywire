@@ -42,12 +42,14 @@ letta      = ["letta-client>=0.5"]
 cognee     = ["cognee>=1.1"]
 postgres   = ["asyncpg>=0.29", "pgvector>=0.3"]
 ui         = ["starlette>=0.37", "uvicorn>=0.30", "jinja2>=3.1", "python-multipart>=0.0.9"]
+mcp        = ["mcp>=1.2"]
 all        = [
-  "memorywire[sqlite-vec,mem0,letta,cognee,postgres,ui]",
+  "memorywire[sqlite-vec,mem0,letta,cognee,postgres,ui,mcp]",
 ]
 
 [project.scripts]
-memorywire = "memorywire.cli:main"
+memorywire     = "memorywire.cli:main"
+memorywire-mcp = "memorywire.mcp.server:main"
 
 [project.urls]
 Homepage      = "https://github.com/mthamil107/memorywire"
