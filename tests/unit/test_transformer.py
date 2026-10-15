@@ -598,3 +598,57 @@ async def test_concurrent_push_does_not_race() -> None:
     assert len(items) == n
     assert len({it.id for it in items}) == n  # all distinct
     assert t.stm_size == n
+
+
+async def test_consolidation_carries_source_to_ltm() -> None:
+    """``source`` survives STM -> LTM, so a provenance purge can still reach the row.
+
+    Regression: the consolidation path used to build its ``RememberRequest`` without
+    ``source``, so a memory derived from an untrusted parent landed in LTM with
+    ``source = None``. A ``forget(filter={"source": ...})`` purge of that parent then
+    reported success while silently leaving the derived memory behind.
+    """
+    target = FakeTargetStore()
+    t = STMToLTMTransformer(
+        target=target,
+        cadence_seconds=60.0,
+        stm_max_size=10_000,
+        importance_threshold=0.5,
+    )
+
+    item = await t.push(
+        content="Consolidated fact from an untrusted page",
+        agent_id="agent-a",
+        type=MemoryType.SEMANTIC,
+        importance=0.9,
+        source="web_page",
+    )
+    assert item.source == "web_page"
+
+    result = await t.tick()
+
+    assert result.consolidated == 1
+    assert not result.errors
+    assert len(target.remember_calls) == 1
+    assert target.remember_calls[0].source == "web_page"
+
+
+async def test_consolidation_source_defaults_to_none_when_not_given() -> None:
+    """Omitting ``source`` is still allowed and stays ``None`` end to end."""
+    target = FakeTargetStore()
+    t = STMToLTMTransformer(
+        target=target,
+        cadence_seconds=60.0,
+        stm_max_size=10_000,
+        importance_threshold=0.5,
+    )
+
+    await t.push(
+        content="no provenance recorded",
+        agent_id="agent-a",
+        type=MemoryType.SEMANTIC,
+        importance=0.9,
+    )
+    await t.tick()
+
+    assert target.remember_calls[0].source is None

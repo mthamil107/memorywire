@@ -94,6 +94,11 @@ class STMItem(BaseModel):
     type: MemoryType
     importance: float = Field(..., ge=0.0, le=1.0)
     metadata: dict[str, Any] | None = None
+    # Provenance of the buffered item, carried through to LTM on consolidation.
+    # Without this the consolidated row lands with ``source = None`` and becomes
+    # unreachable by ``forget(filter={"source": ...})`` even though its parent was
+    # purgeable -- a provenance purge that silently misses derived memories.
+    source: str | None = None
     # Unix epoch milliseconds.
     pushed_at: int = Field(default_factory=_now_ms)
     recall_count: int = 0
@@ -241,6 +246,7 @@ class STMToLTMTransformer:
         type: MemoryType,
         importance: float,
         metadata: dict[str, Any] | None = None,
+        source: str | None = None,
     ) -> STMItem:
         """Add a new entry to the STM buffer.
 
@@ -256,6 +262,7 @@ class STMToLTMTransformer:
             type=type,
             importance=importance,
             metadata=metadata,
+            source=source,
             # id, pushed_at, recall_count are defaulted by the model.
         )
         async with self._lock:
@@ -339,6 +346,7 @@ class STMToLTMTransformer:
                             type=item.type,
                             metadata=item.metadata,
                             confidence=score,
+                            source=item.source,
                         )
                     )
                 except Exception as exc:
